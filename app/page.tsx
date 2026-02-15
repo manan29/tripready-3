@@ -44,14 +44,14 @@ export default async function Home() {
         <div
           className="absolute inset-0 z-0"
           style={{
-            backgroundImage: 'url(https://images.unsplash.com/photo-1514282401047-d79a71a590e8?w=1920)',
+            backgroundImage: 'url(https://images.unsplash.com/photo-1573843981267-be1999ff37cd?w=1920&q=80)',
             backgroundSize: 'cover',
             backgroundPosition: 'center',
           }}
         />
 
         {/* White Gradient Overlay */}
-        <div className="absolute inset-0 bg-gradient-to-b from-white/80 via-white/70 to-white/90 z-10" />
+        <div className="absolute inset-0 bg-gradient-to-b from-white/70 via-white/60 to-white/85 z-10" />
 
         {/* Content */}
         <div className="relative z-20 container mx-auto px-4 text-center">
