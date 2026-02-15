@@ -1,7 +1,9 @@
 'use client'
 
-import Link from 'next/link'
-import { Plane, CheckCircle, Wallet, MapPin, Sparkles, Search, FileText, Globe } from 'lucide-react'
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { Plane, CheckCircle, Wallet, Sparkles, Search, FileText } from 'lucide-react'
+import Navbar from '@/components/Navbar'
 
 const quickChips = [
   'Dubai 5 days',
@@ -39,39 +41,32 @@ const features = [
 ]
 
 export default function Home() {
+  const [searchQuery, setSearchQuery] = useState('')
+  const router = useRouter()
+
+  const handleChipClick = (chipText: string) => {
+    setSearchQuery(chipText)
+  }
+
+  const handleSearch = (e?: React.FormEvent) => {
+    if (e) e.preventDefault()
+
+    if (searchQuery.trim()) {
+      // Redirect to /trips/new with query parameter
+      router.push(`/trips/new?query=${encodeURIComponent(searchQuery)}`)
+    }
+  }
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      handleSearch()
+    }
+  }
+
   return (
     <div className="min-h-screen bg-white">
-      {/* Navbar */}
-      <nav className="sticky top-0 z-50 bg-white/95 backdrop-blur-sm border-b border-gray-100">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            {/* Logo */}
-            <div className="flex items-center gap-2">
-              <Globe className="h-6 w-6 text-primary" />
-              <span className="text-2xl font-bold">
-                <span className="text-gray-900">Journey</span>
-                <span className="text-primary">AI</span>
-              </span>
-            </div>
-
-            {/* Auth Buttons */}
-            <div className="flex items-center gap-4">
-              <Link
-                href="/login"
-                className="text-gray-700 hover:text-gray-900 font-medium transition-colors"
-              >
-                Login
-              </Link>
-              <Link
-                href="/login"
-                className="bg-primary hover:opacity-90 text-white px-6 py-2 rounded-lg font-medium transition-opacity"
-              >
-                Sign Up
-              </Link>
-            </div>
-          </div>
-        </div>
-      </nav>
+      {/* Navbar with Dynamic Auth */}
+      <Navbar />
 
       {/* Hero Section with Animated Background */}
       <section className="relative min-h-[600px] flex items-center justify-center overflow-hidden py-20">
@@ -104,21 +99,27 @@ export default function Home() {
           </p>
 
           {/* Search Bar */}
-          <div className="max-w-3xl mx-auto mb-8">
+          <form onSubmit={handleSearch} className="max-w-3xl mx-auto mb-8">
             <div className="relative bg-white rounded-2xl shadow-xl p-2">
               <div className="flex items-center gap-2">
                 <Search className="ml-4 h-5 w-5 text-gray-400" />
                 <input
                   type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onKeyDown={handleKeyDown}
                   placeholder="Where do you want to go? Try 'Dubai for 5 days'"
                   className="flex-1 px-4 py-4 text-lg focus:outline-none"
                 />
-                <button className="bg-gradient-to-r from-primary to-secondary text-white px-8 py-4 rounded-xl font-medium hover:opacity-90 transition-opacity whitespace-nowrap">
+                <button
+                  type="submit"
+                  className="bg-gradient-to-r from-primary to-secondary text-white px-8 py-4 rounded-xl font-medium hover:opacity-90 transition-opacity whitespace-nowrap"
+                >
                   Plan Trip
                 </button>
               </div>
             </div>
-          </div>
+          </form>
 
           {/* Popular Chips */}
           <div className="flex flex-wrap items-center justify-center gap-3">
@@ -126,7 +127,8 @@ export default function Home() {
             {quickChips.map((chip) => (
               <button
                 key={chip}
-                className="px-4 py-2 bg-white rounded-full text-sm text-gray-700 hover:bg-gray-50 transition-colors border border-gray-200 shadow-sm"
+                onClick={() => handleChipClick(chip)}
+                className="px-4 py-2 bg-white rounded-full text-sm text-gray-700 hover:bg-gray-50 transition-colors border border-gray-200 shadow-sm cursor-pointer"
               >
                 {chip}
               </button>
@@ -207,7 +209,7 @@ export default function Home() {
             {/* Column 1: Brand */}
             <div>
               <div className="flex items-center gap-2 mb-4">
-                <Globe className="h-6 w-6 text-primary" />
+                <Plane className="h-6 w-6 text-primary" />
                 <span className="text-xl font-bold text-white">
                   Journey<span className="text-primary">AI</span>
                 </span>
@@ -222,9 +224,9 @@ export default function Home() {
               <h3 className="text-white font-semibold mb-4">Product</h3>
               <ul className="space-y-2 text-sm">
                 <li>
-                  <Link href="#features" className="hover:text-white transition-colors">
+                  <a href="#features" className="hover:text-white transition-colors">
                     Features
-                  </Link>
+                  </a>
                 </li>
                 <li>
                   <span className="text-gray-500">Pricing (Coming Soon)</span>
@@ -237,14 +239,14 @@ export default function Home() {
               <h3 className="text-white font-semibold mb-4">Legal</h3>
               <ul className="space-y-2 text-sm">
                 <li>
-                  <Link href="#" className="hover:text-white transition-colors">
+                  <a href="#" className="hover:text-white transition-colors">
                     Privacy Policy
-                  </Link>
+                  </a>
                 </li>
                 <li>
-                  <Link href="#" className="hover:text-white transition-colors">
+                  <a href="#" className="hover:text-white transition-colors">
                     Terms of Service
-                  </Link>
+                  </a>
                 </li>
               </ul>
             </div>
