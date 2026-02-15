@@ -74,9 +74,15 @@ export default function Home() {
       const parsed = await response.json()
       console.log('AI parsed data:', parsed)
 
+      // Validate destination
+      if (!parsed.destination || parsed.destination.length < 2) {
+        console.error('Invalid destination from AI:', parsed.destination)
+        throw new Error('Invalid destination')
+      }
+
       // Build query string with parsed data
       const params = new URLSearchParams({
-        destination: parsed.destination || 'Unknown',
+        destination: parsed.destination,
         country: parsed.country || '',
         duration: parsed.duration?.toString() || '5',
         numAdults: parsed.numAdults?.toString() || '2',

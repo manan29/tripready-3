@@ -56,26 +56,32 @@ function TripNewContent() {
   useEffect(() => {
     async function fetchData() {
       try {
-        // Only fetch if we have a valid destination
-        if (destination && destination !== 'Unknown') {
+        // Only fetch if we have a valid destination (not Unknown and at least 2 characters)
+        if (destination && destination !== 'Unknown' && destination.length > 2) {
           // Fetch weather
           console.log('Fetching weather for:', destination)
           const weatherRes = await fetch(`/api/weather?city=${encodeURIComponent(destination)}`)
           if (weatherRes.ok) {
             const weatherData = await weatherRes.json()
+            console.log('Weather data received:', weatherData)
             setWeather(weatherData)
           } else {
-            console.error('Weather API failed:', await weatherRes.text())
+            const errorText = await weatherRes.text()
+            console.error('Weather API failed:', errorText)
           }
 
           // Fetch currency (assuming USD to INR for now)
           const currencyRes = await fetch('/api/currency?from=USD&to=INR')
           if (currencyRes.ok) {
             const currencyData = await currencyRes.json()
+            console.log('Currency data received:', currencyData)
             setCurrency(currencyData)
           } else {
-            console.error('Currency API failed:', await currencyRes.text())
+            const errorText = await currencyRes.text()
+            console.error('Currency API failed:', errorText)
           }
+        } else {
+          console.log('Skipping weather/currency fetch - invalid destination:', destination)
         }
       } catch (error) {
         console.error('Error fetching data:', error)
@@ -105,8 +111,8 @@ function TripNewContent() {
       return
     }
 
-    if (!destination || destination === 'Unknown') {
-      alert('Please enter a valid destination')
+    if (!destination || destination === 'Unknown' || destination.length < 2) {
+      alert('Please enter a valid destination (minimum 2 characters)')
       return
     }
 
