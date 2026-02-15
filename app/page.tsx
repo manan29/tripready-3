@@ -1,7 +1,5 @@
 'use client'
 
-import { createClient } from '@/lib/supabase/server'
-import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { Plane, CheckCircle, Wallet, MapPin, Sparkles, Search, FileText, Globe } from 'lucide-react'
 
@@ -40,14 +38,7 @@ const features = [
   }
 ]
 
-export default async function Home() {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-
-  if (user) {
-    redirect('/trips')
-  }
-
+export default function Home() {
   return (
     <div className="min-h-screen bg-white">
       {/* Navbar */}
