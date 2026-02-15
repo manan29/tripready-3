@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { Suspense, useEffect, useState } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { MapPin, Calendar, Users, Sun, DollarSign, ArrowLeft, Loader2 } from 'lucide-react'
 import Navbar from '@/components/Navbar'
@@ -18,7 +18,7 @@ interface CurrencyData {
   rate: number
 }
 
-export default function NewTripPage() {
+function TripNewContent() {
   const searchParams = useSearchParams()
   const router = useRouter()
   const supabase = createClient()
@@ -247,5 +247,19 @@ export default function NewTripPage() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function NewTripPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex items-center justify-center min-h-screen">
+          <Loader2 className="h-8 w-8 text-primary animate-spin" />
+        </div>
+      }
+    >
+      <TripNewContent />
+    </Suspense>
   )
 }
