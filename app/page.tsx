@@ -42,18 +42,54 @@ const features = [
 
 export default function Home() {
   const [searchQuery, setSearchQuery] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
 
   const handleChipClick = (chipText: string) => {
     setSearchQuery(chipText)
   }
 
-  const handleSearch = (e?: React.FormEvent) => {
+  const handleSearch = async (e?: React.FormEvent) => {
     if (e) e.preventDefault()
 
-    if (searchQuery.trim()) {
-      // Redirect to /trips/new with query parameter
+    if (!searchQuery.trim()) return
+
+    setIsLoading(true)
+
+    try {
+      // Call AI parsing API
+      const response = await fetch('/api/ai/parse-trip', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query: searchQuery }),
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to parse trip')
+      }
+
+      const parsed = await response.json()
+
+      // Build query string with parsed data
+      const params = new URLSearchParams({
+        destination: parsed.destination || '',
+        country: parsed.country || '',
+        duration: parsed.duration?.toString() || '5',
+        numAdults: parsed.numAdults?.toString() || '2',
+        numKids: parsed.numKids?.toString() || '0',
+        tripType: parsed.tripType || 'adventure',
+        ...(parsed.startDate && { startDate: parsed.startDate }),
+        ...(parsed.endDate && { endDate: parsed.endDate }),
+      })
+
+      // Redirect with parsed data
+      router.push(`/trips/new?${params.toString()}`)
+    } catch (error) {
+      console.error('Error parsing trip:', error)
+      // Fallback: redirect with just the query
       router.push(`/trips/new?query=${encodeURIComponent(searchQuery)}`)
+    } finally {
+      setIsLoading(false)
     }
   }
 
@@ -113,9 +149,10 @@ export default function Home() {
                 />
                 <button
                   type="submit"
-                  className="bg-gradient-to-r from-primary to-secondary text-white px-8 py-4 rounded-xl font-medium hover:opacity-90 transition-opacity whitespace-nowrap"
+                  disabled={isLoading}
+                  className="bg-gradient-to-r from-primary to-secondary text-white px-8 py-4 rounded-xl font-medium hover:opacity-90 transition-opacity whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Plan Trip
+                  {isLoading ? 'Planning...' : 'Plan Trip'}
                 </button>
               </div>
             </div>
