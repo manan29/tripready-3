@@ -58,6 +58,7 @@ export default function Home() {
 
     try {
       // Call AI parsing API
+      console.log('Calling AI parsing API with query:', searchQuery)
       const response = await fetch('/api/ai/parse-trip', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -65,14 +66,17 @@ export default function Home() {
       })
 
       if (!response.ok) {
+        const errorText = await response.text()
+        console.error('AI parsing API failed:', errorText)
         throw new Error('Failed to parse trip')
       }
 
       const parsed = await response.json()
+      console.log('AI parsed data:', parsed)
 
       // Build query string with parsed data
       const params = new URLSearchParams({
-        destination: parsed.destination || '',
+        destination: parsed.destination || 'Unknown',
         country: parsed.country || '',
         duration: parsed.duration?.toString() || '5',
         numAdults: parsed.numAdults?.toString() || '2',
@@ -84,10 +88,18 @@ export default function Home() {
 
       // Redirect with parsed data
       router.push(`/trips/new?${params.toString()}`)
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error parsing trip:', error)
-      // Fallback: redirect with just the query
-      router.push(`/trips/new?query=${encodeURIComponent(searchQuery)}`)
+      // Fallback: redirect with default values and allow manual entry
+      const params = new URLSearchParams({
+        destination: 'Unknown',
+        country: '',
+        duration: '5',
+        numAdults: '2',
+        numKids: '0',
+        tripType: 'adventure',
+      })
+      router.push(`/trips/new?${params.toString()}`)
     } finally {
       setIsLoading(false)
     }

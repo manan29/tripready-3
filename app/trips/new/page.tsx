@@ -25,12 +25,14 @@ function TripNewContent() {
   const supabase = createClient()
 
   // Parse URL params
-  const destination = searchParams.get('destination') || 'Unknown'
-  const country = searchParams.get('country') || ''
+  const urlDestination = searchParams.get('destination') || 'Unknown'
+  const urlCountry = searchParams.get('country') || ''
   const duration = parseInt(searchParams.get('duration') || '5')
   const tripType = searchParams.get('tripType') || 'adventure'
 
   // Editable state
+  const [destination, setDestination] = useState(urlDestination)
+  const [country, setCountry] = useState(urlCountry)
   const [numAdults, setNumAdults] = useState(parseInt(searchParams.get('numAdults') || '2'))
   const [numKids, setNumKids] = useState(parseInt(searchParams.get('numKids') || '0'))
   const [startDate, setStartDate] = useState('')
@@ -54,18 +56,26 @@ function TripNewContent() {
   useEffect(() => {
     async function fetchData() {
       try {
-        // Fetch weather
-        const weatherRes = await fetch(`/api/weather?city=${encodeURIComponent(destination)}`)
-        if (weatherRes.ok) {
-          const weatherData = await weatherRes.json()
-          setWeather(weatherData)
-        }
+        // Only fetch if we have a valid destination
+        if (destination && destination !== 'Unknown') {
+          // Fetch weather
+          console.log('Fetching weather for:', destination)
+          const weatherRes = await fetch(`/api/weather?city=${encodeURIComponent(destination)}`)
+          if (weatherRes.ok) {
+            const weatherData = await weatherRes.json()
+            setWeather(weatherData)
+          } else {
+            console.error('Weather API failed:', await weatherRes.text())
+          }
 
-        // Fetch currency (assuming USD to INR for now)
-        const currencyRes = await fetch('/api/currency?from=USD&to=INR')
-        if (currencyRes.ok) {
-          const currencyData = await currencyRes.json()
-          setCurrency(currencyData)
+          // Fetch currency (assuming USD to INR for now)
+          const currencyRes = await fetch('/api/currency?from=USD&to=INR')
+          if (currencyRes.ok) {
+            const currencyData = await currencyRes.json()
+            setCurrency(currencyData)
+          } else {
+            console.error('Currency API failed:', await currencyRes.text())
+          }
         }
       } catch (error) {
         console.error('Error fetching data:', error)
@@ -74,11 +84,7 @@ function TripNewContent() {
       }
     }
 
-    if (destination && destination !== 'Unknown') {
-      fetchData()
-    } else {
-      setIsLoading(false)
-    }
+    fetchData()
   }, [destination])
 
   const handleSaveTrip = async () => {
@@ -87,20 +93,36 @@ function TripNewContent() {
       data: { session },
     } = await supabase.auth.getSession()
 
-    if (!session) {
-      // Show signup modal
+    if (!session?.user) {
+      console.log('No user session found')
       setShowSignupModal(true)
       return
     }
 
+    // Validate required fields
     if (!startDate) {
       alert('Please select a start date')
+      return
+    }
+
+    if (!destination || destination === 'Unknown') {
+      alert('Please enter a valid destination')
       return
     }
 
     setIsSaving(true)
 
     try {
+      console.log('Saving trip with data:', {
+        user_id: session.user.id,
+        destination,
+        country,
+        start_date: startDate,
+        end_date: endDate,
+        adults: numAdults,
+        kids: numKids,
+      })
+
       // 1. Save trip
       const { data: trip, error: tripError } = await supabase
         .from('trips')
@@ -118,50 +140,65 @@ function TripNewContent() {
         .single()
 
       if (tripError) {
-        console.error('Error saving trip:', tripError)
-        alert('Failed to save trip. Please try again.')
+        console.error('Supabase error:', tripError)
+        alert(`Failed to save trip: ${tripError.message}`)
         setIsSaving(false)
         return
       }
 
+      console.log('Trip saved successfully:', trip)
+
       // 2. Generate packing list
-      const packingResponse = await fetch('/api/ai/packing-list', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          destination,
-          duration,
-          numAdults,
-          numKids,
-          weather: weather?.description || 'unknown',
-        }),
-      })
+      try {
+        const packingResponse = await fetch('/api/ai/packing-list', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            destination,
+            duration,
+            numAdults,
+            numKids,
+            weather: weather?.description || 'unknown',
+          }),
+        })
 
-      if (packingResponse.ok) {
-        const packingData = await packingResponse.json()
+        if (packingResponse.ok) {
+          const packingData = await packingResponse.json()
 
-        // 3. Insert packing items
-        const packingItems = packingData.categories.flatMap((cat: any) =>
-          cat.items.map((item: string, index: number) => ({
-            trip_id: trip.id,
-            user_id: session.user.id,
-            category: cat.name,
-            title: item,
-            is_packed: false,
-            sort_order: index,
-          }))
-        )
+          // 3. Insert packing items
+          const packingItems = packingData.categories.flatMap((cat: any) =>
+            cat.items.map((item: string, index: number) => ({
+              trip_id: trip.id,
+              user_id: session.user.id,
+              category: cat.name,
+              title: item,
+              is_packed: false,
+              sort_order: index,
+            }))
+          )
 
-        if (packingItems.length > 0) {
-          await supabase.from('packing_items').insert(packingItems)
+          if (packingItems.length > 0) {
+            const { error: packingError } = await supabase
+              .from('packing_items')
+              .insert(packingItems)
+
+            if (packingError) {
+              console.error('Error saving packing items:', packingError)
+            }
+          }
+        } else {
+          console.error('Failed to generate packing list:', await packingResponse.text())
         }
+      } catch (packingError) {
+        console.error('Packing list error:', packingError)
+        // Continue even if packing list fails
       }
 
       // 4. Redirect to trip detail page
       router.push(`/trips/${trip.id}`)
-    } catch (error) {
-      console.error('Error saving trip:', error)
-      alert('Failed to save trip. Please try again.')
+    } catch (error: any) {
+      console.error('Save error:', error)
+      alert(`Error saving trip: ${error?.message || 'Unknown error'}`)
       setIsSaving(false)
     }
   }
@@ -184,15 +221,52 @@ function TripNewContent() {
         <div className="max-w-4xl mx-auto">
           {/* Header */}
           <div className="bg-white rounded-2xl shadow-sm p-8 mb-6">
-            <div className="flex items-start justify-between mb-6">
-              <div>
-                <h1 className="text-4xl font-bold text-gray-900 mb-2">
-                  {destination}
-                  {country && <span className="text-gray-500 text-2xl ml-2">{country}</span>}
-                </h1>
-                <div className="inline-block px-3 py-1 bg-purple-100 text-primary rounded-full text-sm font-medium capitalize">
-                  {tripType} Trip
-                </div>
+            <div className="mb-6">
+              <div className="mb-4">
+                {destination === 'Unknown' ? (
+                  <div className="space-y-3">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Destination City *
+                      </label>
+                      <input
+                        type="text"
+                        value={destination === 'Unknown' ? '' : destination}
+                        onChange={(e) => setDestination(e.target.value)}
+                        placeholder="e.g., Dubai, Singapore, Bangkok"
+                        className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary text-lg"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Country (Optional)
+                      </label>
+                      <input
+                        type="text"
+                        value={country}
+                        onChange={(e) => setCountry(e.target.value)}
+                        placeholder="e.g., UAE, Singapore, Thailand"
+                        className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary"
+                      />
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    <h1 className="text-4xl font-bold text-gray-900 mb-2">
+                      {destination}
+                      {country && <span className="text-gray-500 text-2xl ml-2">{country}</span>}
+                    </h1>
+                    <button
+                      onClick={() => setDestination('Unknown')}
+                      className="text-sm text-primary hover:underline"
+                    >
+                      Edit destination
+                    </button>
+                  </>
+                )}
+              </div>
+              <div className="inline-block px-3 py-1 bg-purple-100 text-primary rounded-full text-sm font-medium capitalize">
+                {tripType} Trip
               </div>
             </div>
 
