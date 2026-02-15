@@ -2,8 +2,10 @@
 
 import { createClient } from '@/lib/supabase/client'
 import { useState, useEffect } from 'react'
-import { Plus, Check, Trash2, Pencil, X, Plane, Hotel, FileText, ShieldCheck, CreditCard, Car, Briefcase } from 'lucide-react'
+import { Plus, Check, Trash2, Pencil, X, Plane, Hotel } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import DocumentManager from './DocumentManager'
+import FlightLookup from './FlightLookup'
 
 interface ChecklistItem {
   id: string
@@ -26,13 +28,6 @@ const packingCategories = [
   { id: 'documents', label: 'Documents', icon: '📄' },
 ]
 
-const documentTypes = [
-  { id: 'insurance', label: 'Travel Insurance', icon: ShieldCheck, color: 'bg-blue-500' },
-  { id: 'license', label: 'Driving License', icon: Car, color: 'bg-green-500' },
-  { id: 'visa', label: 'Visa', icon: FileText, color: 'bg-purple-500' },
-  { id: 'passport', label: 'Passport', icon: Briefcase, color: 'bg-orange-500' },
-]
-
 export function PreTripTab({ tripId, userId }: PreTripTabProps) {
   const [items, setItems] = useState<ChecklistItem[]>([])
   const [activeCategory, setActiveCategory] = useState('clothes')
@@ -41,12 +36,25 @@ export function PreTripTab({ tripId, userId }: PreTripTabProps) {
   const [isLoading, setIsLoading] = useState(true)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editText, setEditText] = useState('')
+  const [showFlightLookup, setShowFlightLookup] = useState(false)
+  const [bookings, setBookings] = useState<any[]>([])
 
   const supabase = createClient()
 
   useEffect(() => {
     loadItems()
+    loadBookings()
   }, [tripId])
+
+  async function loadBookings() {
+    const { data } = await supabase
+      .from('bookings')
+      .select('*')
+      .eq('trip_id', tripId)
+      .order('created_at', { ascending: false })
+
+    setBookings(data || [])
+  }
 
   async function loadItems() {
     const { data } = await supabase
@@ -137,29 +145,61 @@ export function PreTripTab({ tripId, userId }: PreTripTabProps) {
     return <div className="text-center py-8 text-gray-500">Loading...</div>
   }
 
+  const totalItems = items.length
+  const completedItems = items.filter((item) => item.is_completed).length
+  const progressPercentage = totalItems > 0 ? Math.round((completedItems / totalItems) * 100) : 0
+
   return (
     <div className="space-y-6">
       {/* Packing List Section */}
       <div className="bg-white rounded-2xl p-6 shadow-sm">
-        <h2 className="text-xl font-bold text-gray-900 mb-4">📦 Packing List</h2>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-xl font-bold text-gray-900">📦 Packing List</h2>
+          <div className="text-right">
+            <div className="text-sm text-gray-600">
+              <span className="font-semibold text-primary">{completedItems}</span> of{' '}
+              <span className="font-semibold">{totalItems}</span> packed
+            </div>
+            <div className="text-xs text-gray-500">{progressPercentage}% complete</div>
+          </div>
+        </div>
+
+        {/* Progress Bar */}
+        {totalItems > 0 && (
+          <div className="mb-6">
+            <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+              <div
+                className="bg-gradient-to-r from-primary to-secondary h-full rounded-full transition-all duration-500 ease-out"
+                style={{ width: `${progressPercentage}%` }}
+              />
+            </div>
+          </div>
+        )}
 
         {/* Category Tabs */}
-        <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
+        <div className="flex gap-2 mb-6 overflow-x-auto pb-2 scrollbar-thin">
           {categoryStats.map((category) => (
             <button
               key={category.id}
               onClick={() => setActiveCategory(category.id)}
               className={cn(
-                'flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium whitespace-nowrap transition-colors',
+                'flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium whitespace-nowrap transition-all duration-200',
                 activeCategory === category.id
-                  ? 'bg-primary-500 text-white shadow-md'
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  ? 'bg-gradient-to-r from-primary to-secondary text-white shadow-md scale-105'
+                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200 hover:scale-102'
               )}
             >
               <span>{category.icon}</span>
               <span>{category.label}</span>
               {category.total > 0 && (
-                <span className="ml-1 text-xs opacity-75">
+                <span
+                  className={cn(
+                    'ml-1 px-2 py-0.5 rounded-full text-xs font-semibold',
+                    activeCategory === category.id
+                      ? 'bg-white/20 text-white'
+                      : 'bg-gray-200 text-gray-600'
+                  )}
+                >
                   {category.completed}/{category.total}
                 </span>
               )}
@@ -173,8 +213,10 @@ export function PreTripTab({ tripId, userId }: PreTripTabProps) {
             <div
               key={item.id}
               className={cn(
-                'flex items-center gap-3 p-3 rounded-xl transition-all group border',
-                item.is_completed ? 'bg-gray-50 border-gray-200' : 'bg-white border-gray-200'
+                'flex items-center gap-3 p-3 rounded-xl transition-all duration-300 group border-2',
+                item.is_completed
+                  ? 'bg-green-50 border-green-200 scale-[0.98]'
+                  : 'bg-white border-gray-200 hover:border-primary-200 hover:shadow-sm'
               )}
             >
               {editingId === item.id ? (
@@ -185,19 +227,19 @@ export function PreTripTab({ tripId, userId }: PreTripTabProps) {
                     onChange={(e) => setEditText(e.target.value)}
                     onKeyDown={(e) => e.key === 'Enter' && saveEdit()}
                     autoFocus
-                    className="flex-1 px-2 py-1 border border-primary-300 rounded-lg outline-none focus:ring-2 focus:ring-primary-100"
+                    className="flex-1 px-3 py-2 border-2 border-primary-300 rounded-lg outline-none focus:ring-2 focus:ring-primary-100 transition-all"
                   />
                   <button
                     onClick={saveEdit}
-                    className="text-green-500 hover:text-green-600 p-1"
+                    className="text-green-500 hover:text-green-600 p-2 hover:bg-green-50 rounded-lg transition-all"
                   >
-                    <Check className="h-4 w-4" />
+                    <Check className="h-5 w-5" />
                   </button>
                   <button
                     onClick={cancelEdit}
-                    className="text-gray-400 hover:text-gray-600 p-1"
+                    className="text-gray-400 hover:text-gray-600 p-2 hover:bg-gray-50 rounded-lg transition-all"
                   >
-                    <X className="h-4 w-4" />
+                    <X className="h-5 w-5" />
                   </button>
                 </>
               ) : (
@@ -205,30 +247,36 @@ export function PreTripTab({ tripId, userId }: PreTripTabProps) {
                   <button
                     onClick={() => toggleItem(item.id, item.is_completed)}
                     className={cn(
-                      'w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors flex-shrink-0',
+                      'w-7 h-7 rounded-full border-2 flex items-center justify-center transition-all duration-300 transform flex-shrink-0',
                       item.is_completed
-                        ? 'bg-green-500 border-green-500 text-white'
-                        : 'border-gray-300 hover:border-primary-500'
+                        ? 'bg-gradient-to-br from-green-500 to-green-600 border-green-500 text-white scale-110 shadow-md'
+                        : 'border-gray-300 hover:border-primary-500 hover:scale-110 active:scale-95'
                     )}
                   >
-                    {item.is_completed && <Check className="h-4 w-4" />}
+                    {item.is_completed && (
+                      <Check className="h-4 w-4 animate-in zoom-in duration-200" />
+                    )}
                   </button>
-                  <span className={cn(
-                    'flex-1 text-sm',
-                    item.is_completed && 'line-through text-gray-400'
-                  )}>
+                  <span
+                    className={cn(
+                      'flex-1 text-sm transition-all duration-300',
+                      item.is_completed
+                        ? 'line-through text-gray-500'
+                        : 'text-gray-900 font-medium'
+                    )}
+                  >
                     {item.title}
                   </span>
-                  <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all duration-200">
                     <button
                       onClick={() => startEdit(item)}
-                      className="text-gray-300 hover:text-blue-500 transition-colors p-1"
+                      className="text-gray-400 hover:text-blue-500 hover:bg-blue-50 transition-all p-1.5 rounded-lg"
                     >
                       <Pencil className="h-4 w-4" />
                     </button>
                     <button
                       onClick={() => deleteItem(item.id)}
-                      className="text-gray-300 hover:text-red-500 transition-colors p-1"
+                      className="text-gray-400 hover:text-red-500 hover:bg-red-50 transition-all p-1.5 rounded-lg"
                     >
                       <Trash2 className="h-4 w-4" />
                     </button>
@@ -240,7 +288,7 @@ export function PreTripTab({ tripId, userId }: PreTripTabProps) {
 
           {/* Add Item */}
           {isAdding ? (
-            <div className="flex gap-2 p-3 bg-gray-50 rounded-xl border border-gray-200">
+            <div className="flex gap-2 p-3 bg-primary-50 rounded-xl border-2 border-primary-200">
               <input
                 type="text"
                 placeholder="Add item..."
@@ -248,17 +296,20 @@ export function PreTripTab({ tripId, userId }: PreTripTabProps) {
                 onChange={(e) => setNewItemTitle(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && addItem()}
                 autoFocus
-                className="flex-1 outline-none text-sm bg-transparent"
+                className="flex-1 outline-none text-sm bg-white px-3 py-2 rounded-lg border border-gray-200 focus:border-primary-400 focus:ring-2 focus:ring-primary-100 transition-all"
               />
               <button
                 onClick={addItem}
-                className="px-3 py-1 bg-primary-500 text-white text-sm rounded-lg hover:bg-primary-600 transition-colors"
+                className="px-4 py-2 bg-gradient-to-r from-primary to-secondary text-white text-sm rounded-lg hover:opacity-90 transition-all font-medium shadow-sm"
               >
                 Add
               </button>
               <button
-                onClick={() => { setIsAdding(false); setNewItemTitle('') }}
-                className="px-3 py-1 text-gray-500 text-sm hover:text-gray-700 transition-colors"
+                onClick={() => {
+                  setIsAdding(false)
+                  setNewItemTitle('')
+                }}
+                className="px-4 py-2 text-gray-600 text-sm hover:bg-gray-100 rounded-lg transition-all"
               >
                 Cancel
               </button>
@@ -266,10 +317,10 @@ export function PreTripTab({ tripId, userId }: PreTripTabProps) {
           ) : (
             <button
               onClick={() => setIsAdding(true)}
-              className="flex items-center gap-2 p-3 w-full text-left text-gray-400 hover:text-gray-600 hover:bg-gray-50 rounded-xl transition-colors border border-dashed border-gray-300"
+              className="flex items-center justify-center gap-2 p-4 w-full text-left text-gray-500 hover:text-primary hover:bg-primary-50 rounded-xl transition-all border-2 border-dashed border-gray-300 hover:border-primary-300 group"
             >
-              <Plus className="h-5 w-5" />
-              <span className="text-sm">Add item</span>
+              <Plus className="h-5 w-5 transition-transform group-hover:scale-110" />
+              <span className="text-sm font-medium">Add item to {packingCategories.find(c => c.id === activeCategory)?.label}</span>
             </button>
           )}
         </div>
@@ -283,63 +334,116 @@ export function PreTripTab({ tripId, userId }: PreTripTabProps) {
 
       {/* Bookings Section */}
       <div className="bg-white rounded-2xl p-6 shadow-sm">
-        <h2 className="text-xl font-bold text-gray-900 mb-4">✈️ Bookings</h2>
-
-        {/* Flights */}
-        <div className="mb-6">
-          <div className="flex items-center gap-2 mb-3">
-            <Plane className="h-5 w-5 text-blue-600" />
-            <h3 className="font-semibold text-gray-900">Flights</h3>
-          </div>
-          <div className="bg-blue-50 rounded-xl p-4 border border-blue-100">
-            <div className="text-sm text-gray-600 mb-1">PNR: <span className="font-mono font-semibold">ABC123XYZ</span></div>
-            <div className="text-sm text-gray-600">Seats: <span className="font-semibold">12A, 12B, 12C</span></div>
-            <button className="mt-3 text-xs text-blue-600 hover:text-blue-700 font-medium">
-              + Add Flight Booking
-            </button>
-          </div>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-xl font-bold text-gray-900">✈️ Bookings</h2>
+          <button
+            onClick={() => setShowFlightLookup(true)}
+            className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-xl text-sm font-medium hover:opacity-90 transition-opacity"
+          >
+            <Plus className="h-4 w-4" />
+            Add Flight
+          </button>
         </div>
 
-        {/* Hotels */}
-        <div>
-          <div className="flex items-center gap-2 mb-3">
-            <Hotel className="h-5 w-5 text-purple-600" />
-            <h3 className="font-semibold text-gray-900">Hotels</h3>
-          </div>
-          <div className="bg-purple-50 rounded-xl p-4 border border-purple-100">
-            <div className="text-sm text-gray-600 mb-1">
-              Booking: <span className="font-mono font-semibold">#HTL456789</span>
+        {/* Flights */}
+        <div className="space-y-3">
+          {bookings.filter(b => b.type === 'flight').length > 0 ? (
+            bookings
+              .filter(b => b.type === 'flight')
+              .map((booking) => (
+                <div key={booking.id} className="bg-blue-50 rounded-xl p-4 border border-blue-100">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-2">
+                      <Plane className="h-5 w-5 text-blue-600" />
+                      <h3 className="font-semibold text-gray-900">{booking.title}</h3>
+                    </div>
+                  </div>
+
+                  {booking.details && (
+                    <>
+                      <div className="flex items-center justify-between mb-2">
+                        <div>
+                          <div className="text-sm font-semibold text-gray-900">
+                            {booking.details.departure?.iata || 'DEP'}
+                          </div>
+                          <div className="text-xs text-gray-600">
+                            {booking.details.departure?.airport || 'Departure'}
+                          </div>
+                          {booking.details.departure?.time && (
+                            <div className="text-xs text-gray-500 mt-1">
+                              {new Date(booking.details.departure.time).toLocaleString()}
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="flex items-center gap-2 px-3">
+                          <div className="h-px w-8 bg-blue-300" />
+                          <Plane className="h-4 w-4 text-blue-500" />
+                          <div className="h-px w-8 bg-blue-300" />
+                        </div>
+
+                        <div className="text-right">
+                          <div className="text-sm font-semibold text-gray-900">
+                            {booking.details.arrival?.iata || 'ARR'}
+                          </div>
+                          <div className="text-xs text-gray-600">
+                            {booking.details.arrival?.airport || 'Arrival'}
+                          </div>
+                          {booking.details.arrival?.time && (
+                            <div className="text-xs text-gray-500 mt-1">
+                              {new Date(booking.details.arrival.time).toLocaleString()}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="flex gap-4 text-sm text-gray-600 mt-3 pt-3 border-t border-blue-200">
+                        {booking.details.pnr && (
+                          <div>
+                            PNR: <span className="font-mono font-semibold">{booking.details.pnr}</span>
+                          </div>
+                        )}
+                        {booking.details.seatNumber && (
+                          <div>
+                            Seat: <span className="font-semibold">{booking.details.seatNumber}</span>
+                          </div>
+                        )}
+                      </div>
+                    </>
+                  )}
+                </div>
+              ))
+          ) : (
+            <div className="bg-blue-50 rounded-xl p-6 border border-blue-100 text-center">
+              <Plane className="h-8 w-8 text-blue-300 mx-auto mb-2" />
+              <p className="text-sm text-gray-600 mb-2">No flights added yet</p>
+              <button
+                onClick={() => setShowFlightLookup(true)}
+                className="text-xs text-blue-600 hover:text-blue-700 font-medium"
+              >
+                + Add Flight Booking
+              </button>
             </div>
-            <div className="text-sm text-gray-600">Hotel Grand Plaza</div>
-            <button className="mt-3 text-xs text-purple-600 hover:text-purple-700 font-medium">
-              + Add Hotel Booking
-            </button>
-          </div>
+          )}
         </div>
       </div>
 
       {/* Documents Section */}
       <div className="bg-white rounded-2xl p-6 shadow-sm">
-        <h2 className="text-xl font-bold text-gray-900 mb-4">📋 Documents</h2>
-
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {documentTypes.map((doc) => {
-            const Icon = doc.icon
-            return (
-              <div
-                key={doc.id}
-                className="flex flex-col items-center p-4 rounded-xl border-2 border-dashed border-gray-200 hover:border-primary-300 transition-colors cursor-pointer"
-              >
-                <div className={cn('w-12 h-12 rounded-full flex items-center justify-center mb-2', doc.color)}>
-                  <Icon className="h-6 w-6 text-white" />
-                </div>
-                <span className="text-xs text-gray-600 text-center">{doc.label}</span>
-                <span className="text-xs text-green-600 mt-1">✓ Added</span>
-              </div>
-            )
-          })}
-        </div>
+        <DocumentManager tripId={tripId} />
       </div>
+
+      {/* Flight Lookup Modal */}
+      {showFlightLookup && (
+        <FlightLookup
+          tripId={tripId}
+          onFlightAdded={() => {
+            loadBookings()
+            setShowFlightLookup(false)
+          }}
+          onClose={() => setShowFlightLookup(false)}
+        />
+      )}
     </div>
   )
 }

@@ -5,6 +5,12 @@ import Image from 'next/image'
 import { Plus, Plane, LogOut, CheckCircle, Wallet, MapPin, Sparkles } from 'lucide-react'
 import { TripCard } from '@/components/trips/TripCard'
 import { AISearchBar } from '@/components/trips/AISearchBar'
+import type { Metadata } from 'next'
+
+export const metadata: Metadata = {
+  title: 'My Trips',
+  description: 'View and manage all your planned trips with JourneyAI',
+}
 
 export default async function TripsPage() {
   const supabase = await createClient()

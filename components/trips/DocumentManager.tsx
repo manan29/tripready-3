@@ -29,14 +29,25 @@ const DOCUMENT_TYPES = [
 export default function DocumentManager({ tripId }: DocumentManagerProps) {
   const [documents, setDocuments] = useState<Document[]>([])
   const [loading, setLoading] = useState(true)
+  const [userId, setUserId] = useState<string>('')
   const [editingDoc, setEditingDoc] = useState<{ id: string; number: string; expiry: string } | null>(
     null
   )
   const supabase = createClient()
 
   useEffect(() => {
+    fetchUserId()
     fetchDocuments()
   }, [tripId])
+
+  const fetchUserId = async () => {
+    const {
+      data: { session },
+    } = await supabase.auth.getSession()
+    if (session?.user) {
+      setUserId(session.user.id)
+    }
+  }
 
   const fetchDocuments = async () => {
     const { data, error } = await supabase
@@ -57,12 +68,36 @@ export default function DocumentManager({ tripId }: DocumentManagerProps) {
 
     if (!session) return
 
-    const { error } = await supabase.from('documents').insert({
-      trip_id: tripId,
-      user_id: session.user.id,
-      document_type: documentType,
-      file_url: fileUrl,
-    })
+    // Check if document already exists for this type
+    const existingDoc = documents.find((d) => d.document_type === documentType)
+
+    if (existingDoc) {
+      // Update existing document
+      const { error } = await supabase
+        .from('documents')
+        .update({ file_url: fileUrl })
+        .eq('id', existingDoc.id)
+
+      if (!error) {
+        fetchDocuments()
+      }
+    } else {
+      // Insert new document
+      const { error } = await supabase.from('documents').insert({
+        trip_id: tripId,
+        user_id: session.user.id,
+        document_type: documentType,
+        file_url: fileUrl,
+      })
+
+      if (!error) {
+        fetchDocuments()
+      }
+    }
+  }
+
+  const handleDeleteDocument = async (docId: string) => {
+    const { error } = await supabase.from('documents').delete().eq('id', docId)
 
     if (!error) {
       fetchDocuments()
@@ -104,108 +139,95 @@ export default function DocumentManager({ tripId }: DocumentManagerProps) {
                 <h4 className="font-semibold text-gray-900">{docType.label}</h4>
               </div>
 
-              {existingDoc ? (
-                <div className="space-y-4">
-                  {/* Uploaded Document */}
-                  <div className="bg-gray-50 rounded-lg p-4">
-                    <div className="flex items-center gap-3 mb-3">
-                      <FileText className="h-5 w-5 text-primary" />
-                      <a
-                        href={existingDoc.file_url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-sm text-primary hover:underline flex items-center gap-1"
-                      >
-                        View Document
-                        <ExternalLink className="h-3 w-3" />
-                      </a>
-                    </div>
+              <DocumentUpload
+                tripId={tripId}
+                userId={userId}
+                documentType={docType.value}
+                existingUrl={existingDoc?.file_url}
+                onUploadComplete={(url) => handleUploadComplete(docType.value, url)}
+                onDelete={existingDoc ? () => handleDeleteDocument(existingDoc.id) : undefined}
+              />
 
-                    {/* Document Details */}
-                    {editingDoc?.id === existingDoc.id ? (
-                      <div className="space-y-2">
-                        <div>
-                          <label className="block text-xs text-gray-600 mb-1">
-                            Document Number
-                          </label>
-                          <input
-                            type="text"
-                            value={editingDoc.number}
-                            onChange={(e) =>
-                              setEditingDoc({ ...editingDoc, number: e.target.value })
-                            }
-                            className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-                            placeholder="Enter number"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-xs text-gray-600 mb-1">Expiry Date</label>
-                          <input
-                            type="date"
-                            value={editingDoc.expiry}
-                            onChange={(e) =>
-                              setEditingDoc({ ...editingDoc, expiry: e.target.value })
-                            }
-                            className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-                          />
-                        </div>
-                        <div className="flex gap-2">
-                          <button
-                            onClick={() =>
-                              handleSaveDetails(existingDoc.id, editingDoc.number, editingDoc.expiry)
-                            }
-                            className="flex-1 bg-primary text-white px-4 py-2 rounded-lg text-sm font-medium hover:opacity-90"
-                          >
-                            Save
-                          </button>
-                          <button
-                            onClick={() => setEditingDoc(null)}
-                            className="px-4 py-2 border border-gray-300 rounded-lg text-sm text-gray-700 hover:bg-gray-50"
-                          >
-                            Cancel
-                          </button>
-                        </div>
+              {/* Document Details - Show below upload if document exists */}
+              {existingDoc && (
+                <div className="mt-4">
+                  {editingDoc?.id === existingDoc.id ? (
+                    <div className="space-y-3 bg-gray-50 rounded-lg p-4">
+                      <div>
+                        <label className="block text-xs text-gray-600 mb-1">
+                          Document Number
+                        </label>
+                        <input
+                          type="text"
+                          value={editingDoc.number}
+                          onChange={(e) =>
+                            setEditingDoc({ ...editingDoc, number: e.target.value })
+                          }
+                          className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                          placeholder="Enter number"
+                        />
                       </div>
-                    ) : (
-                      <div className="space-y-2">
-                        {existingDoc.document_number && (
-                          <div className="flex items-center gap-2 text-sm">
-                            <Hash className="h-4 w-4 text-gray-400" />
-                            <span className="text-gray-700">{existingDoc.document_number}</span>
-                          </div>
-                        )}
-                        {existingDoc.expiry_date && (
-                          <div className="flex items-center gap-2 text-sm">
-                            <Calendar className="h-4 w-4 text-gray-400" />
-                            <span className="text-gray-700">
-                              Expires: {new Date(existingDoc.expiry_date).toLocaleDateString()}
-                            </span>
-                          </div>
-                        )}
+                      <div>
+                        <label className="block text-xs text-gray-600 mb-1">Expiry Date</label>
+                        <input
+                          type="date"
+                          value={editingDoc.expiry}
+                          onChange={(e) =>
+                            setEditingDoc({ ...editingDoc, expiry: e.target.value })
+                          }
+                          className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                        />
+                      </div>
+                      <div className="flex gap-2">
                         <button
                           onClick={() =>
-                            setEditingDoc({
-                              id: existingDoc.id,
-                              number: existingDoc.document_number || '',
-                              expiry: existingDoc.expiry_date || '',
-                            })
+                            handleSaveDetails(existingDoc.id, editingDoc.number, editingDoc.expiry)
                           }
-                          className="text-sm text-primary hover:underline"
+                          className="flex-1 bg-primary text-white px-4 py-2 rounded-lg text-sm font-medium hover:opacity-90"
                         >
-                          {existingDoc.document_number || existingDoc.expiry_date
-                            ? 'Edit Details'
-                            : 'Add Details'}
+                          Save
+                        </button>
+                        <button
+                          onClick={() => setEditingDoc(null)}
+                          className="px-4 py-2 border border-gray-300 rounded-lg text-sm text-gray-700 hover:bg-gray-50"
+                        >
+                          Cancel
                         </button>
                       </div>
-                    )}
-                  </div>
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      {existingDoc.document_number && (
+                        <div className="flex items-center gap-2 text-sm">
+                          <Hash className="h-4 w-4 text-gray-400" />
+                          <span className="text-gray-700">{existingDoc.document_number}</span>
+                        </div>
+                      )}
+                      {existingDoc.expiry_date && (
+                        <div className="flex items-center gap-2 text-sm">
+                          <Calendar className="h-4 w-4 text-gray-400" />
+                          <span className="text-gray-700">
+                            Expires: {new Date(existingDoc.expiry_date).toLocaleDateString()}
+                          </span>
+                        </div>
+                      )}
+                      <button
+                        onClick={() =>
+                          setEditingDoc({
+                            id: existingDoc.id,
+                            number: existingDoc.document_number || '',
+                            expiry: existingDoc.expiry_date || '',
+                          })
+                        }
+                        className="text-sm text-primary hover:underline"
+                      >
+                        {existingDoc.document_number || existingDoc.expiry_date
+                          ? 'Edit Details'
+                          : 'Add Details'}
+                      </button>
+                    </div>
+                  )}
                 </div>
-              ) : (
-                <DocumentUpload
-                  tripId={tripId}
-                  documentType={docType.value}
-                  onUploadComplete={(url) => handleUploadComplete(docType.value, url)}
-                />
               )}
             </div>
           )

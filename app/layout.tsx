@@ -5,8 +5,34 @@ import './globals.css'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'Ramu.ai - Your AI Travel Concierge',
-  description: 'Your personal AI Concierge for International trips. Smart planning, budget management, and complete checklists.',
+  title: {
+    default: 'JourneyAI - Your AI Travel Concierge',
+    template: '%s | JourneyAI',
+  },
+  description:
+    'Your personal AI Concierge for international trips. Smart planning, budget management, packing lists, and complete travel organization.',
+  keywords: [
+    'travel planning',
+    'AI travel',
+    'trip planner',
+    'itinerary',
+    'travel budget',
+    'packing list',
+  ],
+  authors: [{ name: 'JourneyAI' }],
+  openGraph: {
+    type: 'website',
+    locale: 'en_US',
+    url: 'https://journeyai.com',
+    title: 'JourneyAI - Your AI Travel Concierge',
+    description: 'Plan perfect trips with AI. Smart itineraries, budgets, and organization.',
+    siteName: 'JourneyAI',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'JourneyAI - Your AI Travel Concierge',
+    description: 'Plan perfect trips with AI. Smart itineraries, budgets, and organization.',
+  },
 }
 
 export default function RootLayout({

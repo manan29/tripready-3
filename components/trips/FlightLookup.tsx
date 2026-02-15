@@ -35,31 +35,37 @@ export default function FlightLookup({ tripId, onFlightAdded, onClose }: FlightL
   const [pnr, setPnr] = useState('')
   const [seatNumber, setSeatNumber] = useState('')
   const [saving, setSaving] = useState(false)
+  const [error, setError] = useState<string | null>(null)
   const supabase = createClient()
 
   const handleFetchFlight = async () => {
     if (!flightNumber.trim()) {
-      alert('Please enter a flight number')
+      setError('Please enter a flight number')
       return
     }
 
     setLoading(true)
+    setError(null)
 
     try {
       const response = await fetch(`/api/flights?flight=${encodeURIComponent(flightNumber)}`)
 
       if (!response.ok) {
-        const error = await response.json()
-        alert(error.error || 'Failed to fetch flight details')
+        const errorData = await response.json()
+        setError(
+          errorData.error ||
+            'Flight not found. Please check the flight number or enter details manually.'
+        )
         setLoading(false)
         return
       }
 
       const data = await response.json()
       setFlightData(data)
+      setError(null)
     } catch (error) {
       console.error('Error fetching flight:', error)
-      alert('Failed to fetch flight details. Please try again.')
+      setError('Unable to connect to flight service. Please try again or enter details manually.')
     } finally {
       setLoading(false)
     }
@@ -171,6 +177,21 @@ export default function FlightLookup({ tripId, onFlightAdded, onClose }: FlightL
             )}
           </div>
         </div>
+
+        {/* Error Message */}
+        {error && (
+          <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-6">
+            <div className="flex items-start gap-3">
+              <div className="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center flex-shrink-0">
+                <X className="h-5 w-5 text-red-600" />
+              </div>
+              <div className="flex-1">
+                <h3 className="font-semibold text-red-900 mb-1">Flight Not Found</h3>
+                <p className="text-sm text-red-700">{error}</p>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Flight Details */}
         {flightData && (

@@ -8,10 +8,35 @@ import { ItineraryTab } from '@/components/trips/ItineraryTab'
 import { BudgetTab } from '@/components/trips/BudgetTab'
 import { PostTripTab } from '@/components/trips/PostTripTab'
 import { TripTabs } from '@/components/trips/TripTabs'
+import TripHeader from '@/components/trips/TripHeader'
 
 interface PageProps {
   params: Promise<{ tripId: string }>
   searchParams: Promise<{ tab?: string }>
+}
+
+export async function generateMetadata({ params }: PageProps) {
+  const { tripId } = await params
+  const supabase = await createClient()
+
+  const { data: trip } = await supabase
+    .from('trips')
+    .select('destination, country, start_date')
+    .eq('id', tripId)
+    .single()
+
+  if (!trip) {
+    return {
+      title: 'Trip Not Found',
+    }
+  }
+
+  return {
+    title: `${trip.destination}${trip.country ? ', ' + trip.country : ''} Trip`,
+    description: `Plan and manage your trip to ${trip.destination} starting ${new Date(
+      trip.start_date
+    ).toLocaleDateString()}`,
+  }
 }
 
 export default async function TripDetailPage({ params, searchParams }: PageProps) {
@@ -50,8 +75,6 @@ export default async function TripDetailPage({ params, searchParams }: PageProps
 
   const totalSpent = expenses?.reduce((sum: number, exp: any) => sum + Number(exp.amount), 0) || 0
 
-  const days = daysUntil(trip.start_date)
-  const duration = tripDuration(trip.start_date, trip.end_date)
   const { gradient, icon } = getTripVisuals(trip.destination)
 
   return (
@@ -80,57 +103,14 @@ export default async function TripDetailPage({ params, searchParams }: PageProps
         </div>
       </header>
 
-      {/* Trip Top Bar Stats */}
-      <div className="bg-white border-b border-gray-200">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between flex-wrap gap-4">
-            {/* Days to Go */}
-            <div className="flex items-center gap-2">
-              <div className="text-center px-4 py-2 bg-primary-50 rounded-xl">
-                <div className="text-xl font-bold text-primary-600">
-                  {days < 0 ? 'Completed' : days === 0 ? 'Today!' : `${days} days to go`}
-                </div>
-                {days > 0 && (
-                  <div className="text-xs text-primary-600/70">
-                    {formatDate(trip.start_date)}
-                  </div>
-                )}
-                {days < 0 && (
-                  <div className="text-xs text-primary-600/70">Trip finished</div>
-                )}
-              </div>
-            </div>
-
-            {/* Duration */}
-            <div className="text-center px-4 py-2 bg-blue-50 rounded-xl">
-              <div className="text-sm font-medium text-blue-900">Duration</div>
-              <div className="text-lg font-bold text-blue-600">{duration} days</div>
-            </div>
-
-            {/* Weather Placeholder */}
-            <div className="text-center px-4 py-2 bg-orange-50 rounded-xl">
-              <div className="text-sm font-medium text-orange-900">Weather</div>
-              <div className="text-lg font-bold text-orange-600">28°C ☀️</div>
-            </div>
-
-            {/* Currency Converter */}
-            <div className="text-center px-4 py-2 bg-green-50 rounded-xl">
-              <div className="text-sm font-medium text-green-900">Currency</div>
-              <div className="text-lg font-bold text-green-600">
-                {trip.currency === 'AED' && '1 AED = ₹22.8'}
-                {trip.currency === 'USD' && '1 USD = ₹83.2'}
-                {trip.currency === 'EUR' && '1 EUR = ₹90.5'}
-                {trip.currency === 'SGD' && '1 SGD = ₹62.1'}
-                {trip.currency === 'THB' && '1 THB = ₹2.4'}
-                {trip.currency === 'MYR' && '1 MYR = ₹18.8'}
-                {trip.currency === 'INR' && '₹ INR'}
-                {!['AED', 'USD', 'EUR', 'SGD', 'THB', 'MYR', 'INR'].includes(trip.currency) &&
-                  `1 ${trip.currency} = ₹--`}
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+      {/* Trip Header with Live Data */}
+      <TripHeader
+        destination={trip.destination}
+        country={trip.country || ''}
+        startDate={trip.start_date}
+        endDate={trip.end_date}
+        currency={trip.destination_currency || 'USD'}
+      />
 
       {/* Tabs */}
       <TripTabs tripId={tripId} activeTab={tab} />

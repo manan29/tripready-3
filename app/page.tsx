@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Plane, CheckCircle, Wallet, Sparkles, Search, FileText } from 'lucide-react'
+import { Plane, CheckCircle, Wallet, Sparkles, Search, FileText, Loader2 } from 'lucide-react'
 import Navbar from '@/components/Navbar'
 
 const quickChips = [
@@ -168,9 +168,19 @@ export default function Home() {
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className="bg-gradient-to-r from-primary to-secondary text-white px-8 py-4 rounded-xl font-medium hover:opacity-90 transition-opacity whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="bg-gradient-to-r from-primary to-secondary text-white px-8 py-4 rounded-xl font-medium hover:opacity-90 transition-opacity whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                 >
-                  {isLoading ? 'Planning...' : 'Plan Trip'}
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="h-5 w-5 animate-spin" />
+                      <span>AI is planning...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="h-5 w-5" />
+                      <span>Plan Trip</span>
+                    </>
+                  )}
                 </button>
               </div>
             </div>

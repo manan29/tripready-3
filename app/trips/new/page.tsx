@@ -380,7 +380,12 @@ function TripNewContent() {
                   <p className="text-gray-600 capitalize">{weather.description}</p>
                 </div>
               ) : (
-                <p className="text-gray-500">Weather data unavailable</p>
+                <div className="py-4">
+                  <p className="text-gray-500 text-sm">Weather data unavailable</p>
+                  <p className="text-gray-400 text-xs mt-1">
+                    Check weather closer to your trip date
+                  </p>
+                </div>
               )}
             </div>
 
@@ -404,7 +409,12 @@ function TripNewContent() {
                   </p>
                 </div>
               ) : (
-                <p className="text-gray-500">Currency data unavailable</p>
+                <div className="py-4">
+                  <p className="text-gray-500 text-sm">Currency rate unavailable</p>
+                  <p className="text-gray-400 text-xs mt-1">
+                    You can add this later from your trip page
+                  </p>
+                </div>
               )}
             </div>
           </div>
