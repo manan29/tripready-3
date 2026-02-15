@@ -122,13 +122,13 @@ export default function Home() {
           </form>
 
           {/* Popular Chips */}
-          <div className="flex flex-wrap items-center justify-center gap-3">
-            <span className="text-sm font-medium text-gray-700">Popular:</span>
+          <div className="flex flex-wrap items-center justify-center gap-2 mt-4">
+            <span className="text-gray-500 text-sm">Popular:</span>
             {quickChips.map((chip) => (
               <button
                 key={chip}
                 onClick={() => handleChipClick(chip)}
-                className="px-4 py-2 bg-white rounded-full text-sm text-gray-700 hover:bg-gray-50 transition-colors border border-gray-200 shadow-sm cursor-pointer"
+                className="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-full text-sm text-gray-700 transition-colors whitespace-nowrap"
               >
                 {chip}
               </button>
