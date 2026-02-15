@@ -2,8 +2,9 @@
 
 import { Suspense, useEffect, useState } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
-import { MapPin, Calendar, Users, Sun, DollarSign, ArrowLeft, Loader2 } from 'lucide-react'
+import { MapPin, Calendar, Users, Sun, DollarSign, ArrowLeft, Loader2, Plus, Minus } from 'lucide-react'
 import Navbar from '@/components/Navbar'
+import SignupModal from '@/components/SignupModal'
 import { createClient } from '@/lib/supabase/client'
 
 interface WeatherData {
@@ -27,16 +28,28 @@ function TripNewContent() {
   const destination = searchParams.get('destination') || 'Unknown'
   const country = searchParams.get('country') || ''
   const duration = parseInt(searchParams.get('duration') || '5')
-  const numAdults = parseInt(searchParams.get('numAdults') || '2')
-  const numKids = parseInt(searchParams.get('numKids') || '0')
   const tripType = searchParams.get('tripType') || 'adventure'
-  const startDate = searchParams.get('startDate')
-  const endDate = searchParams.get('endDate')
+
+  // Editable state
+  const [numAdults, setNumAdults] = useState(parseInt(searchParams.get('numAdults') || '2'))
+  const [numKids, setNumKids] = useState(parseInt(searchParams.get('numKids') || '0'))
+  const [startDate, setStartDate] = useState('')
+
+  // Calculate end date based on start date + duration
+  const calculateEndDate = (start: string, days: number) => {
+    if (!start) return ''
+    const date = new Date(start)
+    date.setDate(date.getDate() + days)
+    return date.toISOString().split('T')[0]
+  }
+
+  const endDate = calculateEndDate(startDate, duration)
 
   const [weather, setWeather] = useState<WeatherData | null>(null)
   const [currency, setCurrency] = useState<CurrencyData | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
+  const [showSignupModal, setShowSignupModal] = useState(false)
 
   useEffect(() => {
     async function fetchData() {
@@ -70,22 +83,85 @@ function TripNewContent() {
 
   const handleSaveTrip = async () => {
     // Check if user is logged in
-    const { data: { session } } = await supabase.auth.getSession()
+    const {
+      data: { session },
+    } = await supabase.auth.getSession()
 
     if (!session) {
-      // Redirect to login
-      router.push('/login?redirect=/trips/new?' + searchParams.toString())
+      // Show signup modal
+      setShowSignupModal(true)
+      return
+    }
+
+    if (!startDate) {
+      alert('Please select a start date')
       return
     }
 
     setIsSaving(true)
+
     try {
-      // TODO: Save trip to database
-      // For now, just redirect to trips page
-      router.push('/trips')
+      // 1. Save trip
+      const { data: trip, error: tripError } = await supabase
+        .from('trips')
+        .insert({
+          user_id: session.user.id,
+          destination: destination,
+          country: country,
+          start_date: startDate,
+          end_date: endDate,
+          adults: numAdults,
+          kids: numKids,
+          destination_currency: 'INR',
+        })
+        .select()
+        .single()
+
+      if (tripError) {
+        console.error('Error saving trip:', tripError)
+        alert('Failed to save trip. Please try again.')
+        setIsSaving(false)
+        return
+      }
+
+      // 2. Generate packing list
+      const packingResponse = await fetch('/api/ai/packing-list', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          destination,
+          duration,
+          numAdults,
+          numKids,
+          weather: weather?.description || 'unknown',
+        }),
+      })
+
+      if (packingResponse.ok) {
+        const packingData = await packingResponse.json()
+
+        // 3. Insert packing items
+        const packingItems = packingData.categories.flatMap((cat: any) =>
+          cat.items.map((item: string, index: number) => ({
+            trip_id: trip.id,
+            user_id: session.user.id,
+            category: cat.name,
+            title: item,
+            is_packed: false,
+            sort_order: index,
+          }))
+        )
+
+        if (packingItems.length > 0) {
+          await supabase.from('packing_items').insert(packingItems)
+        }
+      }
+
+      // 4. Redirect to trip detail page
+      router.push(`/trips/${trip.id}`)
     } catch (error) {
       console.error('Error saving trip:', error)
-    } finally {
+      alert('Failed to save trip. Please try again.')
       setIsSaving(false)
     }
   }
@@ -133,30 +209,67 @@ function TripNewContent() {
                 </div>
               </div>
 
-              {/* Travelers */}
+              {/* Travelers - Editable */}
               <div className="flex items-center gap-3">
                 <div className="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center">
                   <Users className="h-6 w-6 text-primary" />
                 </div>
-                <div>
-                  <p className="text-sm text-gray-500">Travelers</p>
-                  <p className="text-lg font-semibold text-gray-900">
-                    {numAdults} {numAdults === 1 ? 'Adult' : 'Adults'}
-                    {numKids > 0 && `, ${numKids} ${numKids === 1 ? 'Kid' : 'Kids'}`}
-                  </p>
+                <div className="flex-1">
+                  <p className="text-sm text-gray-500 mb-2">Travelers</p>
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm text-gray-600 w-16">Adults:</span>
+                      <button
+                        onClick={() => setNumAdults(Math.max(1, numAdults - 1))}
+                        className="w-7 h-7 rounded-full border border-gray-300 flex items-center justify-center hover:bg-gray-50"
+                      >
+                        <Minus className="h-3 w-3" />
+                      </button>
+                      <span className="text-sm font-semibold w-6 text-center">{numAdults}</span>
+                      <button
+                        onClick={() => setNumAdults(Math.min(10, numAdults + 1))}
+                        className="w-7 h-7 rounded-full border border-gray-300 flex items-center justify-center hover:bg-gray-50"
+                      >
+                        <Plus className="h-3 w-3" />
+                      </button>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm text-gray-600 w-16">Kids:</span>
+                      <button
+                        onClick={() => setNumKids(Math.max(0, numKids - 1))}
+                        className="w-7 h-7 rounded-full border border-gray-300 flex items-center justify-center hover:bg-gray-50"
+                      >
+                        <Minus className="h-3 w-3" />
+                      </button>
+                      <span className="text-sm font-semibold w-6 text-center">{numKids}</span>
+                      <button
+                        onClick={() => setNumKids(Math.min(6, numKids + 1))}
+                        className="w-7 h-7 rounded-full border border-gray-300 flex items-center justify-center hover:bg-gray-50"
+                      >
+                        <Plus className="h-3 w-3" />
+                      </button>
+                    </div>
+                  </div>
                 </div>
               </div>
 
-              {/* Dates */}
+              {/* Dates - Editable */}
               <div className="flex items-center gap-3">
                 <div className="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center">
                   <MapPin className="h-6 w-6 text-primary" />
                 </div>
-                <div>
-                  <p className="text-sm text-gray-500">Dates</p>
-                  <p className="text-lg font-semibold text-gray-900">
-                    {startDate && endDate ? `${startDate} - ${endDate}` : 'Flexible'}
-                  </p>
+                <div className="flex-1">
+                  <p className="text-sm text-gray-500 mb-2">Start Date</p>
+                  <input
+                    type="date"
+                    value={startDate}
+                    onChange={(e) => setStartDate(e.target.value)}
+                    min={new Date().toISOString().split('T')[0]}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-sm"
+                  />
+                  {endDate && (
+                    <p className="text-xs text-gray-500 mt-1">End: {endDate}</p>
+                  )}
                 </div>
               </div>
             </div>
@@ -221,7 +334,7 @@ function TripNewContent() {
             <div className="flex flex-col sm:flex-row gap-4">
               <button
                 onClick={handleSaveTrip}
-                disabled={isSaving}
+                disabled={isSaving || !startDate}
                 className="flex-1 bg-gradient-to-r from-primary to-secondary text-white px-8 py-4 rounded-xl font-medium hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isSaving ? (
@@ -241,11 +354,18 @@ function TripNewContent() {
               </button>
             </div>
             <p className="text-sm text-gray-500 mt-4 text-center">
-              Saving this trip will allow you to add detailed itineraries, manage budgets, and more.
+              We'll generate a smart packing list based on your destination and travelers
             </p>
           </div>
         </div>
       </div>
+
+      {/* Signup Modal */}
+      <SignupModal
+        isOpen={showSignupModal}
+        onClose={() => setShowSignupModal(false)}
+        redirectUrl={`/trips/new?${searchParams.toString()}`}
+      />
     </div>
   )
 }
