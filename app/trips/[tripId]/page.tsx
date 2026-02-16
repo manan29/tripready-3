@@ -27,6 +27,7 @@ import BookingsSection from '@/components/trips/sections/BookingsSection'
 import DocumentsSection from '@/components/trips/sections/DocumentsSection'
 import BudgetSection from '@/components/trips/sections/BudgetSection'
 import { WhatsAppShareButton } from '@/components/ui/WhatsAppShareButton'
+import { getCurrencyForCountry } from '@/lib/destinations'
 
 export default function TripDetailPage() {
   const params = useParams()
@@ -72,21 +73,9 @@ export default function TripDetailPage() {
       console.error('Weather fetch error:', e)
     }
 
-    // Fetch currency
+    // Fetch currency - use local destination currency
     try {
-      const currencyMap: Record<string, string> = {
-        UAE: 'AED',
-        Singapore: 'SGD',
-        Thailand: 'THB',
-        Malaysia: 'MYR',
-        Indonesia: 'IDR',
-        Maldives: 'MVR',
-        Japan: 'JPY',
-        UK: 'GBP',
-        USA: 'USD',
-        Europe: 'EUR',
-      }
-      const fromCurrency = currencyMap[tripData.country] || 'USD'
+      const fromCurrency = getCurrencyForCountry(tripData.country)
 
       const currencyRes = await fetch(`/api/currency?from=${fromCurrency}&to=INR`)
       if (currencyRes.ok) {

@@ -178,6 +178,7 @@ export function getDestinationByName(name: string) {
 export function getCurrencyForCountry(country: string): string {
   const currencyMap: Record<string, string> = {
     'UAE': 'AED',
+    'United Arab Emirates': 'AED',
     'Singapore': 'SGD',
     'Thailand': 'THB',
     'Indonesia': 'IDR',
@@ -190,7 +191,15 @@ export function getCurrencyForCountry(country: string): string {
     'Japan': 'JPY',
     'Australia': 'AUD',
     'UK': 'GBP',
+    'United Kingdom': 'GBP',
+    'USA': 'USD',
+    'United States': 'USD',
+    'France': 'EUR',
+    'Germany': 'EUR',
+    'Italy': 'EUR',
+    'Spain': 'EUR',
     'Multiple': 'EUR',
+    'Switzerland': 'CHF',
   };
   return currencyMap[country] || 'USD';
 }
