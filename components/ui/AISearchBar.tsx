@@ -47,7 +47,7 @@ export function AISearchBar({
         )}
       </GlassCard>
       <p className="text-center text-gray-400 text-xs mt-3">
-        Try: "Thailand with 2 kids in March" or "7 day Singapore trip"
+        Try: "Dubai with toddler" or "Singapore with 2 kids (3 and 6 years old)"
       </p>
     </div>
   )

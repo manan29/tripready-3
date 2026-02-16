@@ -47,20 +47,35 @@ export default function HomePage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ query }),
       })
+
+      if (!response.ok) {
+        throw new Error('Failed to parse trip')
+      }
+
       const data = await response.json()
 
-      // Navigate to trip creation with parsed data
+      // Check if parsing was successful
+      if (!data.parsed_successfully && data.parsed_successfully !== undefined) {
+        alert('Could not understand your query. Try: "Dubai with 2 kids" or "Singapore family trip"')
+        setIsLoading(false)
+        return
+      }
+
+      // Navigate to trip creation with parsed data (handle both snake_case and camelCase)
       const params = new URLSearchParams({
         destination: data.destination || '',
         country: data.country || '',
         duration: data.duration?.toString() || '5',
-        numAdults: data.numAdults?.toString() || '2',
-        numKids: data.numKids?.toString() || '0',
-        tripType: data.tripType || 'adventure',
+        numAdults: (data.num_adults || data.numAdults)?.toString() || '2',
+        numKids: (data.num_kids || data.numKids)?.toString() || '0',
+        startDate: data.start_date || data.startDate || '',
+        endDate: data.end_date || data.endDate || '',
+        kidAges: data.kid_ages?.join(',') || '',
       })
       router.push(`/trips/new?${params.toString()}`)
     } catch (error) {
       console.error('Search error:', error)
+      alert('Failed to process your search. Please try again.')
     } finally {
       setIsLoading(false)
     }
@@ -155,7 +170,11 @@ export default function HomePage() {
 
       {/* AI Search Bar */}
       <div className="mb-8">
-        <AISearchBar onSubmit={handleSearch} isLoading={isLoading} />
+        <AISearchBar
+          onSubmit={handleSearch}
+          isLoading={isLoading}
+          placeholder="Where are you taking the kids?"
+        />
       </div>
 
       {/* Features Section */}
