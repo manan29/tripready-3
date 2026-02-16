@@ -103,45 +103,45 @@ export function TripPreview({ trip, onClose }: TripPreviewProps) {
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-2xl w-full max-w-md overflow-hidden">
+      <div className="bg-white rounded-2xl w-full max-w-md overflow-hidden shadow-2xl">
         {/* Header with gradient */}
         <div className={`bg-gradient-to-br ${gradient} p-6 text-white relative`}>
           <button
             onClick={onClose}
-            className="absolute top-4 right-4 text-white/80 hover:text-white"
+            className="absolute top-4 right-4 text-white/80 hover:text-white transition-colors p-2 hover:bg-white/20 rounded-lg"
           >
             <X className="h-6 w-6" />
           </button>
           <span className="text-5xl mb-2 block">{icon}</span>
           <h2 className="text-2xl font-bold">{trip.destination}</h2>
-          <p className="text-white/80">Trip Preview</p>
+          <p className="text-white/80 text-sm">Trip Preview</p>
         </div>
 
         {/* Details */}
         <div className="p-6 space-y-4">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
-              <Calendar className="h-5 w-5 text-gray-600" />
+            <div className="w-10 h-10 bg-gradient-to-br from-purple-600 to-blue-600 rounded-lg flex items-center justify-center">
+              <Calendar className="h-5 w-5 text-white" />
             </div>
             <div>
-              <p className="text-sm text-gray-500">Dates</p>
-              <p className="font-medium">
+              <p className="text-xs text-gray-500 font-medium uppercase tracking-wider">Dates</p>
+              <p className="font-semibold text-gray-900">
                 {formatDate(trip.start_date)} - {formatDate(trip.end_date)}
               </p>
             </div>
           </div>
 
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
-              <Users className="h-5 w-5 text-gray-600" />
+            <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-cyan-600 rounded-lg flex items-center justify-center">
+              <Users className="h-5 w-5 text-white" />
             </div>
             <div>
-              <p className="text-sm text-gray-500">Travelers</p>
-              <p className="font-medium">
+              <p className="text-xs text-gray-500 font-medium uppercase tracking-wider">Travelers</p>
+              <p className="font-semibold text-gray-900">
                 {trip.adults} Adult{trip.adults !== 1 ? 's' : ''}
                 {trip.kids > 0 && ` + ${trip.kids} Kid${trip.kids !== 1 ? 's' : ''}`}
                 {trip.kids > 0 && (
-                  <span className="text-gray-500 text-sm ml-1">
+                  <span className="text-gray-600 text-sm ml-1">
                     (ages: {trip.kid_ages.join(', ')})
                   </span>
                 )}
@@ -151,19 +151,19 @@ export function TripPreview({ trip, onClose }: TripPreviewProps) {
 
           {trip.budget && (
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
-                <Wallet className="h-5 w-5 text-gray-600" />
+              <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg flex items-center justify-center">
+                <Wallet className="h-5 w-5 text-white" />
               </div>
               <div>
-                <p className="text-sm text-gray-500">Budget</p>
-                <p className="font-medium">{formatCurrency(trip.budget, trip.currency)}</p>
+                <p className="text-xs text-gray-500 font-medium uppercase tracking-wider">Budget</p>
+                <p className="font-semibold text-gray-900">{formatCurrency(trip.budget, trip.currency)}</p>
               </div>
             </div>
           )}
 
-          <div className="bg-primary-50 rounded-xl p-4 mt-4">
-            <p className="text-sm text-primary-700">
-              ✨ We'll create smart checklists based on your kids' ages and destination.
+          <div className="bg-gradient-to-br from-purple-50 to-blue-50 border border-purple-200 rounded-xl p-4 mt-4">
+            <p className="text-sm text-purple-900 font-medium">
+              We'll create smart checklists based on your kids' ages and destination.
             </p>
           </div>
         </div>
@@ -172,14 +172,14 @@ export function TripPreview({ trip, onClose }: TripPreviewProps) {
         <div className="p-6 pt-0 flex gap-3">
           <button
             onClick={onClose}
-            className="flex-1 px-4 py-3 border border-gray-200 rounded-xl font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+            className="flex-1 px-4 py-3 border border-gray-200 rounded-xl font-medium text-gray-700 hover:bg-gray-50 hover:border-gray-300 transition-all"
           >
             Edit Details
           </button>
           <button
             onClick={handleCreate}
             disabled={isCreating}
-            className="flex-1 px-4 py-3 bg-primary-500 text-white rounded-xl font-medium hover:bg-primary-600 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+            className="flex-1 px-4 py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-xl font-medium hover:shadow-lg hover:-translate-y-0.5 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
           >
             {isCreating ? (
               <>

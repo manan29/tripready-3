@@ -65,9 +65,9 @@ export function AISearchBar() {
         <div className="relative">
           <div className="absolute left-4 top-1/2 -translate-y-1/2">
             {isLoading ? (
-              <Loader2 className="h-5 w-5 text-primary-500 animate-spin" />
+              <Loader2 className="h-5 w-5 text-purple-600 animate-spin" />
             ) : (
-              <Sparkles className="h-5 w-5 text-primary-500" />
+              <Sparkles className="h-5 w-5 text-purple-600" />
             )}
           </div>
           <input
@@ -76,23 +76,23 @@ export function AISearchBar() {
             onChange={(e) => setInput(e.target.value)}
             placeholder="Plan a trip with AI..."
             disabled={isLoading}
-            className="w-full pl-12 pr-4 py-4 rounded-2xl border-2 border-gray-200 focus:border-primary-500 focus:ring-4 focus:ring-primary-100 outline-none text-lg transition-all disabled:opacity-50"
+            className="w-full pl-12 pr-4 py-4 rounded-2xl border-2 border-purple-200 focus:border-purple-600 focus:ring-4 focus:ring-purple-100 outline-none text-lg transition-all disabled:opacity-50 bg-white"
           />
           {input && !isLoading && (
             <button
               type="button"
               onClick={() => setInput('')}
-              className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+              className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
             >
               <X className="h-5 w-5" />
             </button>
           )}
         </div>
-        <p className="text-sm text-gray-400 mt-2">
+        <p className="text-sm text-gray-500 mt-3">
           Try: "Thailand with 2 kids in March" or "7 day Singapore trip, budget 1.5 lakhs"
         </p>
         {error && (
-          <p className="text-sm text-red-500 mt-2">{error}</p>
+          <p className="text-sm text-red-600 mt-2 font-medium">{error}</p>
         )}
       </form>
 

@@ -118,33 +118,33 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50">
       {/* Navbar with Dynamic Auth */}
       <Navbar />
 
-      {/* Hero Section with Animated Background */}
+      {/* Hero Section with Subtle Gradient Background */}
       <section className="relative min-h-[600px] flex items-center justify-center overflow-hidden py-20">
-        {/* Animated Circles Background */}
+        {/* Subtle Animated Circles Background */}
         <div className="absolute inset-0 overflow-hidden">
-          <div className="animate-ripple-1 absolute top-1/4 left-1/4 w-64 h-64 bg-purple-200/40 rounded-full blur-3xl" />
-          <div className="animate-ripple-2 absolute top-1/3 right-1/3 w-96 h-96 bg-blue-200/30 rounded-full blur-3xl" />
-          <div className="animate-ripple-3 absolute bottom-1/4 left-1/2 w-80 h-80 bg-purple-100/50 rounded-full blur-3xl" />
-          <div className="animate-ripple-4 absolute top-1/2 right-1/4 w-72 h-72 bg-blue-100/40 rounded-full blur-3xl" />
+          <div className="animate-ripple-1 absolute top-1/4 left-1/4 w-64 h-64 bg-purple-300/20 rounded-full blur-3xl" />
+          <div className="animate-ripple-2 absolute top-1/3 right-1/3 w-96 h-96 bg-blue-300/15 rounded-full blur-3xl" />
+          <div className="animate-ripple-3 absolute bottom-1/4 left-1/2 w-80 h-80 bg-purple-200/25 rounded-full blur-3xl" />
+          <div className="animate-ripple-4 absolute top-1/2 right-1/4 w-72 h-72 bg-blue-200/20 rounded-full blur-3xl" />
         </div>
 
         {/* Content */}
         <div className="relative z-10 container mx-auto px-4 text-center">
           {/* Badge */}
-          <div className="inline-flex items-center gap-2 bg-primary text-white px-4 py-2 rounded-full text-xs font-semibold mb-8 uppercase tracking-wider">
+          <div className="inline-flex items-center gap-2 bg-gradient-to-r from-purple-600 to-blue-600 text-white px-4 py-2 rounded-full text-xs font-semibold mb-8 uppercase tracking-wider shadow-lg">
             <Sparkles className="h-4 w-4" />
             AI-POWERED TRAVEL CONCIERGE
           </div>
 
           {/* Headline */}
-          <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold mb-4">
-            <span className="text-gray-900">Plan your perfect trip</span>
+          <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold mb-4 text-gray-900 text-balance">
+            Plan your perfect trip
             <br />
-            <span className="text-primary italic">with AI</span>
+            <span className="bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">with AI</span>
           </h1>
 
           {/* Subtitle */}
@@ -154,7 +154,7 @@ export default function Home() {
 
           {/* Search Bar */}
           <form onSubmit={handleSearch} className="max-w-3xl mx-auto mb-8">
-            <div className="relative bg-white rounded-2xl shadow-xl p-2">
+            <div className="relative bg-white rounded-2xl shadow-2xl p-2">
               <div className="flex items-center gap-2">
                 <Search className="ml-4 h-5 w-5 text-gray-400" />
                 <input
@@ -168,7 +168,7 @@ export default function Home() {
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className="bg-gradient-to-r from-primary to-secondary text-white px-8 py-4 rounded-xl font-medium hover:opacity-90 transition-opacity whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                  className="bg-gradient-to-r from-purple-600 to-blue-600 hover:shadow-lg hover:-translate-y-0.5 text-white px-8 py-4 rounded-xl font-medium transition-all duration-200 whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                 >
                   {isLoading ? (
                     <>
@@ -193,7 +193,7 @@ export default function Home() {
               <button
                 key={chip}
                 onClick={() => handleChipClick(chip)}
-                className="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-full text-sm text-gray-700 transition-colors whitespace-nowrap"
+                className="px-4 py-2 bg-white hover:bg-gray-50 border border-gray-200 rounded-full text-sm text-gray-700 transition-colors whitespace-nowrap shadow-sm hover:shadow-md"
               >
                 {chip}
               </button>
@@ -203,10 +203,10 @@ export default function Home() {
       </section>
 
       {/* Features Section */}
-      <section className="bg-gray-50 py-20">
+      <section className="py-20 bg-white">
         <div className="container mx-auto px-4">
           {/* Title */}
-          <h2 className="text-4xl md:text-5xl font-bold text-center text-gray-900 mb-16">
+          <h2 className="text-4xl md:text-5xl font-bold text-center text-gray-900 mb-16 text-balance">
             What JourneyAI does for you
           </h2>
 
@@ -215,10 +215,10 @@ export default function Home() {
             {features.map((feature, index) => (
               <div
                 key={index}
-                className="bg-white rounded-xl p-8 shadow-sm hover:shadow-md transition-shadow"
+                className="bg-white rounded-2xl p-8 border border-gray-100 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300 group"
               >
-                <div className="w-14 h-14 bg-purple-100 rounded-full flex items-center justify-center mb-6">
-                  <feature.icon className="h-7 w-7 text-primary" />
+                <div className="w-14 h-14 bg-gradient-to-br from-purple-500 to-blue-500 rounded-full flex items-center justify-center mb-6 group-hover:shadow-lg transition-shadow">
+                  <feature.icon className="h-7 w-7 text-white" />
                 </div>
                 <h3 className="text-xl font-bold text-gray-900 mb-3">{feature.title}</h3>
                 <p className="text-gray-600 leading-relaxed">
@@ -231,36 +231,36 @@ export default function Home() {
       </section>
 
       {/* App Preview Section */}
-      <section className="py-20 bg-gradient-to-b from-white to-gray-50">
+      <section className="py-20 bg-gradient-to-b from-white via-purple-50 to-white">
         <div className="container mx-auto px-4">
           {/* Title */}
-          <h2 className="text-4xl md:text-5xl font-bold text-center text-gray-900 mb-16">
+          <h2 className="text-4xl md:text-5xl font-bold text-center text-gray-900 mb-16 text-balance">
             See JourneyAI in action
           </h2>
 
           {/* Phone Mockup Placeholders */}
           <div className="flex flex-wrap justify-center gap-8 max-w-6xl mx-auto">
             {/* Placeholder 1 */}
-            <div className="w-64 h-[500px] bg-gradient-to-br from-purple-100 to-blue-100 rounded-3xl shadow-xl flex items-center justify-center border-8 border-gray-800">
+            <div className="w-64 h-[500px] bg-gradient-to-br from-purple-500 to-blue-600 rounded-3xl shadow-2xl flex items-center justify-center border-8 border-gray-900">
               <div className="text-center p-8">
-                <Sparkles className="h-12 w-12 text-primary mx-auto mb-4" />
-                <p className="text-gray-600 font-medium">AI Itinerary<br />Screenshot</p>
+                <Sparkles className="h-12 w-12 text-white mx-auto mb-4" />
+                <p className="text-white font-medium">AI Itinerary<br />Screenshot</p>
               </div>
             </div>
 
             {/* Placeholder 2 */}
-            <div className="w-64 h-[500px] bg-gradient-to-br from-blue-100 to-purple-100 rounded-3xl shadow-xl flex items-center justify-center border-8 border-gray-800">
+            <div className="w-64 h-[500px] bg-gradient-to-br from-blue-500 to-purple-600 rounded-3xl shadow-2xl flex items-center justify-center border-8 border-gray-900">
               <div className="text-center p-8">
-                <Wallet className="h-12 w-12 text-primary mx-auto mb-4" />
-                <p className="text-gray-600 font-medium">Budget Tracker<br />Screenshot</p>
+                <Wallet className="h-12 w-12 text-white mx-auto mb-4" />
+                <p className="text-white font-medium">Budget Tracker<br />Screenshot</p>
               </div>
             </div>
 
             {/* Placeholder 3 */}
-            <div className="w-64 h-[500px] bg-gradient-to-br from-purple-100 to-pink-100 rounded-3xl shadow-xl flex items-center justify-center border-8 border-gray-800">
+            <div className="w-64 h-[500px] bg-gradient-to-br from-purple-600 to-blue-500 rounded-3xl shadow-2xl flex items-center justify-center border-8 border-gray-900">
               <div className="text-center p-8">
-                <CheckCircle className="h-12 w-12 text-primary mx-auto mb-4" />
-                <p className="text-gray-600 font-medium">Packing List<br />Screenshot</p>
+                <CheckCircle className="h-12 w-12 text-white mx-auto mb-4" />
+                <p className="text-white font-medium">Packing List<br />Screenshot</p>
               </div>
             </div>
           </div>
@@ -274,9 +274,9 @@ export default function Home() {
             {/* Column 1: Brand */}
             <div>
               <div className="flex items-center gap-2 mb-4">
-                <Plane className="h-6 w-6 text-primary" />
+                <Plane className="h-6 w-6 bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent" />
                 <span className="text-xl font-bold text-white">
-                  Journey<span className="text-primary">AI</span>
+                  Journey<span className="bg-gradient-to-r from-purple-500 to-blue-500 bg-clip-text text-transparent">AI</span>
                 </span>
               </div>
               <p className="text-sm text-gray-400 leading-relaxed">

@@ -4,25 +4,25 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 20 14.3% 4.1%;
+    --background: 270 30% 97%;
+    --foreground: 240 10% 3.9%;
     --card: 0 0% 100%;
-    --card-foreground: 20 14.3% 4.1%;
+    --card-foreground: 240 10% 3.9%;
     --popover: 0 0% 100%;
-    --popover-foreground: 20 14.3% 4.1%;
-    --primary: 27 96% 52%;
-    --primary-foreground: 60 9.1% 97.8%;
-    --secondary: 60 4.8% 95.9%;
-    --secondary-foreground: 24 9.8% 10%;
-    --muted: 60 4.8% 95.9%;
-    --muted-foreground: 25 5.3% 44.7%;
-    --accent: 60 4.8% 95.9%;
-    --accent-foreground: 24 9.8% 10%;
+    --popover-foreground: 240 10% 3.9%;
+    --primary: 255 74% 65%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 220 91% 54%;
+    --secondary-foreground: 0 0% 100%;
+    --muted: 240 4.8% 95.9%;
+    --muted-foreground: 240 3.8% 46%;
+    --accent: 147 97% 50%;
+    --accent-foreground: 0 0% 100%;
     --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 60 9.1% 97.8%;
-    --border: 20 5.9% 90%;
-    --input: 20 5.9% 90%;
-    --ring: 27 96% 52%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 240 5.9% 90%;
+    --input: 240 5.9% 90%;
+    --ring: 255 74% 65%;
     --radius: 0.75rem;
   }
 }
@@ -33,5 +33,27 @@
   }
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+@layer utilities {
+  .gradient-primary {
+    @apply bg-gradient-to-r from-purple-500 to-blue-500;
+  }
+
+  .gradient-purple-blue {
+    @apply bg-gradient-to-br from-purple-400 via-purple-500 to-blue-500;
+  }
+
+  .gradient-light-bg {
+    @apply bg-gradient-to-br from-purple-50 via-white to-blue-50;
+  }
+
+  .card-shadow {
+    @apply shadow-[0_2px_8px_rgba(0,0,0,0.08)];
+  }
+
+  .card-shadow-hover {
+    @apply shadow-[0_8px_16px_rgba(0,0,0,0.1)];
   }
 }
