@@ -22,36 +22,7 @@ function HomePageContent() {
   const [modalDestination, setModalDestination] = useState('')
   const [modalCountry, setModalCountry] = useState('')
 
-  useEffect(() => {
-    // Check auth and fetch trips
-    const init = async () => {
-      const { data: { session } } = await supabase.auth.getSession()
-      if (session?.user) {
-        setUser(session.user)
-        setUserName(session.user.user_metadata?.full_name?.split(' ')[0] || 'Traveler')
-
-        // Fetch user's trips
-        const { data: tripsData } = await supabase
-          .from('trips')
-          .select('*')
-          .eq('user_id', session.user.id)
-          .order('start_date', { ascending: true })
-          .limit(5)
-
-        if (tripsData) setTrips(tripsData)
-      }
-
-      // Check if destination was passed from explore page
-      const destinationParam = searchParams.get('destination')
-      if (destinationParam) {
-        handleSearch(destinationParam)
-        // Clean URL
-        router.replace('/', { scroll: false })
-      }
-    }
-    init()
-  }, [])
-
+  // Handle search function
   const handleSearch = async (query: string) => {
     setIsLoading(true)
     try {
@@ -95,6 +66,36 @@ function HomePageContent() {
       setIsLoading(false)
     }
   }
+
+  useEffect(() => {
+    // Check auth and fetch trips
+    const init = async () => {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (session?.user) {
+        setUser(session.user)
+        setUserName(session.user.user_metadata?.full_name?.split(' ')[0] || 'Traveler')
+
+        // Fetch user's trips
+        const { data: tripsData } = await supabase
+          .from('trips')
+          .select('*')
+          .eq('user_id', session.user.id)
+          .order('start_date', { ascending: true })
+          .limit(5)
+
+        if (tripsData) setTrips(tripsData)
+      }
+
+      // Check if destination was passed from explore page
+      const destinationParam = searchParams.get('destination')
+      if (destinationParam) {
+        handleSearch(destinationParam)
+        // Clean URL
+        router.replace('/', { scroll: false })
+      }
+    }
+    init()
+  }, [])
 
   const handleTripCreated = async (tripData: any) => {
     // Check if user is logged in
