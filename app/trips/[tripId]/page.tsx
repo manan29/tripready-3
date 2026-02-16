@@ -17,9 +17,11 @@ import {
   Wallet,
   MapPin,
   Clock,
+  Baby,
 } from 'lucide-react'
 
 // Import section components
+import KidsSection from '@/components/trips/sections/KidsSection'
 import PackingSection from '@/components/trips/sections/PackingSection'
 import BookingsSection from '@/components/trips/sections/BookingsSection'
 import DocumentsSection from '@/components/trips/sections/DocumentsSection'
@@ -244,12 +246,28 @@ export default function TripDetailPage() {
 
       {/* Content Sections */}
       <div className="px-5 space-y-4">
+        {/* Kids Essentials - THE MAGIC MOMENT (Show first if kids present) */}
+        {(trip.num_kids > 0 || trip.kids > 0) && (
+          <ExpandableSection
+            title="Kids Essentials"
+            icon={<Baby className="w-4 h-4" />}
+            iconColor="grape"
+            defaultExpanded={true}
+          >
+            <KidsSection
+              tripId={tripId}
+              numKids={trip.kids || trip.num_kids || 0}
+              kidAges={trip.kid_ages}
+            />
+          </ExpandableSection>
+        )}
+
         {/* Packing List */}
         <ExpandableSection
           title="Packing List"
           icon={<CheckSquare className="w-4 h-4" />}
           iconColor="lavender"
-          defaultExpanded={true}
+          defaultExpanded={!trip.num_kids && !trip.kids}
         >
           <PackingSection
             tripId={tripId}

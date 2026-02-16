@@ -28,12 +28,11 @@ export default function PackingSection({ tripId, destination, numKids, kidAges }
 
   const categories = [
     'All',
-    'Clothes',
+    'Adult Clothes',
     'Toiletries',
     'Electronics',
     'Documents',
     'Medicines',
-    'Kids',
   ]
 
   useEffect(() => {
@@ -45,6 +44,7 @@ export default function PackingSection({ tripId, destination, numKids, kidAges }
       .from('packing_items')
       .select('*')
       .eq('trip_id', tripId)
+      .not('category', 'in', '("Kids Essentials","Kids Medicines","Kids Clothes","Kids Entertainment")')
       .order('category', { ascending: true })
 
     if (data) setItems(data)
