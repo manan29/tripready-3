@@ -23,6 +23,39 @@ interface TripHeaderProps {
   currency: string
 }
 
+// Currency mapping by country
+const currencyByCountry: Record<string, string> = {
+  UAE: 'AED',
+  Singapore: 'SGD',
+  Thailand: 'THB',
+  Malaysia: 'MYR',
+  Indonesia: 'IDR',
+  Vietnam: 'VND',
+  Philippines: 'PHP',
+  Maldives: 'MVR',
+  'Sri Lanka': 'LKR',
+  USA: 'USD',
+  UK: 'GBP',
+  Europe: 'EUR',
+  France: 'EUR',
+  Germany: 'EUR',
+  Italy: 'EUR',
+  Spain: 'EUR',
+  Japan: 'JPY',
+  China: 'CNY',
+  'South Korea': 'KRW',
+  Australia: 'AUD',
+  'New Zealand': 'NZD',
+  Canada: 'CAD',
+  Switzerland: 'CHF',
+  Turkey: 'TRY',
+  Egypt: 'EGP',
+  'South Africa': 'ZAR',
+  Brazil: 'BRL',
+  Mexico: 'MXN',
+  India: 'INR',
+}
+
 export default function TripHeader({
   destination,
   country,
@@ -44,8 +77,13 @@ export default function TripHeader({
           setWeather(weatherData)
         }
 
-        // Fetch currency (from trip currency to INR)
-        const currencyRes = await fetch(`/api/currency?from=${currency || 'USD'}&to=INR`)
+        // Determine destination currency from country
+        const destinationCurrency = currencyByCountry[country] || currency || 'USD'
+
+        // Fetch currency (from destination currency to INR)
+        const currencyRes = await fetch(
+          `/api/currency?from=${destinationCurrency}&to=INR`
+        )
         if (currencyRes.ok) {
           const currencyData = await currencyRes.json()
           setCurrencyRate(currencyData)
@@ -62,7 +100,7 @@ export default function TripHeader({
     } else {
       setLoading(false)
     }
-  }, [destination, currency])
+  }, [destination, country, currency])
 
   const daysUntil = (date: string) => {
     const today = new Date()
@@ -99,9 +137,11 @@ export default function TripHeader({
                 <span className="text-primary font-medium">Trip starts today! 🎉</span>
               ) : (
                 <>
-                  <span className="font-medium text-primary">{days} days to go</span>
+                  <span className="font-medium text-primary">
+                    {days === 1 ? '1 day to go' : `${days} days to go`}
+                  </span>
                   <span className="mx-2">•</span>
-                  <span>{duration} day trip</span>
+                  <span>{duration === 1 ? '1 day trip' : `${duration} days trip`}</span>
                 </>
               )}
             </p>
@@ -132,8 +172,8 @@ export default function TripHeader({
                 {loading ? (
                   <Loader2 className="h-4 w-4 text-green-600 animate-spin" />
                 ) : currencyRate ? (
-                  <p className="text-sm font-semibold text-gray-900">
-                    ₹{currencyRate.rate.toFixed(1)}
+                  <p className="text-xs font-semibold text-gray-900">
+                    1 {currencyRate.from} = ₹{currencyRate.rate.toFixed(1)}
                   </p>
                 ) : (
                   <p className="text-sm text-gray-400">--</p>
