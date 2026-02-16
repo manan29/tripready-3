@@ -62,9 +62,11 @@ export default function TripDetailPage() {
 
     setTrip(tripData)
 
-    // Fetch weather
+    // Fetch weather forecast for trip dates
     try {
-      const weatherRes = await fetch(`/api/weather?city=${tripData.destination}`)
+      const weatherRes = await fetch(
+        `/api/weather?city=${tripData.destination}&start_date=${tripData.start_date}`
+      )
       if (weatherRes.ok) {
         const weatherData = await weatherRes.json()
         setWeather(weatherData)
@@ -202,7 +204,14 @@ export default function TripDetailPage() {
               {weather ? `${weather.temp}°C` : '—'}
               {weather && <span className="ml-1">☀️</span>}
             </p>
-            <p className="text-gray-500 text-xs">{weather?.description || 'Weather'}</p>
+            <p className="text-gray-500 text-xs">
+              {weather?.description || 'Weather'}
+              {weather?.context && (
+                <span className="block text-[10px] text-gray-400 mt-0.5">
+                  {weather.context}
+                </span>
+              )}
+            </p>
           </GlassCard>
 
           {/* Currency */}
