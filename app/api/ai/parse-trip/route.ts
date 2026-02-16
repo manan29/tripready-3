@@ -3,24 +3,21 @@ import Anthropic from '@anthropic-ai/sdk';
 
 export async function POST(request: NextRequest) {
   try {
-    // Check if API key exists
+    // Check for API key
     if (!process.env.ANTHROPIC_API_KEY) {
       console.error('ANTHROPIC_API_KEY is not set');
       return NextResponse.json(
-        {
-          parsed_successfully: false,
-          error: 'API configuration error',
-          details: 'ANTHROPIC_API_KEY not configured',
-        },
+        { error: 'API key not configured', parsed_successfully: false },
         { status: 500 }
       );
     }
 
-    const { query } = await request.json();
+    const body = await request.json();
+    const { query } = body;
 
     if (!query) {
       return NextResponse.json(
-        { parsed_successfully: false, error: 'Query is required' },
+        { error: 'Query is required', parsed_successfully: false },
         { status: 400 }
       );
     }
@@ -35,128 +32,67 @@ export async function POST(request: NextRequest) {
     const nextWeek = new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000);
     const endDate = new Date(nextWeek.getTime() + 5 * 24 * 60 * 60 * 1000);
 
-    const prompt = `Parse this travel query and extract trip details: "${query}"
+    const message = await anthropic.messages.create({
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: 500,
+      messages: [
+        {
+          role: 'user',
+          content: `Parse this travel query and extract trip details: "${query}"
 
 Today's date is ${today.toISOString().split('T')[0]}.
 
-Extract:
-- destination: The city or country (e.g., "Dubai", "Singapore", "Bali")
-- country: The country name
-- duration: Number of days (default 5 if not specified)
-- start_date: In YYYY-MM-DD format (default to next week if not specified)
-- end_date: In YYYY-MM-DD format (calculate from start_date + duration)
-- num_adults: Number of adults (default 2)
-- num_kids: Number of children (look for "kids", "children", "toddler", "baby", "infant")
-- kid_ages: Array of ages if mentioned (e.g., [3, 6])
-
-Return ONLY a JSON object like this:
+Return ONLY a valid JSON object (no markdown, no backticks, no explanation) with these fields:
 {
-  "destination": "Dubai",
-  "country": "UAE",
+  "destination": "city name",
+  "country": "country name",
   "duration": 5,
   "start_date": "${nextWeek.toISOString().split('T')[0]}",
   "end_date": "${endDate.toISOString().split('T')[0]}",
   "num_adults": 2,
-  "num_kids": 1,
-  "kid_ages": [3],
+  "num_kids": 0,
+  "kid_ages": [],
   "parsed_successfully": true
 }
 
-Return ONLY the JSON, no other text.`;
-
-    // Call Anthropic API
-    let message;
-    try {
-      message = await anthropic.messages.create({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 500,
-        messages: [{ role: 'user', content: prompt }],
-      });
-    } catch (apiError: any) {
-      console.error('Anthropic API error:', apiError);
-      return NextResponse.json(
-        {
-          parsed_successfully: false,
-          error: 'AI service error',
-          details: apiError.message || 'Failed to call AI service',
-        },
-        { status: 500 }
-      );
-    }
-
-    // Extract text from response
-    if (!message.content || message.content.length === 0) {
-      console.error('Empty AI response');
-      return NextResponse.json({
-        parsed_successfully: false,
-        error: 'Empty AI response',
-        details: 'The AI did not return any content',
-      });
-    }
-
-    const responseText = message.content[0].type === 'text' ? message.content[0].text : '';
-    console.log('AI Response:', responseText);
-
-    if (!responseText) {
-      console.error('No text in AI response');
-      return NextResponse.json({
-        parsed_successfully: false,
-        error: 'Invalid AI response',
-        details: 'No text content in AI response',
-      });
-    }
-
-    // Try to parse JSON from response
-    let parsed;
-    try {
-      // First try direct parse
-      parsed = JSON.parse(responseText);
-    } catch (e) {
-      // If that fails, try to extract JSON using regex
-      const jsonMatch = responseText.match(/\{[\s\S]*\}/);
-      if (!jsonMatch) {
-        console.error('No JSON found in response:', responseText);
-        return NextResponse.json({
-          parsed_successfully: false,
-          error: 'Could not parse AI response',
-          details: 'No valid JSON found in response',
-        });
-      }
-
-      try {
-        parsed = JSON.parse(jsonMatch[0]);
-      } catch (parseError: any) {
-        console.error('JSON parse error:', parseError);
-        return NextResponse.json({
-          parsed_successfully: false,
-          error: 'Invalid JSON in AI response',
-          details: parseError.message,
-        });
-      }
-    }
-
-    console.log('Parsed data:', parsed);
-
-    // Ensure parsed_successfully flag is set
-    if (parsed.parsed_successfully === undefined) {
-      parsed.parsed_successfully = true;
-    }
-
-    return NextResponse.json(parsed);
-  } catch (error: any) {
-    console.error('Parse trip error:', error);
-    console.error('Error details:', {
-      message: error.message,
-      stack: error.stack,
-      name: error.name,
+Rules:
+- destination: Extract the city/country from query
+- duration: Default 5 days if not specified
+- num_kids: Look for "kids", "children", "toddler", "baby"
+- kid_ages: Extract ages if mentioned like "3 year old" or "2 kids (3 and 6)"
+- Return ONLY the JSON, nothing else`
+        }
+      ],
     });
 
+    console.log('Anthropic response received');
+
+    const responseText = message.content[0].type === 'text' ? message.content[0].text : '';
+    console.log('Response text:', responseText);
+
+    // Clean up response - remove markdown backticks if present
+    let cleanedResponse = responseText.trim();
+    if (cleanedResponse.startsWith('```json')) {
+      cleanedResponse = cleanedResponse.slice(7);
+    }
+    if (cleanedResponse.startsWith('```')) {
+      cleanedResponse = cleanedResponse.slice(3);
+    }
+    if (cleanedResponse.endsWith('```')) {
+      cleanedResponse = cleanedResponse.slice(0, -3);
+    }
+    cleanedResponse = cleanedResponse.trim();
+
+    const parsed = JSON.parse(cleanedResponse);
+    console.log('Parsed result:', parsed);
+
+    return NextResponse.json(parsed);
+
+  } catch (error) {
+    console.error('Parse trip error:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     return NextResponse.json(
-      {
-        parsed_successfully: false,
-        error: 'Failed to parse trip',
-        details: error.message || 'Unknown error',
-      },
+      { error: errorMessage, parsed_successfully: false },
       { status: 500 }
     );
   }
