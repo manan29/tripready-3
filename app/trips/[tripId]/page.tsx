@@ -24,6 +24,7 @@ import PackingSection from '@/components/trips/sections/PackingSection'
 import BookingsSection from '@/components/trips/sections/BookingsSection'
 import DocumentsSection from '@/components/trips/sections/DocumentsSection'
 import BudgetSection from '@/components/trips/sections/BudgetSection'
+import { WhatsAppShareButton } from '@/components/ui/WhatsAppShareButton'
 
 export default function TripDetailPage() {
   const params = useParams()
@@ -223,6 +224,22 @@ export default function TripDetailPage() {
             </p>
           </GlassCard>
         </div>
+
+        {/* WhatsApp Share Button */}
+        <div className="px-5 mt-4">
+          <WhatsAppShareButton
+            trip={{
+              destination: trip.destination,
+              country: trip.country,
+              startDate: trip.start_date,
+              endDate: trip.end_date,
+              numAdults: trip.num_adults || 2,
+              numKids: trip.num_kids || trip.kids || 0,
+              kidAges: trip.kid_ages,
+            }}
+            className="w-full"
+          />
+        </div>
       </div>
 
       {/* Content Sections */}
@@ -237,7 +254,8 @@ export default function TripDetailPage() {
           <PackingSection
             tripId={tripId}
             destination={trip.destination}
-            numKids={trip.kids || 0}
+            numKids={trip.kids || trip.num_kids || 0}
+            kidAges={trip.kid_ages}
           />
         </ExpandableSection>
 

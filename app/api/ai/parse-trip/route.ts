@@ -1,98 +1,80 @@
-import Anthropic from '@anthropic-ai/sdk'
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server';
+import Anthropic from '@anthropic-ai/sdk';
 
-export async function POST(request: Request) {
+const anthropic = new Anthropic({
+  apiKey: process.env.ANTHROPIC_API_KEY,
+});
+
+export async function POST(request: NextRequest) {
   try {
-    const { query } = await request.json()
+    const { query } = await request.json();
 
     if (!query) {
-      return NextResponse.json({ error: 'Query is required' }, { status: 400 })
+      return NextResponse.json({ error: 'Query is required' }, { status: 400 });
     }
 
-    console.log('Received query:', query)
+    const today = new Date();
+    const nextWeek = new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000);
 
-    const anthropic = new Anthropic({
-      apiKey: process.env.ANTHROPIC_API_KEY,
-    })
+    const prompt = `Parse this travel query and extract trip details: "${query}"
+
+Today's date is ${today.toISOString().split('T')[0]}.
+
+Extract:
+- destination: The city or country (e.g., "Dubai", "Singapore", "Bali")
+- country: The country name
+- duration: Number of days (default 5 if not specified)
+- start_date: In YYYY-MM-DD format (default to next week if not specified)
+- end_date: In YYYY-MM-DD format
+- num_adults: Number of adults (default 2)
+- num_kids: Number of children (look for "kids", "children", "toddler", "baby", "infant")
+- kid_ages: Array of ages if mentioned (e.g., [3, 6])
+
+Return ONLY a JSON object like this:
+{
+  "destination": "Dubai",
+  "country": "UAE",
+  "duration": 5,
+  "start_date": "${nextWeek.toISOString().split('T')[0]}",
+  "end_date": "2026-03-01",
+  "num_adults": 2,
+  "num_kids": 1,
+  "kid_ages": [3],
+  "parsed_successfully": true
+}
+
+If you can't parse it, return:
+{
+  "parsed_successfully": false,
+  "error": "Could not understand the query"
+}
+
+Return ONLY the JSON, no other text.`;
 
     const message = await anthropic.messages.create({
       model: 'claude-sonnet-4-20250514',
-      max_tokens: 1024,
-      messages: [
-        {
-          role: 'user',
-          content: `Parse this travel query and extract trip details. Return ONLY valid JSON with no markdown formatting, no backticks, no code blocks, just pure JSON.
+      max_tokens: 500,
+      messages: [{ role: 'user', content: prompt }],
+    });
 
-Query: "${query}"
+    const responseText = message.content[0].type === 'text' ? message.content[0].text : '';
 
-You must extract:
-- destination: The FULL city name (e.g., "Dubai", "Singapore", "Bangkok", "New York") - extract the complete city name, not abbreviations
-- country: The country name (e.g., "UAE", "Singapore", "Thailand", "USA")
-- duration: Number of days as integer (default to 5 if not specified)
-- startDate: Date if mentioned (YYYY-MM-DD format), otherwise null
-- endDate: Date if mentioned (YYYY-MM-DD format), otherwise null
-- numAdults: Number of adults as integer (default to 2)
-- numKids: Number of kids as integer (default to 0)
-- tripType: One of: "luxury", "budget", "family", "beach", "adventure" (infer from context)
-
-IMPORTANT: Make sure "destination" contains the FULL city name, not just the first letter.
-
-Example outputs:
-- For "Dubai 5 days": {"destination":"Dubai","country":"UAE","duration":5,"startDate":null,"endDate":null,"numAdults":2,"numKids":0,"tripType":"luxury"}
-- For "family trip to Singapore": {"destination":"Singapore","country":"Singapore","duration":5,"startDate":null,"endDate":null,"numAdults":2,"numKids":2,"tripType":"family"}
-- For "Bangkok budget trip": {"destination":"Bangkok","country":"Thailand","duration":5,"startDate":null,"endDate":null,"numAdults":2,"numKids":0,"tripType":"budget"}
-
-Now parse the query above and return ONLY the JSON object, no other text:`,
-        },
-      ],
-    })
-
-    // Parse the response
-    const content = message.content[0]
-    if (content.type === 'text') {
-      console.log('AI raw response:', content.text)
-
-      try {
-        // Clean the response - remove markdown code blocks if present
-        let jsonText = content.text.trim()
-
-        // Remove markdown code blocks (```json ... ``` or ``` ... ```)
-        if (jsonText.startsWith('```')) {
-          jsonText = jsonText.replace(/```json?\s*/g, '').replace(/```\s*$/g, '').trim()
-        }
-
-        console.log('Cleaned response:', jsonText)
-
-        const parsed = JSON.parse(jsonText)
-
-        console.log('Parsed data:', parsed)
-
-        // Validate that destination is not empty or too short
-        if (!parsed.destination || parsed.destination.length < 2) {
-          console.error('Invalid destination:', parsed.destination)
-          return NextResponse.json(
-            { error: 'Could not extract valid destination from query' },
-            { status: 400 }
-          )
-        }
-
-        return NextResponse.json(parsed)
-      } catch (parseError) {
-        console.error('Failed to parse AI response:', parseError)
-        console.error('Raw text was:', content.text)
-        return NextResponse.json(
-          { error: 'Failed to parse AI response' },
-          { status: 500 }
-        )
-      }
+    // Parse JSON from response
+    const jsonMatch = responseText.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) {
+      return NextResponse.json({
+        parsed_successfully: false,
+        error: 'Could not parse response',
+      });
     }
 
-    return NextResponse.json({ error: 'Unexpected response format' }, { status: 500 })
+    const parsed = JSON.parse(jsonMatch[0]);
+    return NextResponse.json(parsed);
   } catch (error) {
-    console.error('AI parsing error:', error)
+    console.error('Parse trip error:', error);
     return NextResponse.json(
-      { error: 'Failed to process trip query' },
+      { parsed_successfully: false, error: 'Failed to parse trip' },
       { status: 500 }
-    )
+    );
   }
 }

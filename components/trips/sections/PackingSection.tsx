@@ -8,6 +8,7 @@ interface PackingSectionProps {
   tripId: string
   destination: string
   numKids: number
+  kidAges?: number[]
 }
 
 interface PackingItem {
@@ -17,7 +18,7 @@ interface PackingItem {
   is_packed: boolean
 }
 
-export default function PackingSection({ tripId, destination, numKids }: PackingSectionProps) {
+export default function PackingSection({ tripId, destination, numKids, kidAges }: PackingSectionProps) {
   const supabase = createClient()
   const [items, setItems] = useState<PackingItem[]>([])
   const [loading, setLoading] = useState(true)
@@ -56,7 +57,7 @@ export default function PackingSection({ tripId, destination, numKids }: Packing
       const response = await fetch('/api/ai/packing-list', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ destination, duration: 5, numAdults: 2, numKids }),
+        body: JSON.stringify({ destination, duration: 5, numAdults: 2, numKids, kidAges }),
       })
 
       const data = await response.json()

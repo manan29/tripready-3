@@ -124,21 +124,33 @@ export default function HomePage() {
     <div className="min-h-screen pb-32 px-5 pt-6">
       {/* Header */}
       <div className="mb-6">
-        <div className="flex items-center gap-3 mb-1">
-          <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
-            <span className="text-purple-600 font-bold text-xs">
-              {userName?.charAt(0)?.toUpperCase() || 'J'}
-            </span>
+        {user ? (
+          <>
+            <div className="flex items-center gap-3 mb-1">
+              <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center">
+                <span className="text-xl font-bold text-purple-600">
+                  {userName?.charAt(0)?.toUpperCase() || user.email?.charAt(0)?.toUpperCase()}
+                </span>
+              </div>
+              <div>
+                <p className="text-gray-500 text-sm">Welcome back!</p>
+                <h1 className="text-xl font-bold text-gray-900">{userName} 👋</h1>
+              </div>
+            </div>
+            <p className="text-gray-600 mt-4">
+              AI-powered packing lists for your kids. Know exactly what to pack.
+            </p>
+          </>
+        ) : (
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">Travel Stress-Free with Kids</h1>
+            <p className="text-purple-600 font-medium italic">Let JourneyAI Plan It</p>
+            <p className="text-gray-600 mt-4">
+              AI-powered packing lists for your kids. Know exactly what to pack for your 3-year-old
+              in Dubai.
+            </p>
           </div>
-          <span className="text-gray-500 text-sm">{getGreeting()}</span>
-        </div>
-        <h1 className="text-2xl font-bold text-gray-900">
-          {user ? `Welcome back,` : 'Welcome to'}
-        </h1>
-        <h1 className="text-2xl font-bold text-gray-900">
-          {user ? `${userName}! 👋` : 'JourneyAI! 👋'}
-        </h1>
-        <p className="text-gray-500 mt-1">Plan your next family adventure</p>
+        )}
       </div>
 
       {/* AI Search Bar */}
@@ -204,22 +216,25 @@ export default function HomePage() {
         </div>
       </div>
 
-      {/* Quick Chips - for non-logged in users */}
+      {/* Quick Chips - Kids Focused */}
       {!user && (
         <div className="mt-8">
-          <p className="text-gray-500 text-sm mb-3 text-center">Popular destinations</p>
+          <p className="text-gray-500 text-sm mb-3 text-center">Try these</p>
           <div className="flex flex-wrap justify-center gap-2">
-            {['Dubai 5 days', 'Bali beach trip', 'Singapore family', 'Thailand budget'].map(
-              (chip) => (
-                <button
-                  key={chip}
-                  onClick={() => handleSearch(chip)}
-                  className="px-4 py-2 bg-white/70 backdrop-blur-sm border border-white/40 rounded-full text-sm text-gray-700 hover:bg-white transition-colors"
-                >
-                  {chip}
-                </button>
-              )
-            )}
+            {[
+              'Dubai with toddler',
+              'Singapore with kids',
+              'Bali family trip',
+              'Thailand with 2 kids',
+            ].map((chip) => (
+              <button
+                key={chip}
+                onClick={() => handleSearch(chip)}
+                className="px-4 py-2 bg-white/70 backdrop-blur-sm border border-purple-100 rounded-full text-sm text-gray-700 hover:bg-purple-50 hover:border-purple-200 transition-colors"
+              >
+                {chip}
+              </button>
+            ))}
           </div>
         </div>
       )}
