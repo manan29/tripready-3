@@ -236,13 +236,35 @@ function HomePageContent() {
       </div>
 
       {/* AI Search Bar */}
-      <div className="mb-8">
+      <div className="mb-4">
         <AISearchBar
           onSubmit={handleSearch}
           isLoading={isLoading}
           placeholder="Where are you taking the kids?"
         />
       </div>
+
+      {/* Quick Chips - Kids Focused */}
+      {!user && (
+        <div className="mb-8">
+          <div className="flex flex-wrap justify-center gap-2">
+            {[
+              'Dubai with toddler',
+              'Singapore with kids',
+              'Bali family trip',
+              'Thailand with 2 kids',
+            ].map((chip) => (
+              <button
+                key={chip}
+                onClick={() => handleSearch(chip)}
+                className="px-4 py-2 bg-white border border-purple-200 rounded-full text-sm text-gray-700 hover:bg-purple-50 hover:border-purple-300 transition-colors"
+              >
+                {chip}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Features Section */}
       <div className="mb-8">
@@ -301,29 +323,6 @@ function HomePageContent() {
           </div>
         </div>
       </div>
-
-      {/* Quick Chips - Kids Focused */}
-      {!user && (
-        <div className="mt-8">
-          <p className="text-gray-500 text-sm mb-3 text-center">Try these</p>
-          <div className="flex flex-wrap justify-center gap-2">
-            {[
-              'Dubai with toddler',
-              'Singapore with kids',
-              'Bali family trip',
-              'Thailand with 2 kids',
-            ].map((chip) => (
-              <button
-                key={chip}
-                onClick={() => handleSearch(chip)}
-                className="px-4 py-2 bg-white/70 backdrop-blur-sm border border-purple-100 rounded-full text-sm text-gray-700 hover:bg-purple-50 hover:border-purple-200 transition-colors"
-              >
-                {chip}
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
 
       {/* Create Trip Modal */}
       <CreateTripModal
