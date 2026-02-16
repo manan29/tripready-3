@@ -7,6 +7,7 @@ import { GlassCard } from '@/components/ui/GlassCard'
 import { AISearchBar } from '@/components/ui/AISearchBar'
 import { TripCardGlass } from '@/components/trips/TripCardGlass'
 import { IconCircle } from '@/components/ui/IconCircle'
+import { CreateTripModal } from '@/components/trips/CreateTripModal'
 import { CheckSquare, Wallet, Baby, Plane, FileText, Plus } from 'lucide-react'
 
 export default function HomePage() {
@@ -16,6 +17,9 @@ export default function HomePage() {
   const [trips, setTrips] = useState<any[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [userName, setUserName] = useState('')
+  const [showCreateModal, setShowCreateModal] = useState(false)
+  const [modalDestination, setModalDestination] = useState('')
+  const [modalCountry, setModalCountry] = useState('')
 
   useEffect(() => {
     // Check auth and fetch trips
@@ -69,25 +73,68 @@ export default function HomePage() {
         return
       }
 
-      console.log('Navigating with data:', data)
+      console.log('Opening modal with data:', data)
 
-      // Navigate to trip creation with parsed data (handle both snake_case and camelCase)
-      const params = new URLSearchParams({
-        destination: data.destination || '',
-        country: data.country || '',
-        duration: data.duration?.toString() || '5',
-        numAdults: (data.num_adults || data.numAdults)?.toString() || '2',
-        numKids: (data.num_kids || data.numKids)?.toString() || '0',
-        startDate: data.start_date || data.startDate || '',
-        endDate: data.end_date || data.endDate || '',
-        kidAges: data.kid_ages?.join(',') || '',
-      })
-      router.push(`/trips/new?${params.toString()}`)
+      // Show modal with parsed data
+      setModalDestination(data.destination || query)
+      setModalCountry(data.country || '')
+      setShowCreateModal(true)
     } catch (error: any) {
       console.error('Search error:', error)
       alert(`Failed to process your search: ${error.message || 'Unknown error'}`)
     } finally {
       setIsLoading(false)
+    }
+  }
+
+  const handleTripCreated = async (tripData: any) => {
+    // Check if user is logged in
+    if (!user) {
+      // Redirect to login with return URL
+      router.push('/login?returnTo=/trips/new')
+      return
+    }
+
+    // Create trip in database
+    try {
+      const { data: trip, error } = await supabase
+        .from('trips')
+        .insert({
+          user_id: user.id,
+          destination: tripData.destination,
+          country: tripData.country,
+          start_date: tripData.startDate,
+          end_date: tripData.endDate,
+          num_adults: tripData.numAdults,
+          num_kids: tripData.numKids,
+          kid_ages: tripData.kidAges,
+        })
+        .select()
+        .single()
+
+      if (error) throw error
+
+      // Save packing items if we have them
+      if (trip && tripData.packingList?.categories) {
+        const packingItems = tripData.packingList.categories.flatMap((cat: any, catIdx: number) =>
+          cat.items.map((item: string, itemIdx: number) => ({
+            trip_id: trip.id,
+            user_id: user.id,
+            title: item,
+            category: cat.name,
+            is_packed: false,
+            sort_order: catIdx * 100 + itemIdx,
+          }))
+        )
+
+        await supabase.from('packing_items').insert(packingItems)
+      }
+
+      // Navigate to trip detail
+      router.push(`/trips/${trip.id}`)
+    } catch (error) {
+      console.error('Error creating trip:', error)
+      alert('Failed to create trip. Please try again.')
     }
   }
 
@@ -267,6 +314,15 @@ export default function HomePage() {
           </div>
         </div>
       )}
+
+      {/* Create Trip Modal */}
+      <CreateTripModal
+        isOpen={showCreateModal}
+        onClose={() => setShowCreateModal(false)}
+        initialDestination={modalDestination}
+        initialCountry={modalCountry}
+        onTripCreated={handleTripCreated}
+      />
     </div>
   )
 }
