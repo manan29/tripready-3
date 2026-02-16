@@ -1,126 +1,268 @@
-import { createClient } from '@/lib/supabase/server'
-import { redirect, notFound } from 'next/navigation'
-import Link from 'next/link'
-import { ArrowLeft } from 'lucide-react'
-import { formatDate, formatCurrency, daysUntil, tripDuration, getTripVisuals } from '@/lib/utils'
-import { PreTripTab } from '@/components/trips/PreTripTab'
-import { ItineraryTab } from '@/components/trips/ItineraryTab'
-import { BudgetTab } from '@/components/trips/BudgetTab'
-import { PostTripTab } from '@/components/trips/PostTripTab'
-import { TripTabs } from '@/components/trips/TripTabs'
-import TripHeader from '@/components/trips/TripHeader'
+'use client'
 
-interface PageProps {
-  params: Promise<{ tripId: string }>
-  searchParams: Promise<{ tab?: string }>
-}
+import { useState, useEffect } from 'react'
+import { useParams, useRouter } from 'next/navigation'
+import { createClient } from '@/lib/supabase/client'
+import { GlassCard } from '@/components/ui/GlassCard'
+import { ExpandableSection } from '@/components/ui/ExpandableSection'
+import {
+  ArrowLeft,
+  Calendar,
+  Users,
+  Cloud,
+  DollarSign,
+  CheckSquare,
+  Plane,
+  FileText,
+  Wallet,
+  MapPin,
+  Clock,
+} from 'lucide-react'
 
-export async function generateMetadata({ params }: PageProps) {
-  const { tripId } = await params
-  const supabase = await createClient()
+// Import section components
+import PackingSection from '@/components/trips/sections/PackingSection'
+import BookingsSection from '@/components/trips/sections/BookingsSection'
+import DocumentsSection from '@/components/trips/sections/DocumentsSection'
+import BudgetSection from '@/components/trips/sections/BudgetSection'
 
-  const { data: trip } = await supabase
-    .from('trips')
-    .select('destination, country, start_date')
-    .eq('id', tripId)
-    .single()
+export default function TripDetailPage() {
+  const params = useParams()
+  const router = useRouter()
+  const tripId = params.tripId as string
+  const supabase = createClient()
+
+  const [trip, setTrip] = useState<any>(null)
+  const [weather, setWeather] = useState<any>(null)
+  const [currency, setCurrency] = useState<any>(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    fetchTripData()
+  }, [tripId])
+
+  const fetchTripData = async () => {
+    setLoading(true)
+
+    // Fetch trip
+    const { data: tripData, error } = await supabase
+      .from('trips')
+      .select('*')
+      .eq('id', tripId)
+      .single()
+
+    if (error || !tripData) {
+      console.error('Error fetching trip:', error)
+      router.push('/trips')
+      return
+    }
+
+    setTrip(tripData)
+
+    // Fetch weather
+    try {
+      const weatherRes = await fetch(`/api/weather?city=${tripData.destination}`)
+      if (weatherRes.ok) {
+        const weatherData = await weatherRes.json()
+        setWeather(weatherData)
+      }
+    } catch (e) {
+      console.error('Weather fetch error:', e)
+    }
+
+    // Fetch currency
+    try {
+      const currencyMap: Record<string, string> = {
+        UAE: 'AED',
+        Singapore: 'SGD',
+        Thailand: 'THB',
+        Malaysia: 'MYR',
+        Indonesia: 'IDR',
+        Maldives: 'MVR',
+        Japan: 'JPY',
+        UK: 'GBP',
+        USA: 'USD',
+        Europe: 'EUR',
+      }
+      const fromCurrency = currencyMap[tripData.country] || 'USD'
+
+      const currencyRes = await fetch(`/api/currency?from=${fromCurrency}&to=INR`)
+      if (currencyRes.ok) {
+        const currencyData = await currencyRes.json()
+        setCurrency({ ...currencyData, from: fromCurrency })
+      }
+    } catch (e) {
+      console.error('Currency fetch error:', e)
+    }
+
+    setLoading(false)
+  }
+
+  const getDaysToGo = () => {
+    if (!trip?.start_date) return null
+    const start = new Date(trip.start_date)
+    const today = new Date()
+    const diff = Math.ceil((start.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
+
+    if (diff < 0) {
+      const end = new Date(trip.end_date)
+      if (today <= end) return 'Ongoing'
+      return 'Completed'
+    }
+    if (diff === 0) return 'Today!'
+    if (diff === 1) return '1 day to go'
+    return `${diff} days to go`
+  }
+
+  const getTripDuration = () => {
+    if (!trip?.start_date || !trip?.end_date) return '—'
+    const start = new Date(trip.start_date)
+    const end = new Date(trip.end_date)
+    const days = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1
+    return `${days} days`
+  }
+
+  const getDestinationEmoji = () => {
+    const emojiMap: Record<string, string> = {
+      dubai: '☀️',
+      thailand: '🌴',
+      singapore: '🏙️',
+      bali: '🏝️',
+      malaysia: '🦜',
+      maldives: '🐚',
+      japan: '🗾',
+      india: '🇮🇳',
+    }
+    return emojiMap[trip?.destination?.toLowerCase()] || '✈️'
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin w-8 h-8 border-2 border-purple-500 border-t-transparent rounded-full" />
+      </div>
+    )
+  }
 
   if (!trip) {
-    return {
-      title: 'Trip Not Found',
-    }
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p className="text-gray-500">Trip not found</p>
+      </div>
+    )
   }
-
-  return {
-    title: `${trip.destination}${trip.country ? ', ' + trip.country : ''} Trip`,
-    description: `Plan and manage your trip to ${trip.destination} starting ${new Date(
-      trip.start_date
-    ).toLocaleDateString()}`,
-  }
-}
-
-export default async function TripDetailPage({ params, searchParams }: PageProps) {
-  const { tripId } = await params
-  const { tab = 'pre-trip' } = await searchParams
-
-  const supabase = await createClient()
-
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) redirect('/login')
-
-  const { data: trip, error } = await supabase
-    .from('trips')
-    .select('*')
-    .eq('id', tripId)
-    .eq('user_id', user.id)
-    .single()
-
-  if (error || !trip) {
-    notFound()
-  }
-
-  const { data: checklistItems } = await supabase
-    .from('checklist_items')
-    .select('id, is_completed, phase')
-    .eq('trip_id', tripId)
-
-  const totalItems = checklistItems?.length || 0
-  const completedItems = checklistItems?.filter((item: any) => item.is_completed).length || 0
-  const progress = totalItems > 0 ? Math.round((completedItems / totalItems) * 100) : 0
-
-  const { data: expenses } = await supabase
-    .from('expenses')
-    .select('amount')
-    .eq('trip_id', tripId)
-
-  const totalSpent = expenses?.reduce((sum: number, exp: any) => sum + Number(exp.amount), 0) || 0
-
-  const { gradient, icon } = getTripVisuals(trip.destination)
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header with gradient */}
-      <header className={`bg-gradient-to-br ${gradient}`}>
-        <div className="container mx-auto px-4 py-6">
-          <div className="flex items-center gap-4">
-            <Link
-              href="/trips"
-              className="text-white/80 hover:text-white transition-colors"
-            >
-              <ArrowLeft className="h-6 w-6" />
-            </Link>
-            <div className="flex-1">
-              <div className="flex items-center gap-2 mb-1">
-                <span className="text-2xl">{icon}</span>
-                <h1 className="text-2xl font-bold text-white">{trip.destination}</h1>
-                <span className="text-white/80 text-lg">• {trip.country || 'International'}</span>
-              </div>
-              <p className="text-white/70 text-sm">
-                {formatDate(trip.start_date)} - {formatDate(trip.end_date)}
-              </p>
-            </div>
+    <div className="min-h-screen pb-32">
+      {/* Header */}
+      <div className="bg-gradient-to-b from-purple-100 to-transparent px-5 pt-6 pb-8">
+        {/* Back Button */}
+        <button onClick={() => router.back()} className="flex items-center gap-2 text-gray-600 mb-4">
+          <ArrowLeft className="w-5 h-5" />
+          <span className="text-sm">Back</span>
+        </button>
+
+        {/* Destination */}
+        <div className="flex items-center gap-3 mb-2">
+          <span className="text-4xl">{getDestinationEmoji()}</span>
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">{trip.destination}</h1>
+            <p className="text-gray-500">{trip.country}</p>
           </div>
         </div>
-      </header>
 
-      {/* Trip Header with Live Data */}
-      <TripHeader
-        destination={trip.destination}
-        country={trip.country || ''}
-        startDate={trip.start_date}
-        endDate={trip.end_date}
-        currency={trip.destination_currency || 'USD'}
-      />
+        {/* Date Range */}
+        <p className="text-gray-500 text-sm mb-6">
+          {new Date(trip.start_date).toLocaleDateString('en-GB', {
+            day: 'numeric',
+            month: 'short',
+          })}
+          {' - '}
+          {new Date(trip.end_date).toLocaleDateString('en-GB', {
+            day: 'numeric',
+            month: 'short',
+            year: 'numeric',
+          })}
+        </p>
 
-      {/* Tabs */}
-      <TripTabs tripId={tripId} activeTab={tab} />
+        {/* Stats Cards */}
+        <div className="grid grid-cols-2 gap-3">
+          {/* Days to Go */}
+          <GlassCard className="text-center">
+            <p className="text-purple-600 font-bold text-lg">{getDaysToGo()}</p>
+            <p className="text-gray-500 text-xs">
+              {new Date(trip.start_date).toLocaleDateString('en-GB', {
+                day: 'numeric',
+                month: 'short',
+                year: 'numeric',
+              })}
+            </p>
+          </GlassCard>
 
-      {/* Tab Content */}
-      <div className="container mx-auto px-4 py-6">
-        {tab === 'pre-trip' && <PreTripTab tripId={tripId} userId={user.id} />}
-        {tab === 'itinerary' && <ItineraryTab tripId={tripId} userId={user.id} startDate={trip.start_date} endDate={trip.end_date} />}
-        {tab === 'budget' && <BudgetTab tripId={tripId} userId={user.id} currency={trip.currency} totalBudget={trip.total_budget} />}
-        {tab === 'post-trip' && <PostTripTab tripId={tripId} userId={user.id} currency={trip.currency} totalBudget={trip.total_budget} />}
+          {/* Duration */}
+          <GlassCard className="text-center">
+            <p className="text-gray-800 font-bold text-lg">{getTripDuration()}</p>
+            <p className="text-gray-500 text-xs">Duration</p>
+          </GlassCard>
+
+          {/* Weather */}
+          <GlassCard className="text-center">
+            <p className="text-orange-500 font-bold text-lg">
+              {weather ? `${weather.temp}°C` : '—'}
+              {weather && <span className="ml-1">☀️</span>}
+            </p>
+            <p className="text-gray-500 text-xs">{weather?.description || 'Weather'}</p>
+          </GlassCard>
+
+          {/* Currency */}
+          <GlassCard className="text-center">
+            <p className="text-green-600 font-bold text-lg">
+              {currency ? `₹${currency.rate?.toFixed(2)}` : '—'}
+            </p>
+            <p className="text-gray-500 text-xs">
+              {currency ? `1 ${currency.from} = INR` : 'Currency'}
+            </p>
+          </GlassCard>
+        </div>
+      </div>
+
+      {/* Content Sections */}
+      <div className="px-5 space-y-4">
+        {/* Packing List */}
+        <ExpandableSection
+          title="Packing List"
+          icon={<CheckSquare className="w-4 h-4" />}
+          iconColor="lavender"
+          defaultExpanded={true}
+        >
+          <PackingSection
+            tripId={tripId}
+            destination={trip.destination}
+            numKids={trip.kids || 0}
+          />
+        </ExpandableSection>
+
+        {/* Bookings */}
+        <ExpandableSection
+          title="Bookings"
+          icon={<Plane className="w-4 h-4" />}
+          iconColor="plum"
+        >
+          <BookingsSection tripId={tripId} />
+        </ExpandableSection>
+
+        {/* Documents */}
+        <ExpandableSection
+          title="Documents"
+          icon={<FileText className="w-4 h-4" />}
+          iconColor="grape"
+        >
+          <DocumentsSection tripId={tripId} />
+        </ExpandableSection>
+
+        {/* Budget */}
+        <ExpandableSection title="Budget" icon={<Wallet className="w-4 h-4" />} iconColor="lavender">
+          <BudgetSection tripId={tripId} currency={currency} />
+        </ExpandableSection>
       </div>
     </div>
   )
