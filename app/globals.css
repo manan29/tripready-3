@@ -35,3 +35,34 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Custom scrollbar hide */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* App background */
+.app-bg {
+  background-color: #F5F0FA;
+  min-height: 100vh;
+}
+
+/* Safe area padding */
+.safe-top {
+  padding-top: env(safe-area-inset-top, 0);
+}
+
+.safe-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0);
+}
+
+/* Glass effect fallback for older browsers */
+@supports not (backdrop-filter: blur(12px)) {
+  .backdrop-blur-xl {
+    background-color: rgba(255, 255, 255, 0.95);
+  }
+}
