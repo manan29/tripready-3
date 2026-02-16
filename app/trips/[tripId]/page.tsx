@@ -62,10 +62,10 @@ export default function TripDetailPage() {
 
     setTrip(tripData)
 
-    // Fetch weather forecast for trip dates
+    // Fetch weather forecast for trip dates with insights
     try {
       const weatherRes = await fetch(
-        `/api/weather?city=${tripData.destination}&start_date=${tripData.start_date}`
+        `/api/weather?city=${tripData.destination}&start_date=${tripData.start_date}&end_date=${tripData.end_date}`
       )
       if (weatherRes.ok) {
         const weatherData = await weatherRes.json()
@@ -200,18 +200,37 @@ export default function TripDetailPage() {
 
           {/* Weather */}
           <GlassCard className="text-center">
-            <p className="text-orange-500 font-bold text-lg">
-              {weather ? `${weather.temp}°C` : '—'}
-              {weather && <span className="ml-1">☀️</span>}
-            </p>
-            <p className="text-gray-500 text-xs">
-              {weather?.description || 'Weather'}
-              {weather?.context && (
-                <span className="block text-[10px] text-gray-400 mt-0.5">
-                  {weather.context}
-                </span>
-              )}
-            </p>
+            {weather?.hasInsights ? (
+              <>
+                <p className="text-orange-500 font-bold text-lg flex items-center justify-center gap-1">
+                  <span>{weather.icon}</span>
+                  <span>{weather.tempMin}-{weather.tempMax}°C</span>
+                </p>
+                <p className="text-gray-700 text-[11px] font-medium mt-1 leading-tight">
+                  {weather.insight}
+                </p>
+                {weather.packingTip && (
+                  <p className="text-gray-500 text-[10px] mt-1.5 leading-tight">
+                    📦 {weather.packingTip}
+                  </p>
+                )}
+              </>
+            ) : (
+              <>
+                <p className="text-orange-500 font-bold text-lg">
+                  {weather ? `${weather.temp}°C` : '—'}
+                  {weather && <span className="ml-1">☀️</span>}
+                </p>
+                <p className="text-gray-500 text-xs">
+                  {weather?.description || 'Weather'}
+                  {weather?.context && (
+                    <span className="block text-[10px] text-gray-400 mt-0.5">
+                      {weather.context}
+                    </span>
+                  )}
+                </p>
+              </>
+            )}
           </GlassCard>
 
           {/* Currency */}
