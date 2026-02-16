@@ -264,7 +264,7 @@ export default function TripDetailPage() {
       {/* Content Sections */}
       <div className="px-5 space-y-4">
         {/* Kids Essentials - THE MAGIC MOMENT (Show first if kids present) */}
-        {(trip.num_kids > 0 || trip.kids > 0) && (
+        {trip.num_kids > 0 && (
           <ExpandableSection
             title="Kids Essentials"
             icon={<Baby className="w-4 h-4" />}
@@ -273,7 +273,7 @@ export default function TripDetailPage() {
           >
             <KidsSection
               tripId={tripId}
-              numKids={trip.kids || trip.num_kids || 0}
+              numKids={trip.num_kids || 0}
               kidAges={trip.kid_ages}
             />
           </ExpandableSection>
@@ -284,12 +284,12 @@ export default function TripDetailPage() {
           title="Packing List"
           icon={<CheckSquare className="w-4 h-4" />}
           iconColor="lavender"
-          defaultExpanded={!trip.num_kids && !trip.kids}
+          defaultExpanded={!trip.num_kids}
         >
           <PackingSection
             tripId={tripId}
             destination={trip.destination}
-            numKids={trip.kids || trip.num_kids || 0}
+            numKids={trip.num_kids || 0}
             kidAges={trip.kid_ages}
           />
         </ExpandableSection>
