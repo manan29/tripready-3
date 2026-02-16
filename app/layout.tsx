@@ -34,6 +34,13 @@ export const metadata: Metadata = {
     title: 'JourneyAI - Your AI Travel Concierge',
     description: 'Plan perfect trips with AI. Smart itineraries, budgets, and organization.',
   },
+  viewport: {
+    width: 'device-width',
+    initialScale: 1,
+    maximumScale: 1,
+    userScalable: false,
+  },
+  themeColor: '#7C3AED',
 }
 
 export default function RootLayout({
@@ -43,7 +50,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={`${inter.className} app-bg safe-top`}>
+      <body className={`${inter.className} app-bg`}>
         <main className="min-h-screen pb-24">
           {children}
         </main>
