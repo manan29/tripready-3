@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState, useEffect, Suspense } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { GlassCard } from '@/components/ui/GlassCard'
 import { AISearchBar } from '@/components/ui/AISearchBar'
@@ -10,8 +10,9 @@ import { IconCircle } from '@/components/ui/IconCircle'
 import { CreateTripModal } from '@/components/trips/CreateTripModal'
 import { CheckSquare, Wallet, Baby, Plane, FileText, Plus } from 'lucide-react'
 
-export default function HomePage() {
+function HomePageContent() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const supabase = createClient()
   const [user, setUser] = useState<any>(null)
   const [trips, setTrips] = useState<any[]>([])
@@ -38,6 +39,14 @@ export default function HomePage() {
           .limit(5)
 
         if (tripsData) setTrips(tripsData)
+      }
+
+      // Check if destination was passed from explore page
+      const destinationParam = searchParams.get('destination')
+      if (destinationParam) {
+        handleSearch(destinationParam)
+        // Clean URL
+        router.replace('/', { scroll: false })
       }
     }
     init()
@@ -281,7 +290,7 @@ export default function HomePage() {
 
           {/* Create New Trip Card */}
           <div
-            onClick={() => router.push('/trips/new')}
+            onClick={() => setShowCreateModal(true)}
             className="w-36 flex-shrink-0 border-2 border-dashed border-purple-200 rounded-3xl p-5 flex flex-col items-center justify-center cursor-pointer hover:border-purple-400 transition-colors"
           >
             <div className="w-10 h-10 bg-purple-50 rounded-full flex items-center justify-center mb-2">
@@ -324,5 +333,13 @@ export default function HomePage() {
         onTripCreated={handleTripCreated}
       />
     </div>
+  )
+}
+
+export default function HomePage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-white" />}>
+      <HomePageContent />
+    </Suspense>
   )
 }
