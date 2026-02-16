@@ -1,17 +1,35 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Anthropic from '@anthropic-ai/sdk';
 
-const anthropic = new Anthropic({
-  apiKey: process.env.ANTHROPIC_API_KEY,
-});
-
 export async function POST(request: NextRequest) {
   try {
+    // Check if API key exists
+    if (!process.env.ANTHROPIC_API_KEY) {
+      console.error('ANTHROPIC_API_KEY is not set');
+      return NextResponse.json(
+        {
+          parsed_successfully: false,
+          error: 'API configuration error',
+          details: 'ANTHROPIC_API_KEY not configured',
+        },
+        { status: 500 }
+      );
+    }
+
     const { query } = await request.json();
 
     if (!query) {
-      return NextResponse.json({ error: 'Query is required' }, { status: 400 });
+      return NextResponse.json(
+        { parsed_successfully: false, error: 'Query is required' },
+        { status: 400 }
+      );
     }
+
+    console.log('Parsing query:', query);
+
+    const anthropic = new Anthropic({
+      apiKey: process.env.ANTHROPIC_API_KEY,
+    });
 
     const today = new Date();
     const nextWeek = new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000);
@@ -58,22 +76,35 @@ Return ONLY the JSON, no other text.`;
     });
 
     const responseText = message.content[0].type === 'text' ? message.content[0].text : '';
+    console.log('AI Response:', responseText);
 
     // Parse JSON from response
     const jsonMatch = responseText.match(/\{[\s\S]*\}/);
     if (!jsonMatch) {
+      console.error('No JSON found in response:', responseText);
       return NextResponse.json({
         parsed_successfully: false,
-        error: 'Could not parse response',
+        error: 'Could not parse AI response',
       });
     }
 
     const parsed = JSON.parse(jsonMatch[0]);
+    console.log('Parsed data:', parsed);
     return NextResponse.json(parsed);
-  } catch (error) {
+  } catch (error: any) {
     console.error('Parse trip error:', error);
+    console.error('Error details:', {
+      message: error.message,
+      stack: error.stack,
+      name: error.name,
+    });
+
     return NextResponse.json(
-      { parsed_successfully: false, error: 'Failed to parse trip' },
+      {
+        parsed_successfully: false,
+        error: 'Failed to parse trip',
+        details: error.message || 'Unknown error',
+      },
       { status: 500 }
     );
   }

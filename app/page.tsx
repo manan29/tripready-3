@@ -42,24 +42,34 @@ export default function HomePage() {
   const handleSearch = async (query: string) => {
     setIsLoading(true)
     try {
+      console.log('Searching for:', query)
       const response = await fetch('/api/ai/parse-trip', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ query }),
       })
 
-      if (!response.ok) {
-        throw new Error('Failed to parse trip')
-      }
-
       const data = await response.json()
+      console.log('API Response:', data)
 
-      // Check if parsing was successful
-      if (!data.parsed_successfully && data.parsed_successfully !== undefined) {
-        alert('Could not understand your query. Try: "Dubai with 2 kids" or "Singapore family trip"')
+      if (!response.ok) {
+        const errorMsg = data.details || data.error || 'Failed to parse trip'
+        console.error('API Error:', errorMsg)
+        alert(`Error: ${errorMsg}`)
         setIsLoading(false)
         return
       }
+
+      // Check if parsing was successful
+      if (!data.parsed_successfully && data.parsed_successfully !== undefined) {
+        const errorMsg = data.error || 'Could not understand your query'
+        console.log('Parsing failed:', errorMsg)
+        alert(`${errorMsg}\n\nTry: "Dubai with 2 kids" or "Singapore family trip"`)
+        setIsLoading(false)
+        return
+      }
+
+      console.log('Navigating with data:', data)
 
       // Navigate to trip creation with parsed data (handle both snake_case and camelCase)
       const params = new URLSearchParams({
@@ -73,9 +83,9 @@ export default function HomePage() {
         kidAges: data.kid_ages?.join(',') || '',
       })
       router.push(`/trips/new?${params.toString()}`)
-    } catch (error) {
+    } catch (error: any) {
       console.error('Search error:', error)
-      alert('Failed to process your search. Please try again.')
+      alert(`Failed to process your search: ${error.message || 'Unknown error'}`)
     } finally {
       setIsLoading(false)
     }
