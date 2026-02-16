@@ -27,9 +27,9 @@ export function BottomNav() {
           />
         ))}
 
-        {/* Center FAB */}
+        {/* Center FAB - Navigate to home where guests can search/create */}
         <Link
-          href="/trips/new"
+          href="/"
           className="w-14 h-14 bg-[#9B8ABF] rounded-full flex items-center justify-center shadow-[0px_4px_6px_rgba(216,180,254,0.4),0px_10px_15px_rgba(216,180,254,0.4)] -mt-6 mx-2"
         >
           <Plus className="w-6 h-6 text-white" />
