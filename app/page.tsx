@@ -125,19 +125,46 @@ function HomePageContent() {
       if (error) throw error
 
       // Save packing items if we have them
-      if (trip && tripData.packingList?.categories) {
-        const packingItems = tripData.packingList.categories.flatMap((cat: any, catIdx: number) =>
-          cat.items.map((item: string, itemIdx: number) => ({
-            trip_id: trip.id,
-            user_id: user.id,
-            title: item,
-            category: cat.name,
-            is_packed: false,
-            sort_order: catIdx * 100 + itemIdx,
-          }))
-        )
+      if (trip && tripData.packingList) {
+        const packingItems: any[] = []
+        let sortOrder = 0
 
-        await supabase.from('packing_items').insert(packingItems)
+        // Add kids items (if present)
+        if (tripData.packingList.kids_items) {
+          tripData.packingList.kids_items.forEach((cat: any) => {
+            cat.items.forEach((item: string) => {
+              packingItems.push({
+                trip_id: trip.id,
+                user_id: user.id,
+                title: item,
+                category: cat.category,
+                is_packed: false,
+                sort_order: sortOrder++,
+              })
+            })
+          })
+        }
+
+        // Add general items (if present)
+        if (tripData.packingList.general_items) {
+          tripData.packingList.general_items.forEach((cat: any) => {
+            cat.items.forEach((item: string) => {
+              packingItems.push({
+                trip_id: trip.id,
+                user_id: user.id,
+                title: item,
+                category: cat.category,
+                is_packed: false,
+                sort_order: sortOrder++,
+              })
+            })
+          })
+        }
+
+        // Insert all packing items
+        if (packingItems.length > 0) {
+          await supabase.from('packing_items').insert(packingItems)
+        }
       }
 
       // Navigate to trip detail
