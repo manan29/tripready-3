@@ -4,17 +4,18 @@ import { GoogleGenerativeAI } from '@google/generative-ai';
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY || '');
-
 export async function POST(request: NextRequest) {
   try {
-    if (!process.env.GOOGLE_AI_API_KEY) {
+    const apiKey = process.env.GOOGLE_AI_API_KEY;
+
+    if (!apiKey) {
       return NextResponse.json(
         { error: 'Google AI API key not configured', parsed_successfully: false },
         { status: 500 }
       );
     }
 
+    const genAI = new GoogleGenerativeAI(apiKey);
     const { query } = await request.json();
 
     if (!query) {
@@ -26,7 +27,8 @@ export async function POST(request: NextRequest) {
 
     console.log('Parsing query with Gemini:', query);
 
-    const model = genAI.getGenerativeModel({ model: 'gemini-pro' });
+    // Use the correct model name
+    const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
 
     const today = new Date();
     const nextWeek = new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000);
@@ -36,7 +38,7 @@ export async function POST(request: NextRequest) {
 
 Today is ${today.toISOString().split('T')[0]}.
 
-Return ONLY a valid JSON object (no markdown, no backticks, no explanation):
+Return ONLY valid JSON (no markdown, no backticks):
 {
   "destination": "city name",
   "country": "country name",
@@ -49,23 +51,16 @@ Return ONLY a valid JSON object (no markdown, no backticks, no explanation):
   "parsed_successfully": true
 }
 
-Rules:
-- Extract destination city from query
-- Guess the country based on city
-- Look for "kids", "children", "toddler", "baby" to set num_kids
-- Extract ages if mentioned like "3 year old" or "2 kids (3 and 6)"
-- Return ONLY the JSON object, nothing else`;
+Extract destination from query. Look for kids/children/toddler. Return ONLY JSON.`;
 
     const result = await model.generateContent(prompt);
     const responseText = result.response.text();
 
     console.log('Gemini response:', responseText);
 
-    // Clean response
-    let cleaned = responseText.trim();
-    cleaned = cleaned.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
-
+    let cleaned = responseText.trim().replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
     const parsed = JSON.parse(cleaned);
+
     return NextResponse.json(parsed);
 
   } catch (error) {
