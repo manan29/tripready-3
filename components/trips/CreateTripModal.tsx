@@ -212,11 +212,21 @@ export function CreateTripModal({
                   Number of Adults
                 </label>
                 <input
-                  type="number"
-                  min="1"
-                  max="10"
+                  type="text"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
                   value={numAdults}
-                  onChange={(e) => setNumAdults(parseInt(e.target.value) || 1)}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    if (val === '') {
+                      setNumAdults(1);
+                    } else {
+                      const num = parseInt(val);
+                      if (!isNaN(num) && num >= 1 && num <= 10) {
+                        setNumAdults(num);
+                      }
+                    }
+                  }}
                   className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-purple-300"
                 />
               </div>
@@ -228,11 +238,21 @@ export function CreateTripModal({
                   Number of Kids
                 </label>
                 <input
-                  type="number"
-                  min="0"
-                  max="10"
+                  type="text"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
                   value={numKids}
-                  onChange={(e) => setNumKids(parseInt(e.target.value) || 0)}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    if (val === '') {
+                      setNumKids(0);
+                    } else {
+                      const num = parseInt(val);
+                      if (!isNaN(num) && num >= 0 && num <= 10) {
+                        setNumKids(num);
+                      }
+                    }
+                  }}
                   className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-purple-300"
                 />
               </div>
