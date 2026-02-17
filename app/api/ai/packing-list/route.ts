@@ -75,7 +75,7 @@ Return a JSON object with this exact structure:
 Make items specific to the destination and weather. Include Indian-specific items that may not be available abroad.
 Return ONLY the JSON, no other text.`;
 
-    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash-latest' });
     const result = await model.generateContent(prompt);
     const responseText = result.response.text();
 
