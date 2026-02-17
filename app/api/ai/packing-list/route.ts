@@ -1,10 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import Anthropic from '@anthropic-ai/sdk';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 import { getDestinationByName } from '@/lib/destinations';
 
-const anthropic = new Anthropic({
-  apiKey: process.env.ANTHROPIC_API_KEY,
-});
+const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY || '');
 
 export const dynamic = 'force-dynamic';
 
@@ -77,21 +75,15 @@ Return a JSON object with this exact structure:
 Make items specific to the destination and weather. Include Indian-specific items that may not be available abroad.
 Return ONLY the JSON, no other text.`;
 
-    const message = await anthropic.messages.create({
-      model: 'claude-sonnet-4-20250514',
-      max_tokens: 1500,
-      messages: [{ role: 'user', content: prompt }],
-    });
+    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+    const result = await model.generateContent(prompt);
+    const responseText = result.response.text();
 
-    const responseText = message.content[0].type === 'text' ? message.content[0].text : '';
+    // Clean response
+    let cleaned = responseText.trim();
+    cleaned = cleaned.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
 
-    // Parse JSON from response
-    const jsonMatch = responseText.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) {
-      throw new Error('Invalid response format');
-    }
-
-    const packingList = JSON.parse(jsonMatch[0]);
+    const packingList = JSON.parse(cleaned);
 
     return NextResponse.json(packingList);
   } catch (error) {
