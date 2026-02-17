@@ -275,25 +275,76 @@ export function CreateTripModal({
               </div>
             )}
 
-            {/* Packing List Preview */}
-            {packingList && packingList.categories && (
+            {/* Kids Packing List Preview - THE MAGIC MOMENT! */}
+            {packingList && numKids > 0 && packingList.kids_items && (
+              <div className="mb-6">
+                <div className="bg-gradient-to-br from-purple-50 via-pink-50 to-purple-50 border-2 border-purple-200 rounded-2xl p-5 mb-4">
+                  <div className="flex items-center gap-2 mb-4">
+                    <span className="text-2xl">✨</span>
+                    <h3 className="font-bold text-purple-900 text-lg">What to pack for your kids:</h3>
+                  </div>
+                  <div className="space-y-3">
+                    {packingList.kids_items.slice(0, 4).map((cat: any, idx: number) => {
+                      const emojis: Record<string, string> = {
+                        'Medicines': '💊',
+                        'Clothes': '👕',
+                        'Entertainment': '🎮',
+                        'Essentials': '🍼',
+                      };
+                      return (
+                        <div key={idx} className="bg-white/80 backdrop-blur-sm rounded-xl p-3 border border-purple-100">
+                          <p className="font-semibold text-purple-900 text-sm mb-1.5 flex items-center gap-2">
+                            <span>{emojis[cat.category] || '📦'}</span>
+                            {cat.category}
+                          </p>
+                          <p className="text-xs text-gray-700 leading-relaxed">
+                            {cat.items.slice(0, 4).join(', ')}
+                            {cat.items.length > 4 && ` +${cat.items.length - 4} more`}
+                          </p>
+                        </div>
+                      );
+                    })}
+                  </div>
+                  <p className="text-xs text-purple-600 text-center mt-3 font-medium">
+                    Age-specific suggestions for {parseKidAges().join(', ')} year olds
+                  </p>
+                </div>
+
+                {/* General Items Preview */}
+                {packingList.general_items && (
+                  <div className="bg-gray-50 rounded-xl p-4">
+                    <p className="text-sm font-medium text-gray-700 mb-2">Also includes essentials for adults</p>
+                    <div className="flex flex-wrap gap-2">
+                      {packingList.general_items.slice(0, 3).map((cat: any, idx: number) => (
+                        <span key={idx} className="text-xs px-2 py-1 bg-white rounded-full text-gray-600 border border-gray-200">
+                          {cat.category}
+                        </span>
+                      ))}
+                      {packingList.general_items.length > 3 && (
+                        <span className="text-xs px-2 py-1 bg-white rounded-full text-gray-500">
+                          +{packingList.general_items.length - 3} more
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Packing List Preview (no kids) */}
+            {packingList && numKids === 0 && packingList.general_items && (
               <div className="mb-6">
                 <h3 className="font-semibold text-gray-900 mb-3">Your Packing List</h3>
                 <div className="space-y-2 max-h-60 overflow-y-auto">
-                  {packingList.categories.slice(0, 3).map((cat: any, idx: number) => (
+                  {packingList.general_items.slice(0, 4).map((cat: any, idx: number) => (
                     <div key={idx} className="bg-gray-50 rounded-xl p-3">
-                      <p className="font-medium text-gray-900 text-sm mb-1">{cat.name}</p>
+                      <p className="font-medium text-gray-900 text-sm mb-1">{cat.category}</p>
                       <p className="text-xs text-gray-600">
                         {cat.items.slice(0, 3).join(', ')}
                         {cat.items.length > 3 && ` +${cat.items.length - 3} more`}
                       </p>
                     </div>
                   ))}
-                  {packingList.categories.length > 3 && (
-                    <p className="text-sm text-gray-500 text-center">
-                      +{packingList.categories.length - 3} more categories
-                    </p>
-                  )}
                 </div>
               </div>
             )}
