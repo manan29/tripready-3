@@ -9,6 +9,11 @@ interface CreateTripModalProps {
   onClose: () => void;
   initialDestination?: string;
   initialCountry?: string;
+  initialNumKids?: number;
+  initialKidAges?: number[];
+  initialStartDate?: string;
+  initialEndDate?: string;
+  initialNumAdults?: number;
   onTripCreated: (tripData: any) => void;
 }
 
@@ -17,6 +22,11 @@ export function CreateTripModal({
   onClose,
   initialDestination = '',
   initialCountry = '',
+  initialNumKids = 0,
+  initialKidAges = [],
+  initialStartDate = '',
+  initialEndDate = '',
+  initialNumAdults = 2,
   onTripCreated,
 }: CreateTripModalProps) {
   const [step, setStep] = useState<'form' | 'preview'>('form');
@@ -39,15 +49,36 @@ export function CreateTripModal({
     if (isOpen) {
       setDestination(initialDestination);
       setCountry(initialCountry);
-      // Set default dates (next week)
-      const nextWeek = new Date();
-      nextWeek.setDate(nextWeek.getDate() + 7);
-      const endDateDefault = new Date(nextWeek);
-      endDateDefault.setDate(endDateDefault.getDate() + 5);
-      setStartDate(nextWeek.toISOString().split('T')[0]);
-      setEndDate(endDateDefault.toISOString().split('T')[0]);
+      setNumKids(initialNumKids);
+      setNumAdults(initialNumAdults);
+
+      // Set kid ages from array
+      if (initialKidAges && initialKidAges.length > 0) {
+        setKidAges(initialKidAges.join(', '));
+      } else {
+        setKidAges('');
+      }
+
+      // Use provided dates or set default dates (next week)
+      if (initialStartDate) {
+        setStartDate(initialStartDate);
+      } else {
+        const nextWeek = new Date();
+        nextWeek.setDate(nextWeek.getDate() + 7);
+        setStartDate(nextWeek.toISOString().split('T')[0]);
+      }
+
+      if (initialEndDate) {
+        setEndDate(initialEndDate);
+      } else {
+        const nextWeek = new Date();
+        nextWeek.setDate(nextWeek.getDate() + 7);
+        const endDateDefault = new Date(nextWeek);
+        endDateDefault.setDate(endDateDefault.getDate() + 5);
+        setEndDate(endDateDefault.toISOString().split('T')[0]);
+      }
     }
-  }, [isOpen, initialDestination, initialCountry]);
+  }, [isOpen, initialDestination, initialCountry, initialNumKids, initialKidAges, initialStartDate, initialEndDate, initialNumAdults]);
 
   const parseKidAges = (): number[] => {
     if (!kidAges.trim()) return [];

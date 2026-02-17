@@ -21,6 +21,11 @@ function HomePageContent() {
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [modalDestination, setModalDestination] = useState('')
   const [modalCountry, setModalCountry] = useState('')
+  const [modalNumKids, setModalNumKids] = useState(0)
+  const [modalKidAges, setModalKidAges] = useState<number[]>([])
+  const [modalStartDate, setModalStartDate] = useState('')
+  const [modalEndDate, setModalEndDate] = useState('')
+  const [modalNumAdults, setModalNumAdults] = useState(2)
 
   // Handle search function
   const handleSearch = async (query: string) => {
@@ -58,6 +63,11 @@ function HomePageContent() {
       // Show modal with parsed data
       setModalDestination(data.destination || query)
       setModalCountry(data.country || '')
+      setModalNumKids(data.num_kids || 0)
+      setModalKidAges(data.kid_ages || [])
+      setModalStartDate(data.start_date || '')
+      setModalEndDate(data.end_date || '')
+      setModalNumAdults(data.num_adults || 2)
       setShowCreateModal(true)
     } catch (error: any) {
       console.error('Search error:', error)
@@ -357,6 +367,11 @@ function HomePageContent() {
         onClose={() => setShowCreateModal(false)}
         initialDestination={modalDestination}
         initialCountry={modalCountry}
+        initialNumKids={modalNumKids}
+        initialKidAges={modalKidAges}
+        initialStartDate={modalStartDate}
+        initialEndDate={modalEndDate}
+        initialNumAdults={modalNumAdults}
         onTripCreated={handleTripCreated}
       />
     </div>
