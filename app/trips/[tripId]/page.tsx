@@ -269,7 +269,7 @@ export default function TripDetailPage() {
       {/* Tab Content */}
       <div className="px-4">
         {activeTab === 'plan' && <PlanTab trip={trip} />}
-        {activeTab === 'kids' && <KidsTab tripId={tripId} trip={trip} numKids={trip.num_kids || 0} kidAges={trip.kid_ages} />}
+        {activeTab === 'kids' && <KidsTab trip={trip} />}
         {activeTab === 'adult' && <AdultTab tripId={tripId} trip={trip} />}
       </div>
     </div>
