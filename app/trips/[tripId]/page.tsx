@@ -147,28 +147,45 @@ export default function TripDetailPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin w-8 h-8 border-2 border-purple-500 border-t-transparent rounded-full" />
+      <div className="min-h-screen bg-[#FBFBFE] flex items-center justify-center">
+        <div className="animate-spin w-8 h-8 border-4 border-purple-500 border-t-transparent rounded-full" />
       </div>
     )
   }
 
   if (!trip) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen bg-[#FBFBFE] flex items-center justify-center">
         <p className="text-[#64748B]">Trip not found</p>
       </div>
     )
   }
 
-  const stage = getTripStage(trip.start_date, trip.end_date)
+  // Defensive: Ensure stageData has default structure
+  const safeStageData = stageData || getDefaultStageData()
+
+  // Defensive: Safe trip properties with defaults
+  const destination = trip?.destination || 'Unknown Destination'
+  const country = trip?.country || 'Unknown'
+  const startDate = trip?.start_date || new Date().toISOString()
+  const endDate = trip?.end_date || new Date().toISOString()
+
+  // Defensive: Safe stage detection with fallback
+  let stage = 'pre-trip'
+  try {
+    if (trip?.start_date && trip?.end_date) {
+      stage = getTripStage(trip.start_date, trip.end_date)
+    }
+  } catch (error) {
+    console.error('Stage detection failed:', error)
+  }
 
   // If viewing a step detail, show that instead
   if (currentStep) {
     const stepProps = {
       trip,
       tripId,
-      stageData,
+      stageData: safeStageData,
       onBack: () => setCurrentStep(null),
       onComplete: handleUpdateStageData,
     }
@@ -210,8 +227,8 @@ export default function TripDetailPage() {
             <div className="flex items-center gap-3">
               <span className="text-4xl md:text-5xl lg:text-6xl">{getDestinationEmoji()}</span>
               <div>
-                <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900">{trip.destination}</h1>
-                <p className="text-[#64748B] text-sm md:text-base">{trip.country}</p>
+                <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900">{destination}</h1>
+                <p className="text-[#64748B] text-sm md:text-base">{country}</p>
               </div>
             </div>
 
@@ -225,12 +242,12 @@ export default function TripDetailPage() {
 
           {/* Date Range */}
           <p className="text-[#64748B] text-sm md:text-base mb-6">
-            {new Date(trip.start_date).toLocaleDateString('en-GB', {
+            {new Date(startDate).toLocaleDateString('en-GB', {
               day: 'numeric',
               month: 'short',
             })}
             {' - '}
-            {new Date(trip.end_date).toLocaleDateString('en-GB', {
+            {new Date(endDate).toLocaleDateString('en-GB', {
               day: 'numeric',
               month: 'short',
               year: 'numeric',
@@ -302,13 +319,13 @@ export default function TripDetailPage() {
             <div className="mt-4">
               <WhatsAppShareButton
                 trip={{
-                  destination: trip.destination,
-                  country: trip.country,
-                  startDate: trip.start_date,
-                  endDate: trip.end_date,
-                  numAdults: trip.num_adults || 2,
-                  numKids: trip.num_kids || 0,
-                  kidAges: trip.kid_ages,
+                  destination,
+                  country,
+                  startDate,
+                  endDate,
+                  numAdults: trip?.num_adults || 2,
+                  numKids: trip?.num_kids || 0,
+                  kidAges: trip?.kid_ages || [],
                 }}
                 className="w-full"
               />
@@ -318,26 +335,26 @@ export default function TripDetailPage() {
 
         {/* Stage-Based Content */}
         <div className="px-4 sm:px-6 lg:px-8">
-          {stage === 'pre-trip' && (
+          {stage === 'pre-trip' && PreTripView && (
             <PreTripView
               trip={trip}
-              stageData={stageData}
+              stageData={safeStageData}
               onUpdateStageData={handleUpdateStageData}
               onOpenStep={setCurrentStep}
             />
           )}
-          {stage === 'during-trip' && (
+          {stage === 'during-trip' && DuringTripView && (
             <DuringTripView
               trip={trip}
-              stageData={stageData}
+              stageData={safeStageData}
               weather={weather}
               onUpdateStageData={handleUpdateStageData}
             />
           )}
-          {stage === 'post-trip' && (
+          {stage === 'post-trip' && PostTripView && (
             <PostTripView
               trip={trip}
-              stageData={stageData}
+              stageData={safeStageData}
               onUpdateStageData={handleUpdateStageData}
             />
           )}
