@@ -215,7 +215,7 @@ export function CreateTripModal({
                   type="text"
                   inputMode="numeric"
                   pattern="[0-9]*"
-                  value={numAdults}
+                  value={numAdults === 0 ? '' : numAdults}
                   onChange={(e) => {
                     const val = e.target.value;
                     if (val === '') {
@@ -227,6 +227,7 @@ export function CreateTripModal({
                       }
                     }
                   }}
+                  placeholder="1"
                   className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-purple-300"
                 />
               </div>
@@ -241,7 +242,7 @@ export function CreateTripModal({
                   type="text"
                   inputMode="numeric"
                   pattern="[0-9]*"
-                  value={numKids}
+                  value={numKids === 0 ? '' : numKids}
                   onChange={(e) => {
                     const val = e.target.value;
                     if (val === '') {
@@ -253,6 +254,7 @@ export function CreateTripModal({
                       }
                     }
                   }}
+                  placeholder="0"
                   className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-purple-300"
                 />
               </div>
