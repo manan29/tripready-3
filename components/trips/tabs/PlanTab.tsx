@@ -1,7 +1,15 @@
 'use client';
 
 import { useState } from 'react';
-import { FileText, Plane, CreditCard, Wallet, Plus, X, Upload, Hotel } from 'lucide-react';
+import { FileText, Plane, CreditCard, Wallet, Plus, X, Upload, Hotel, CheckCircle, Loader2 } from 'lucide-react';
+
+interface UploadedDocument {
+  id: string;
+  name: string;
+  type: string;
+  file: File;
+  uploadedAt: Date;
+}
 
 interface PlanTabProps {
   trip: any;
@@ -9,6 +17,45 @@ interface PlanTabProps {
 
 export function PlanTab({ trip }: PlanTabProps) {
   const [activeModal, setActiveModal] = useState<string | null>(null);
+  const [documents, setDocuments] = useState<UploadedDocument[]>([]);
+  const [uploading, setUploading] = useState(false);
+
+  const handleFileUpload = async (file: File, docType: string) => {
+    setUploading(true);
+
+    try {
+      // Simulate upload delay (in production, this would upload to Supabase Storage)
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
+      const newDoc: UploadedDocument = {
+        id: `doc-${Date.now()}`,
+        name: file.name,
+        type: docType,
+        file: file,
+        uploadedAt: new Date(),
+      };
+
+      setDocuments(prev => [...prev, newDoc]);
+
+      // Show success feedback
+      alert(`${docType} uploaded successfully!`);
+    } catch (error) {
+      console.error('Upload failed:', error);
+      alert('Upload failed. Please try again.');
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleDeleteDocument = (docId: string) => {
+    if (confirm('Delete this document?')) {
+      setDocuments(prev => prev.filter(doc => doc.id !== docId));
+    }
+  };
+
+  const getDocumentsByType = (type: string) => {
+    return documents.filter(doc => doc.type === type);
+  };
 
   return (
     <div className="space-y-4 pb-24">
@@ -22,7 +69,7 @@ export function PlanTab({ trip }: PlanTabProps) {
           <h3 className="font-bold text-lg mb-3">Documents</h3>
           <div className="flex items-end justify-between">
             <div>
-              <p className="text-3xl font-bold">{trip.documents?.length || 0}</p>
+              <p className="text-3xl font-bold">{documents.length}</p>
               <p className="text-gray-400 text-sm">items</p>
             </div>
             <div className="p-3 rounded-xl bg-blue-50 text-blue-600">
@@ -86,7 +133,7 @@ export function PlanTab({ trip }: PlanTabProps) {
       {/* DOCUMENTS MODAL */}
       {activeModal === 'documents' && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-end sm:items-center justify-center">
-          <div className="bg-white rounded-t-3xl sm:rounded-3xl w-full sm:max-w-md max-h-[85vh] overflow-auto">
+          <div className="bg-white rounded-t-3xl sm:rounded-3xl w-full sm:max-w-md max-h-[85vh] flex flex-col">
             <div className="sticky top-0 bg-white flex items-center justify-between p-4 border-b">
               <h2 className="text-lg font-bold">Documents</h2>
               <button onClick={() => setActiveModal(null)} className="p-2 hover:bg-gray-100 rounded-full">
@@ -94,27 +141,87 @@ export function PlanTab({ trip }: PlanTabProps) {
               </button>
             </div>
 
-            <div className="p-4 grid grid-cols-2 gap-3">
-              {[
-                { id: 'passport', name: 'Passport', icon: '🛂' },
-                { id: 'visa', name: 'Visa', icon: '📋' },
-                { id: 'insurance', name: 'Insurance', icon: '🛡️' },
-                { id: 'tickets', name: 'Tickets', icon: '🎫' },
-                { id: 'hotel', name: 'Hotel Booking', icon: '🏨' },
-                { id: 'other', name: 'Other', icon: '📄' },
-              ].map((doc) => (
-                <label
-                  key={doc.id}
-                  className="flex flex-col items-center p-4 border-2 border-dashed border-gray-200 rounded-xl cursor-pointer hover:border-purple-300 hover:bg-purple-50 transition-colors"
-                >
-                  <input type="file" accept="image/*,.pdf" className="hidden" />
-                  <span className="text-3xl mb-2">{doc.icon}</span>
-                  <span className="text-sm font-medium text-gray-700">{doc.name}</span>
-                  <span className="text-xs text-gray-400 mt-1 flex items-center gap-1">
-                    <Upload className="w-3 h-3" /> Upload
-                  </span>
-                </label>
-              ))}
+            <div className="flex-1 overflow-y-auto p-4">
+              {/* Uploaded Documents List */}
+              {documents.length > 0 && (
+                <div className="mb-4">
+                  <h3 className="text-sm font-semibold text-gray-700 mb-2">Uploaded ({documents.length})</h3>
+                  <div className="space-y-2">
+                    {documents.map((doc) => (
+                      <div key={doc.id} className="flex items-center gap-3 p-3 bg-green-50 border border-green-200 rounded-lg">
+                        <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0" />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-gray-900 truncate">{doc.name}</p>
+                          <p className="text-xs text-gray-500">{doc.type}</p>
+                        </div>
+                        <button
+                          onClick={() => handleDeleteDocument(doc.id)}
+                          className="p-1 hover:bg-red-100 rounded-full transition-colors"
+                        >
+                          <X className="w-4 h-4 text-red-500" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Upload Areas */}
+              <div className="grid grid-cols-2 gap-3">
+                {[
+                  { id: 'passport', name: 'Passport', icon: '🛂' },
+                  { id: 'visa', name: 'Visa', icon: '📋' },
+                  { id: 'insurance', name: 'Insurance', icon: '🛡️' },
+                  { id: 'tickets', name: 'Tickets', icon: '🎫' },
+                  { id: 'hotel', name: 'Hotel Booking', icon: '🏨' },
+                  { id: 'other', name: 'Other', icon: '📄' },
+                ].map((doc) => {
+                  const uploadedCount = getDocumentsByType(doc.name).length;
+                  return (
+                    <label
+                      key={doc.id}
+                      className={`flex flex-col items-center p-4 border-2 border-dashed rounded-xl cursor-pointer transition-colors ${
+                        uploadedCount > 0
+                          ? 'border-green-300 bg-green-50'
+                          : 'border-gray-200 hover:border-purple-300 hover:bg-purple-50'
+                      }`}
+                    >
+                      <input
+                        type="file"
+                        accept="image/*,.pdf"
+                        className="hidden"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            handleFileUpload(file, doc.name);
+                          }
+                          e.target.value = ''; // Reset input
+                        }}
+                        disabled={uploading}
+                      />
+                      <span className="text-3xl mb-2">{doc.icon}</span>
+                      <span className="text-sm font-medium text-gray-700">{doc.name}</span>
+                      {uploadedCount > 0 ? (
+                        <span className="text-xs text-green-600 mt-1 flex items-center gap-1">
+                          <CheckCircle className="w-3 h-3" /> {uploadedCount} uploaded
+                        </span>
+                      ) : (
+                        <span className="text-xs text-gray-400 mt-1 flex items-center gap-1">
+                          <Upload className="w-3 h-3" /> Upload
+                        </span>
+                      )}
+                    </label>
+                  );
+                })}
+              </div>
+
+              {/* Uploading Indicator */}
+              {uploading && (
+                <div className="mt-4 flex items-center justify-center gap-2 text-purple-600">
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                  <span className="text-sm font-medium">Uploading...</span>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -182,7 +289,18 @@ export function PlanTab({ trip }: PlanTabProps) {
 
               {/* Upload Visa */}
               <label className="flex flex-col items-center p-6 border-2 border-dashed border-gray-200 rounded-xl cursor-pointer hover:border-purple-300 hover:bg-purple-50">
-                <input type="file" accept="image/*,.pdf" className="hidden" />
+                <input
+                  type="file"
+                  accept="image/*,.pdf"
+                  className="hidden"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      handleFileUpload(file, 'Visa');
+                      setActiveModal(null);
+                    }
+                  }}
+                />
                 <CreditCard className="w-12 h-12 text-purple-400 mb-2" />
                 <p className="font-medium">Upload Visa</p>
                 <p className="text-sm text-gray-400">PDF or Image</p>

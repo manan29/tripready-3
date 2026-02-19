@@ -61,9 +61,9 @@ export function KidsTab({ trip }: KidsTabProps) {
         category: cat.category,
         items: cat.items.map((item: any, idx: number) => ({
           id: `${cat.category}-${idx}-${Date.now()}`,
-          name: item.name,
-          quantity: item.quantity || 1,
-          reason: item.reason,
+          name: typeof item === 'string' ? item : item.name || item,
+          quantity: typeof item === 'string' ? 1 : (item.quantity || 1),
+          reason: typeof item === 'string' ? undefined : item.reason,
           packed: false,
           isCustom: false,
         })),
