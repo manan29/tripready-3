@@ -2,9 +2,8 @@
 
 import { useState } from 'react'
 import { BentoCard } from '@/components/ui/BentoCard'
-import { Timeline } from '@/components/ui/Timeline'
 import { AlertCircle } from 'lucide-react'
-import { PRE_TRIP_STEPS, getStepStatus, getTripDayInfo, isPeakSeason, getFlightBookingAdvice } from '@/lib/trip-stages'
+import { PRE_TRIP_STEPS, getTripDayInfo, isPeakSeason, getFlightBookingAdvice } from '@/lib/trip-stages'
 
 interface PreTripViewProps {
   trip: any
@@ -112,23 +111,52 @@ export function PreTripView({ trip, stageData, onUpdateStageData, onOpenStep }: 
         </div>
       )}
 
-      {/* Workflow Steps - Timeline */}
-      <Timeline
-        items={PRE_TRIP_STEPS.map((step) => {
-          const status = getStepStatus(step.id, completedSteps, daysUntil)
-          return {
-            id: step.id,
-            title: step.title,
-            description:
-              status === 'locked' && step.id === 'last-minute'
-                ? 'Unlocks 7 days before trip'
-                : step.description,
-            status,
-            icon: step.icon,
-            onClick: () => onOpenStep(step.id),
-          }
+      {/* Workflow Steps - Parallel Access */}
+      <div className="space-y-3">
+        {PRE_TRIP_STEPS.map((step) => {
+          const isCompleted = completedSteps.includes(step.id)
+
+          return (
+            <BentoCard key={step.id} size="medium">
+              <div className="flex items-center justify-between">
+                <div
+                  className="flex items-center gap-3 flex-1 cursor-pointer"
+                  onClick={() => onOpenStep(step.id)}
+                >
+                  <div className="text-2xl">{step.icon}</div>
+                  <div className="flex-1">
+                    <h4 className="font-semibold text-[#1E293B] text-sm">{step.title}</h4>
+                    <p className="text-[#64748B] text-xs mt-0.5">{step.description}</p>
+                  </div>
+                </div>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    const newCompletedSteps = isCompleted
+                      ? completedSteps.filter((s: string) => s !== step.id)
+                      : [...completedSteps, step.id]
+
+                    onUpdateStageData({
+                      ...stageData,
+                      pre_trip: {
+                        ...stageData?.pre_trip,
+                        completed_steps: newCompletedSteps,
+                      },
+                    })
+                  }}
+                  className={`px-4 py-2 rounded-xl font-medium text-sm transition-all ${
+                    isCompleted
+                      ? 'bg-[#10B981] text-white'
+                      : 'bg-[#F3E8FF] text-[#9333EA] hover:bg-[#9333EA] hover:text-white'
+                  }`}
+                >
+                  {isCompleted ? '✓ Done' : 'Mark Done'}
+                </button>
+              </div>
+            </BentoCard>
+          )
         })}
-      />
+      </div>
 
       {/* Completion Message */}
       {completedSteps.length === PRE_TRIP_STEPS.length && (

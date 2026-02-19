@@ -2,13 +2,14 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Home, ClipboardList, User } from 'lucide-react'
+import { Home, ClipboardList, User, Plane } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 
 export function BottomNav() {
   const pathname = usePathname()
   const [isLoggedIn, setIsLoggedIn] = useState(false)
+  const [showBookings, setShowBookings] = useState(false)
   const supabase = createClient()
 
   useEffect(() => {
@@ -26,9 +27,37 @@ export function BottomNav() {
     return () => subscription.unsubscribe()
   }, [])
 
+  // Check if we should show Bookings tab based on current trip
+  useEffect(() => {
+    const checkBookingsVisibility = async () => {
+      // Extract trip ID from pathname if we're on a trip page
+      const tripMatch = pathname.match(/\/trips\/([^\/]+)/)
+      if (!tripMatch) {
+        setShowBookings(false)
+        return
+      }
+
+      const tripId = tripMatch[1]
+      const { data: trip } = await supabase
+        .from('trips')
+        .select('stage_data')
+        .eq('id', tripId)
+        .single()
+
+      if (trip?.stage_data?.['pre-trip']?.['visa-docs']?.completed) {
+        setShowBookings(true)
+      } else {
+        setShowBookings(false)
+      }
+    }
+
+    checkBookingsVisibility()
+  }, [pathname])
+
   const navItems = [
     { icon: Home, label: 'Home', href: '/' },
     { icon: ClipboardList, label: 'My Trips', href: isLoggedIn ? '/trips' : '/login' },
+    ...(showBookings ? [{ icon: Plane, label: 'Bookings', href: '/bookings' }] : []),
     { icon: User, label: 'Profile', href: '/profile' },
   ]
 
@@ -44,7 +73,8 @@ export function BottomNav() {
             isActive={
               pathname === item.href ||
               (item.href === '/trips' && pathname.startsWith('/trips/')) ||
-              (item.href === '/profile' && pathname.startsWith('/profile'))
+              (item.href === '/profile' && pathname.startsWith('/profile')) ||
+              (item.href === '/bookings' && pathname.startsWith('/bookings'))
             }
           />
         ))}

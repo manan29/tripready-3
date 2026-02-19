@@ -20,6 +20,7 @@ export function DuringTripView({ trip, stageData, weather, onUpdateStageData }: 
   const emergencyContacts = getEmergencyContacts(trip.country)
   const localCurrency = getCurrencyForCountry(trip.country)
 
+  const [selectedDay, setSelectedDay] = useState(currentDay)
   const [inrAmount, setInrAmount] = useState('1000')
   const [convertedAmount, setConvertedAmount] = useState('')
   const [dailyChecklist, setDailyChecklist] = useState<string[]>([])
@@ -42,14 +43,36 @@ export function DuringTripView({ trip, stageData, weather, onUpdateStageData }: 
     )
   }
 
+  // Calculate available days (current + next, max totalDays)
+  const availableDays = []
+  if (currentDay <= totalDays) availableDays.push(currentDay)
+  if (currentDay + 1 <= totalDays) availableDays.push(currentDay + 1)
+
   return (
     <div className="space-y-4 pb-4">
+      {/* Day Tabs - Sliding Window */}
+      <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+        {availableDays.map((day) => (
+          <button
+            key={day}
+            onClick={() => setSelectedDay(day)}
+            className={`px-6 py-3 rounded-xl font-semibold text-sm transition-all whitespace-nowrap ${
+              selectedDay === day
+                ? 'bg-[#9333EA] text-white shadow-lg'
+                : 'bg-white text-[#64748B] border-2 border-[#E2E8F0] hover:border-[#9333EA]'
+            }`}
+          >
+            {day === currentDay ? `Today (Day ${day})` : `Tomorrow (Day ${day})`}
+          </button>
+        ))}
+      </div>
+
       {/* Day Counter Banner */}
       <div className="bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-xl p-6">
         <div className="flex items-center justify-between mb-2">
           <div>
             <h2 className="text-2xl font-bold">
-              Day {currentDay} of {totalDays}
+              Day {selectedDay} of {totalDays}
             </h2>
             <p className="text-white/90 text-sm">{trip.destination}</p>
           </div>
@@ -63,7 +86,7 @@ export function DuringTripView({ trip, stageData, weather, onUpdateStageData }: 
         <div className="h-1.5 bg-white/30 rounded-full overflow-hidden mt-3">
           <div
             className="h-full bg-white transition-all duration-500"
-            style={{ width: `${(currentDay / totalDays) * 100}%` }}
+            style={{ width: `${(selectedDay / totalDays) * 100}%` }}
           />
         </div>
       </div>

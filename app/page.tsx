@@ -242,41 +242,20 @@ function HomePageContent() {
   ]
 
   return (
-    <div className="min-h-screen pb-32">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6">
-        {/* Header */}
-        <div className="mb-6">
-          {user ? (
-            <>
-              <div className="flex items-center gap-3 mb-1">
-                <div className="w-12 h-12 md:w-14 md:h-14 bg-purple-100 rounded-full flex items-center justify-center">
-                  <span className="text-xl md:text-2xl font-bold text-purple-600">
-                    {userName?.charAt(0)?.toUpperCase() || user.email?.charAt(0)?.toUpperCase()}
-                  </span>
-                </div>
-                <div>
-                  <p className="text-[#64748B] text-sm md:text-base">Welcome back!</p>
-                  <h1 className="text-xl md:text-2xl lg:text-3xl font-bold text-gray-900">{userName} 👋</h1>
-                </div>
-              </div>
-              <p className="text-[#1E293B] text-sm md:text-base mt-4">
-                AI-powered packing lists for your kids. Know exactly what to pack.
-              </p>
-            </>
-          ) : (
-            <div>
-              <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900">Travel Stress-Free with Kids</h1>
-              <p className="text-purple-600 text-base md:text-lg font-medium italic">Let JourneyAI Plan It</p>
-              <p className="text-[#1E293B] text-sm md:text-base mt-4">
-                AI-powered packing lists for your kids. Know exactly what to pack for your 3-year-old
-                in Dubai.
-              </p>
-            </div>
-          )}
+    <div className="min-h-screen pb-32 flex items-center justify-center">
+      <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
+        {/* Centered Hero Section */}
+        <div className="text-center mb-12">
+          <h1 className="text-4xl md:text-5xl font-bold text-[#1E293B] mb-4">
+            What JourneyAI Can Do For You
+          </h1>
+          <p className="text-[#64748B] text-lg md:text-xl max-w-xl mx-auto">
+            Your AI travel companion for stress-free family trips
+          </p>
         </div>
 
         {/* AI Search Bar */}
-        <div className="mb-4">
+        <div className="mb-12">
           <AISearchBar
             onSubmit={handleSearch}
             isLoading={isLoading}
@@ -284,108 +263,32 @@ function HomePageContent() {
           />
         </div>
 
-        {/* Auto-Scrolling Chips - Kids Focused */}
-        <div className="mb-8">
-          <ScrollingChips
-            chips={[
-              'Dubai with toddler',
-              'Singapore with kids',
-              'Bali family trip',
-              'Thailand with 2 kids',
-              'Malaysia with baby',
-              'Maldives family vacation',
-              'Sri Lanka with toddler',
-              'Japan with kids',
-            ]}
-            onChipClick={handleSearch}
-        />
-      </div>
+        {/* 3 Simple Feature Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+          <GlassCard className="text-center p-8">
+            <IconCircle icon={<CheckSquare className="w-5 h-5" />} color="lavender" size="lg" />
+            <h3 className="font-semibold text-[#1E293B] mt-4 text-lg">Smart Checklists</h3>
+            <p className="text-[#64748B] text-sm mt-2">
+              AI-powered packing lists tailored for your family
+            </p>
+          </GlassCard>
 
-        {/* Features Section */}
-        <div className="mb-8">
-          <h2 className="font-bold text-[#1E293B] text-base md:text-lg mb-4">What JourneyAI does for you</h2>
-          <div className="flex gap-4 overflow-x-auto pb-2 -mx-4 px-4 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8 scrollbar-hide">
-            {features.map((feature, index) => (
-              <GlassCard key={index} className="w-44 flex-shrink-0">
-                <IconCircle icon={feature.icon} color={feature.color} size="md" />
-                <h3 className="font-semibold text-[#1E293B] mt-3 text-sm">{feature.title}</h3>
-                <p className="text-[#64748B] text-xs mt-1">{feature.desc}</p>
-              </GlassCard>
-            ))}
-          </div>
+          <GlassCard className="text-center p-8">
+            <IconCircle icon={<Wallet className="w-5 h-5" />} color="plum" size="lg" />
+            <h3 className="font-semibold text-[#1E293B] mt-4 text-lg">Budget Tracking</h3>
+            <p className="text-[#64748B] text-sm mt-2">
+              Track expenses and stay within your budget
+            </p>
+          </GlassCard>
+
+          <GlassCard className="text-center p-8">
+            <IconCircle icon={<Baby className="w-5 h-5" />} color="grape" size="lg" />
+            <h3 className="font-semibold text-[#1E293B] mt-4 text-lg">Kid Activities</h3>
+            <p className="text-[#64748B] text-sm mt-2">
+              Family-friendly suggestions for every age
+            </p>
+          </GlassCard>
         </div>
-
-        {/* Popular Destinations Section */}
-        <div className="mb-8">
-          <h2 className="font-bold text-[#1E293B] text-base md:text-lg mb-4 flex items-center gap-2">
-            <TrendingUp className="w-5 h-5 md:w-6 md:h-6 text-purple-500" />
-            Popular Destinations
-          </h2>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
-            {TOP_DESTINATIONS.slice(0, 8).map((dest) => (
-              <GlassCard
-                key={dest.id}
-                onClick={() => {
-                  setModalDestination(dest.name)
-                  setModalCountry(dest.country)
-                  setShowCreateModal(true)
-                }}
-                className="text-center cursor-pointer hover:shadow-lg transition-shadow"
-              >
-                <span className="text-4xl md:text-5xl mb-2 block">{dest.emoji}</span>
-                <h3 className="font-semibold text-[#1E293B] text-sm md:text-base">{dest.name}</h3>
-                <p className="text-xs md:text-sm text-[#64748B]">{dest.country}</p>
-                <p className="text-xs md:text-sm text-purple-500 mt-1 line-clamp-1">{dest.kidsHighlights[0]}</p>
-              </GlassCard>
-            ))}
-          </div>
-        </div>
-
-        {/* Your Trips Section - Only for logged in users */}
-        {user && (
-          <div>
-            <h2 className="font-bold text-[#1E293B] text-base md:text-lg mb-4">Your Trips</h2>
-            <div className="flex gap-4 overflow-x-auto pb-2 -mx-4 px-4 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8 scrollbar-hide">
-            {trips.length > 0 ? (
-              <>
-                {trips.map((trip) => (
-                  <TripCardGlass
-                    key={trip.id}
-                    id={trip.id}
-                    destination={trip.destination}
-                    emoji={getDestinationEmoji(trip.destination)}
-                    date={new Date(trip.start_date).toLocaleDateString('en-GB', {
-                      day: 'numeric',
-                      month: 'short',
-                      year: 'numeric',
-                    })}
-                    travelers={(trip.adults || 2) + (trip.kids || 0)}
-                    status={
-                      new Date(trip.end_date) < new Date()
-                        ? 'completed'
-                        : new Date(trip.start_date) <= new Date()
-                        ? 'in-progress'
-                        : 'upcoming'
-                    }
-                    onClick={() => router.push(`/trips/${trip.id}`)}
-                  />
-                ))}
-              </>
-            ) : null}
-
-            {/* Create New Trip Card */}
-            <div
-              onClick={() => setShowCreateModal(true)}
-              className="w-36 flex-shrink-0 border-2 border-dashed border-purple-200 rounded-3xl p-5 flex flex-col items-center justify-center cursor-pointer hover:border-purple-400 transition-colors"
-            >
-              <div className="w-10 h-10 bg-purple-50 rounded-full flex items-center justify-center mb-2">
-                <Plus className="w-5 h-5 text-purple-500" />
-              </div>
-              <span className="text-purple-500 text-sm font-medium text-center">Create Trip</span>
-              </div>
-            </div>
-          </div>
-        )}
 
         {/* Create Trip Modal */}
         <CreateTripModal
