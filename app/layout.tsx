@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import './globals.css'
 import { BottomNav } from '@/components/navigation/BottomNav'
+import { PWAInstallPrompt } from '@/components/ui/PWAInstallPrompt'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -21,6 +22,12 @@ export const metadata: Metadata = {
     'packing list',
   ],
   authors: [{ name: 'JourneyAI' }],
+  manifest: '/manifest.json',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'default',
+    title: 'JourneyAI',
+  },
   openGraph: {
     type: 'website',
     locale: 'en_US',
@@ -41,6 +48,10 @@ export const metadata: Metadata = {
     userScalable: false,
   },
   themeColor: '#7C3AED',
+  icons: {
+    icon: '/icons/icon-192.png',
+    apple: '/icons/icon-192.png',
+  },
 }
 
 export default function RootLayout({
@@ -50,10 +61,20 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
+      <head>
+        <meta name="application-name" content="JourneyAI" />
+        <meta name="mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+        <meta name="apple-mobile-web-app-title" content="JourneyAI" />
+        <link rel="apple-touch-icon" href="/icons/icon-192.png" />
+        <link rel="manifest" href="/manifest.json" />
+      </head>
       <body className={`${inter.className} app-bg`}>
         <main className="min-h-screen pb-20 md:pb-24">
           {children}
         </main>
+        <PWAInstallPrompt />
         <BottomNav />
       </body>
     </html>
