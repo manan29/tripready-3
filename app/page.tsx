@@ -8,7 +8,8 @@ import { AISearchBar } from '@/components/ui/AISearchBar'
 import { TripCardGlass } from '@/components/trips/TripCardGlass'
 import { IconCircle } from '@/components/ui/IconCircle'
 import { CreateTripModal } from '@/components/trips/CreateTripModal'
-import { CheckSquare, Wallet, Baby, Plane, FileText, Plus } from 'lucide-react'
+import { CheckSquare, Wallet, Baby, Plane, FileText, Plus, TrendingUp } from 'lucide-react'
+import { TOP_DESTINATIONS } from '@/lib/destinations'
 
 function HomePageContent() {
   const router = useRouter()
@@ -312,6 +313,32 @@ function HomePageContent() {
               <IconCircle icon={feature.icon} color={feature.color} size="md" />
               <h3 className="font-semibold text-gray-800 mt-3 text-sm">{feature.title}</h3>
               <p className="text-gray-500 text-xs mt-1">{feature.desc}</p>
+            </GlassCard>
+          ))}
+        </div>
+      </div>
+
+      {/* Popular Destinations Section */}
+      <div className="mb-8">
+        <h2 className="font-bold text-gray-800 mb-4 flex items-center gap-2">
+          <TrendingUp className="w-5 h-5 text-purple-500" />
+          Popular Destinations
+        </h2>
+        <div className="grid grid-cols-2 gap-3">
+          {TOP_DESTINATIONS.slice(0, 8).map((dest) => (
+            <GlassCard
+              key={dest.id}
+              onClick={() => {
+                setModalDestination(dest.name)
+                setModalCountry(dest.country)
+                setShowCreateModal(true)
+              }}
+              className="text-center cursor-pointer hover:shadow-lg transition-shadow"
+            >
+              <span className="text-4xl mb-2 block">{dest.emoji}</span>
+              <h3 className="font-semibold text-gray-800 text-sm">{dest.name}</h3>
+              <p className="text-xs text-gray-500">{dest.country}</p>
+              <p className="text-xs text-purple-500 mt-1 line-clamp-1">{dest.kidsHighlights[0]}</p>
             </GlassCard>
           ))}
         </div>
