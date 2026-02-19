@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import { Plus, MoreVertical, Trash2 } from 'lucide-react'
+import { Plus, MoreVertical, Archive } from 'lucide-react'
 
 export default function TripsPage() {
   const router = useRouter()
@@ -38,6 +38,7 @@ export default function TripsPage() {
       .from('trips')
       .select('*')
       .eq('user_id', user.id)
+      .is('archived', false)
       .order('start_date', { ascending: true })
 
     if (data) setTrips(data)
@@ -66,20 +67,23 @@ export default function TripsPage() {
     })
   }
 
-  const handleDeleteTrip = async (tripId: string) => {
-    const confirmed = window.confirm('Delete this trip? This cannot be undone.')
+  const handleArchiveTrip = async (tripId: string) => {
+    const confirmed = window.confirm('Archive this trip? You can restore it from Settings.')
     if (!confirmed) return
 
     try {
-      const { error } = await supabase.from('trips').delete().eq('id', tripId)
+      const { error } = await supabase
+        .from('trips')
+        .update({ archived: true })
+        .eq('id', tripId)
 
       if (error) throw error
 
       // Remove from local state
       setTrips(trips.filter((t) => t.id !== tripId))
     } catch (error) {
-      console.error('Failed to delete trip:', error)
-      alert('Failed to delete trip. Please try again.')
+      console.error('Failed to archive trip:', error)
+      alert('Failed to archive trip. Please try again.')
     }
   }
 
@@ -137,13 +141,13 @@ export default function TripsPage() {
                     <button
                       onClick={(e) => {
                         e.stopPropagation()
-                        handleDeleteTrip(trip.id)
+                        handleArchiveTrip(trip.id)
                         setShowMenu(null)
                       }}
-                      className="px-4 py-2 text-red-600 hover:bg-red-50 w-full text-left text-sm flex items-center gap-2 whitespace-nowrap"
+                      className="px-4 py-2 text-orange-600 hover:bg-orange-50 w-full text-left text-sm flex items-center gap-2 whitespace-nowrap"
                     >
-                      <Trash2 className="w-4 h-4" />
-                      Delete Trip
+                      <Archive className="w-4 h-4" />
+                      Archive Trip
                     </button>
                   </div>
                 )}

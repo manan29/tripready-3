@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
-import { Plane, ArrowLeft, User, Trash2, Shield, FileText, LogOut } from 'lucide-react'
+import { Plane, ArrowLeft, User, Trash2, Shield, FileText, LogOut, Archive, RotateCcw } from 'lucide-react'
 
 export default function SettingsPage() {
   const router = useRouter()
@@ -15,6 +15,8 @@ export default function SettingsPage() {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [deleteConfirmText, setDeleteConfirmText] = useState('')
   const [isDeleting, setIsDeleting] = useState(false)
+  const [archivedTrips, setArchivedTrips] = useState<any[]>([])
+  const [loadingArchived, setLoadingArchived] = useState(true)
 
   const supabase = createClient()
 
@@ -35,9 +37,45 @@ export default function SettingsPage() {
 
       setProfile(profile)
       setIsLoading(false)
+
+      // Fetch archived trips
+      const { data: archived } = await supabase
+        .from('trips')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('archived', true)
+        .order('start_date', { ascending: false })
+
+      setArchivedTrips(archived || [])
+      setLoadingArchived(false)
     }
     loadUser()
   }, [])
+
+  const handleRestoreTrip = async (tripId: string) => {
+    try {
+      const { error } = await supabase
+        .from('trips')
+        .update({ archived: false })
+        .eq('id', tripId)
+
+      if (error) throw error
+
+      // Remove from archived list
+      setArchivedTrips(archivedTrips.filter((t) => t.id !== tripId))
+    } catch (error) {
+      console.error('Failed to restore trip:', error)
+      alert('Failed to restore trip. Please try again.')
+    }
+  }
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-GB', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+    })
+  }
 
   const handleDeleteAccount = async () => {
     if (deleteConfirmText !== 'DELETE') return
@@ -48,19 +86,19 @@ export default function SettingsPage() {
       // Delete all user data
       // 1. Delete checklist items
       await supabase.from('checklist_items').delete().eq('user_id', user.id)
-      
+
       // 2. Delete expenses
       await supabase.from('expenses').delete().eq('user_id', user.id)
-      
+
       // 3. Delete activities
       await supabase.from('activities').delete().eq('user_id', user.id)
-      
+
       // 4. Delete flights
       await supabase.from('flights').delete().eq('user_id', user.id)
-      
+
       // 5. Delete trips
       await supabase.from('trips').delete().eq('user_id', user.id)
-      
+
       // 6. Delete profile
       await supabase.from('profiles').delete().eq('id', user.id)
 
@@ -147,6 +185,47 @@ export default function SettingsPage() {
               <span className="text-gray-400">→</span>
             </Link>
           </div>
+        </div>
+
+        {/* Archived Trips */}
+        <div className="bg-white rounded-2xl p-6 mb-6">
+          <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+            <Archive className="h-5 w-5 text-gray-400" />
+            Archived Trips
+          </h2>
+          {loadingArchived ? (
+            <div className="flex items-center justify-center py-8">
+              <div className="w-6 h-6 border-2 border-purple-500 border-t-transparent rounded-full animate-spin"></div>
+            </div>
+          ) : archivedTrips.length > 0 ? (
+            <div className="space-y-2">
+              {archivedTrips.map((trip) => (
+                <div
+                  key={trip.id}
+                  className="flex items-center justify-between p-3 rounded-xl bg-gray-50 hover:bg-gray-100 transition-colors"
+                >
+                  <div className="flex-1">
+                    <p className="font-medium text-gray-900">{trip.destination}</p>
+                    <p className="text-sm text-gray-500">
+                      {formatDate(trip.start_date)} - {formatDate(trip.end_date)}
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => handleRestoreTrip(trip.id)}
+                    className="flex items-center gap-2 px-3 py-1.5 bg-purple-100 text-purple-700 rounded-lg hover:bg-purple-200 transition-colors text-sm font-medium"
+                  >
+                    <RotateCcw className="h-4 w-4" />
+                    Restore
+                  </button>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-8">
+              <Archive className="h-12 w-12 text-gray-300 mx-auto mb-2" />
+              <p className="text-gray-500 text-sm">No archived trips</p>
+            </div>
+          )}
         </div>
 
         {/* Sign Out */}
