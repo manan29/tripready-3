@@ -149,8 +149,8 @@ export function CreateTripModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-      <div className="relative w-full max-w-lg max-h-[90vh] overflow-y-auto bg-white rounded-3xl shadow-2xl">
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 backdrop-blur-sm">
+      <div className="relative w-full sm:max-w-lg h-[90vh] sm:h-auto sm:max-h-[85vh] bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl flex flex-col overflow-hidden">
         {/* Close button */}
         <button
           onClick={onClose}
@@ -160,7 +160,9 @@ export function CreateTripModal({
         </button>
 
         {step === 'form' ? (
-          <div className="p-6">
+          <>
+            {/* Scrollable Content */}
+            <div className="flex-1 overflow-y-auto p-6 pb-4">
             <div className="text-center mb-6">
               <div className="inline-flex items-center justify-center w-16 h-16 bg-purple-100 rounded-full mb-4">
                 <Sparkles className="w-8 h-8 text-purple-600" />
@@ -289,8 +291,11 @@ export function CreateTripModal({
                   )}
                 </div>
               )}
+            </div>
+            </div>
 
-              {/* Generate Button */}
+            {/* Sticky Button at Bottom */}
+            <div className="border-t bg-white p-4">
               <button
                 onClick={handleGeneratePreview}
                 disabled={!destination || !startDate || !endDate || isLoading}
@@ -309,9 +314,11 @@ export function CreateTripModal({
                 )}
               </button>
             </div>
-          </div>
+          </>
         ) : (
-          <div className="p-6">
+          <>
+            {/* Scrollable Content */}
+            <div className="flex-1 overflow-y-auto p-6 pb-4">
             <div className="text-center mb-6">
               <div className="text-4xl mb-3">🎉</div>
               <h2 className="text-2xl font-bold text-gray-900 mb-2">Your Trip Preview</h2>
@@ -401,23 +408,26 @@ export function CreateTripModal({
                 </div>
               </div>
             )}
-
-            {/* Actions */}
-            <div className="flex gap-3">
-              <button
-                onClick={() => setStep('form')}
-                className="flex-1 py-3 bg-gray-100 text-gray-700 font-medium rounded-xl hover:bg-gray-200 transition-colors"
-              >
-                ← Edit
-              </button>
-              <button
-                onClick={handleSaveTrip}
-                className="flex-1 py-3 bg-gradient-to-r from-purple-600 to-pink-500 text-white font-semibold rounded-xl hover:shadow-lg transition-all"
-              >
-                Save Trip
-              </button>
             </div>
-          </div>
+
+            {/* Sticky Actions at Bottom */}
+            <div className="border-t bg-white p-4">
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setStep('form')}
+                  className="flex-1 py-3 bg-gray-100 text-gray-700 font-medium rounded-xl hover:bg-gray-200 transition-colors"
+                >
+                  ← Edit
+                </button>
+                <button
+                  onClick={handleSaveTrip}
+                  className="flex-1 py-3 bg-gradient-to-r from-purple-600 to-pink-500 text-white font-semibold rounded-xl hover:shadow-lg transition-all"
+                >
+                  Save Trip
+                </button>
+              </div>
+            </div>
+          </>
         )}
       </div>
     </div>
