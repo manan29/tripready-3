@@ -4,12 +4,18 @@ import { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { GlassCard } from '@/components/ui/GlassCard'
-import { ArrowLeft, Calendar, Users, Cloud, DollarSign, Baby } from 'lucide-react'
+import { ArrowLeft } from 'lucide-react'
 import { WhatsAppShareButton } from '@/components/ui/WhatsAppShareButton'
 import { getCurrencyForCountry } from '@/lib/destinations'
-import { PlanTab } from '@/components/trips/tabs/PlanTab'
-import { KidsTab } from '@/components/trips/tabs/KidsTab'
-import { AdultTab } from '@/components/trips/tabs/AdultTab'
+import { getTripStage, getDefaultStageData } from '@/lib/trip-stages'
+import { PreTripView } from '@/components/trips/stages/PreTripView'
+import { DuringTripView } from '@/components/trips/stages/DuringTripView'
+import { PostTripView } from '@/components/trips/stages/PostTripView'
+import { FlightsStep } from '@/components/trips/stages/steps/FlightsStep'
+import { HotelsStep } from '@/components/trips/stages/steps/HotelsStep'
+import { VisaDocsStep } from '@/components/trips/stages/steps/VisaDocsStep'
+import { PackingStep } from '@/components/trips/stages/steps/PackingStep'
+import { LastMinuteStep } from '@/components/trips/stages/steps/LastMinuteStep'
 
 export default function TripDetailPage() {
   const params = useParams()
@@ -21,7 +27,8 @@ export default function TripDetailPage() {
   const [weather, setWeather] = useState<any>(null)
   const [currency, setCurrency] = useState<any>(null)
   const [loading, setLoading] = useState(true)
-  const [activeTab, setActiveTab] = useState<'plan' | 'kids' | 'adult'>('plan')
+  const [stageData, setStageData] = useState<any>(null)
+  const [currentStep, setCurrentStep] = useState<string | null>(null)
 
   // Lift packing list state to parent to persist across tab switches
   const [kidsPackingList, setKidsPackingList] = useState<any[]>([])
@@ -48,6 +55,13 @@ export default function TripDetailPage() {
     }
 
     setTrip(tripData)
+
+    // Initialize stage data if not present
+    if (!tripData.stage_data) {
+      setStageData(getDefaultStageData())
+    } else {
+      setStageData(tripData.stage_data)
+    }
 
     // Fetch weather forecast for trip dates with insights
     try {
@@ -76,6 +90,21 @@ export default function TripDetailPage() {
     }
 
     setLoading(false)
+  }
+
+  const handleUpdateStageData = async (newData: any) => {
+    setStageData(newData)
+    setCurrentStep(null) // Close step view
+
+    // Save to database
+    try {
+      await supabase
+        .from('trips')
+        .update({ stage_data: newData })
+        .eq('id', tripId)
+    } catch (error) {
+      console.error('Error updating stage data:', error)
+    }
   }
 
   const getDaysToGo = () => {
@@ -132,6 +161,39 @@ export default function TripDetailPage() {
     )
   }
 
+  const stage = getTripStage(trip.start_date, trip.end_date)
+
+  // If viewing a step detail, show that instead
+  if (currentStep) {
+    const stepProps = {
+      trip,
+      tripId,
+      stageData,
+      onBack: () => setCurrentStep(null),
+      onComplete: handleUpdateStageData,
+    }
+
+    return (
+      <div className="min-h-screen pb-32">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6">
+          {currentStep === 'flights' && <FlightsStep {...stepProps} />}
+          {currentStep === 'hotels' && <HotelsStep {...stepProps} />}
+          {currentStep === 'visa-docs' && <VisaDocsStep {...stepProps} />}
+          {currentStep === 'packing' && (
+            <PackingStep
+              {...stepProps}
+              kidsPackingList={kidsPackingList}
+              adultPackingList={adultPackingList}
+              setKidsPackingList={setKidsPackingList}
+              setAdultPackingList={setAdultPackingList}
+            />
+          )}
+          {currentStep === 'last-minute' && <LastMinuteStep {...stepProps} />}
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="min-h-screen pb-32">
       <div className="max-w-7xl mx-auto">
@@ -144,11 +206,20 @@ export default function TripDetailPage() {
           </button>
 
           {/* Destination */}
-          <div className="flex items-center gap-3 mb-2">
-            <span className="text-4xl md:text-5xl lg:text-6xl">{getDestinationEmoji()}</span>
-            <div>
-              <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900">{trip.destination}</h1>
-              <p className="text-gray-500 text-sm md:text-base">{trip.country}</p>
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-3">
+              <span className="text-4xl md:text-5xl lg:text-6xl">{getDestinationEmoji()}</span>
+              <div>
+                <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900">{trip.destination}</h1>
+                <p className="text-gray-500 text-sm md:text-base">{trip.country}</p>
+              </div>
+            </div>
+
+            {/* Stage Indicator */}
+            <div className="flex items-center gap-1">
+              <div className={`w-2 h-2 rounded-full ${stage === 'pre-trip' ? 'bg-purple-500' : 'bg-gray-300'}`} />
+              <div className={`w-2 h-2 rounded-full ${stage === 'during-trip' ? 'bg-purple-500' : 'bg-gray-300'}`} />
+              <div className={`w-2 h-2 rounded-full ${stage === 'post-trip' ? 'bg-purple-500' : 'bg-gray-300'}`} />
             </div>
           </div>
 
@@ -166,127 +237,108 @@ export default function TripDetailPage() {
             })}
           </p>
 
-          {/* Stats Cards */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
-          {/* Days to Go */}
-          <GlassCard className="text-center">
-            <p className="text-purple-600 font-bold text-lg">{getDaysToGo()}</p>
-            <p className="text-gray-500 text-xs">
-              {new Date(trip.start_date).toLocaleDateString('en-GB', {
-                day: 'numeric',
-                month: 'short',
-                year: 'numeric',
-              })}
-            </p>
-          </GlassCard>
-
-          {/* Duration */}
-          <GlassCard className="text-center">
-            <p className="text-gray-800 font-bold text-lg">{getTripDuration()}</p>
-            <p className="text-gray-500 text-xs">Duration</p>
-          </GlassCard>
-
-          {/* Weather */}
-          <GlassCard className="text-center">
-            {weather?.hasInsights ? (
-              <>
-                <p className="text-orange-500 font-bold text-lg flex items-center justify-center gap-1">
-                  <span>{weather.icon}</span>
-                  <span>
-                    {weather.tempMin}-{weather.tempMax}°C
-                  </span>
-                </p>
-                <p className="text-gray-700 text-[11px] font-medium mt-1 leading-tight">{weather.insight}</p>
-                {weather.packingTip && (
-                  <p className="text-gray-500 text-[10px] mt-1.5 leading-tight">📦 {weather.packingTip}</p>
-                )}
-              </>
-            ) : (
-              <>
-                <p className="text-orange-500 font-bold text-lg">
-                  {weather ? `${weather.temp}°C` : '—'}
-                  {weather && <span className="ml-1">☀️</span>}
-                </p>
+          {/* Stats Cards - Only show for pre-trip and during-trip */}
+          {stage !== 'post-trip' && (
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
+              {/* Days to Go */}
+              <GlassCard className="text-center">
+                <p className="text-purple-600 font-bold text-lg">{getDaysToGo()}</p>
                 <p className="text-gray-500 text-xs">
-                  {weather?.description || 'Weather'}
-                  {weather?.context && (
-                    <span className="block text-[10px] text-gray-400 mt-0.5">{weather.context}</span>
-                  )}
+                  {new Date(trip.start_date).toLocaleDateString('en-GB', {
+                    day: 'numeric',
+                    month: 'short',
+                    year: 'numeric',
+                  })}
                 </p>
-              </>
-            )}
-          </GlassCard>
+              </GlassCard>
 
-          {/* Currency */}
-          <GlassCard className="text-center">
-            <p className="text-green-600 font-bold text-lg">{currency ? `₹${currency.rate?.toFixed(2)}` : '—'}</p>
-            <p className="text-gray-500 text-xs">{currency ? `1 ${currency.from} = INR` : 'Currency'}</p>
-          </GlassCard>
-        </div>
+              {/* Duration */}
+              <GlassCard className="text-center">
+                <p className="text-gray-800 font-bold text-lg">{getTripDuration()}</p>
+                <p className="text-gray-500 text-xs">Duration</p>
+              </GlassCard>
 
-          {/* WhatsApp Share Button */}
-          <div className="mt-4">
-            <WhatsAppShareButton
-              trip={{
-                destination: trip.destination,
-                country: trip.country,
-                startDate: trip.start_date,
-                endDate: trip.end_date,
-                numAdults: trip.num_adults || 2,
-                numKids: trip.num_kids || 0,
-                kidAges: trip.kid_ages,
-              }}
-              className="w-full"
-            />
-          </div>
-        </div>
+              {/* Weather */}
+              <GlassCard className="text-center">
+                {weather?.hasInsights ? (
+                  <>
+                    <p className="text-orange-500 font-bold text-lg flex items-center justify-center gap-1">
+                      <span>{weather.icon}</span>
+                      <span>
+                        {weather.tempMin}-{weather.tempMax}°C
+                      </span>
+                    </p>
+                    <p className="text-gray-700 text-[11px] font-medium mt-1 leading-tight">{weather.insight}</p>
+                    {weather.packingTip && (
+                      <p className="text-gray-500 text-[10px] mt-1.5 leading-tight">📦 {weather.packingTip}</p>
+                    )}
+                  </>
+                ) : (
+                  <>
+                    <p className="text-orange-500 font-bold text-lg">
+                      {weather ? `${weather.temp}°C` : '—'}
+                      {weather && <span className="ml-1">☀️</span>}
+                    </p>
+                    <p className="text-gray-500 text-xs">
+                      {weather?.description || 'Weather'}
+                      {weather?.context && (
+                        <span className="block text-[10px] text-gray-400 mt-0.5">{weather.context}</span>
+                      )}
+                    </p>
+                  </>
+                )}
+              </GlassCard>
 
-        {/* Tab Switcher */}
-        <div className="flex bg-gray-100 rounded-xl p-1 mx-4 sm:mx-6 lg:mx-8 mb-4">
-          <button
-            onClick={() => setActiveTab('plan')}
-            className={`flex-1 py-2 px-4 rounded-lg text-sm md:text-base font-medium transition-colors ${
-              activeTab === 'plan' ? 'bg-white text-purple-600 shadow-sm' : 'text-gray-500'
-            }`}
-          >
-            Plan
-          </button>
-          {trip.num_kids > 0 && (
-            <button
-              onClick={() => setActiveTab('kids')}
-              className={`flex-1 py-2 px-4 rounded-lg text-sm md:text-base font-medium transition-colors ${
-                activeTab === 'kids' ? 'bg-white text-purple-600 shadow-sm' : 'text-gray-500'
-              }`}
-            >
-              Kids
-            </button>
+              {/* Currency */}
+              <GlassCard className="text-center">
+                <p className="text-green-600 font-bold text-lg">{currency ? `₹${currency.rate?.toFixed(2)}` : '—'}</p>
+                <p className="text-gray-500 text-xs">{currency ? `1 ${currency.from} = INR` : 'Currency'}</p>
+              </GlassCard>
+            </div>
           )}
-          <button
-            onClick={() => setActiveTab('adult')}
-            className={`flex-1 py-2 px-4 rounded-lg text-sm md:text-base font-medium transition-colors ${
-              activeTab === 'adult' ? 'bg-white text-purple-600 shadow-sm' : 'text-gray-500'
-            }`}
-          >
-            Adult
-          </button>
+
+          {/* WhatsApp Share Button - Only show for pre-trip */}
+          {stage === 'pre-trip' && (
+            <div className="mt-4">
+              <WhatsAppShareButton
+                trip={{
+                  destination: trip.destination,
+                  country: trip.country,
+                  startDate: trip.start_date,
+                  endDate: trip.end_date,
+                  numAdults: trip.num_adults || 2,
+                  numKids: trip.num_kids || 0,
+                  kidAges: trip.kid_ages,
+                }}
+                className="w-full"
+              />
+            </div>
+          )}
         </div>
 
-        {/* Tab Content */}
+        {/* Stage-Based Content */}
         <div className="px-4 sm:px-6 lg:px-8">
-        {activeTab === 'plan' && <PlanTab trip={trip} />}
-        {activeTab === 'kids' && (
-          <KidsTab
-            trip={trip}
-            packingList={kidsPackingList}
-            setPackingList={setKidsPackingList}
-          />
-        )}
-          {activeTab === 'adult' && (
-            <AdultTab
-              tripId={tripId}
+          {stage === 'pre-trip' && (
+            <PreTripView
               trip={trip}
-              packingList={adultPackingList}
-              setPackingList={setAdultPackingList}
+              stageData={stageData}
+              onUpdateStageData={handleUpdateStageData}
+              onOpenStep={setCurrentStep}
+            />
+          )}
+          {stage === 'during-trip' && (
+            <DuringTripView
+              trip={trip}
+              stageData={stageData}
+              weather={weather}
+              onUpdateStageData={handleUpdateStageData}
+            />
+          )}
+          {stage === 'post-trip' && (
+            <PostTripView
+              trip={trip}
+              stageData={stageData}
+              onUpdateStageData={handleUpdateStageData}
             />
           )}
         </div>
