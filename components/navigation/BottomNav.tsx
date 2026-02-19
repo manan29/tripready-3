@@ -2,46 +2,50 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Home, Compass, Plus, ClipboardList, User } from 'lucide-react'
+import { Home, ClipboardList, User } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { createClient } from '@/lib/supabase/client'
 
 export function BottomNav() {
   const pathname = usePathname()
+  const [isLoggedIn, setIsLoggedIn] = useState(false)
+  const supabase = createClient()
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      const { data: { user } } = await supabase.auth.getUser()
+      setIsLoggedIn(!!user)
+    }
+    checkAuth()
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      setIsLoggedIn(!!session?.user)
+    })
+
+    return () => subscription.unsubscribe()
+  }, [])
 
   const navItems = [
     { icon: Home, label: 'Home', href: '/' },
-    { icon: Compass, label: 'Explore', href: '/explore' },
-    { icon: ClipboardList, label: 'Trips', href: '/trips' },
+    { icon: ClipboardList, label: 'My Trips', href: isLoggedIn ? '/trips' : '/login' },
     { icon: User, label: 'Profile', href: '/profile' },
   ]
 
   return (
-    <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50">
-      <div className="bg-white/80 backdrop-blur-xl border border-white/50 rounded-full shadow-[0px_4px_6px_rgba(0,0,0,0.1),0px_10px_15px_rgba(0,0,0,0.1)] px-3 py-2 flex items-center gap-1">
-        {/* First two nav items */}
-        {navItems.slice(0, 2).map((item) => (
+    <div className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-200 safe-area-bottom">
+      <div className="flex items-center justify-around px-4 py-2">
+        {navItems.map((item) => (
           <NavButton
-            key={item.href}
+            key={item.label}
             icon={item.icon}
+            label={item.label}
             href={item.href}
-            isActive={pathname === item.href}
-          />
-        ))}
-
-        {/* Center FAB - Navigate to home where guests can search/create */}
-        <Link
-          href="/"
-          className="w-14 h-14 bg-[#9B8ABF] rounded-full flex items-center justify-center shadow-[0px_4px_6px_rgba(216,180,254,0.4),0px_10px_15px_rgba(216,180,254,0.4)] -mt-6 mx-2"
-        >
-          <Plus className="w-6 h-6 text-white" />
-        </Link>
-
-        {/* Last two nav items */}
-        {navItems.slice(2).map((item) => (
-          <NavButton
-            key={item.href}
-            icon={item.icon}
-            href={item.href}
-            isActive={pathname === item.href || (item.href === '/trips' && pathname.startsWith('/trips/'))}
+            isActive={
+              pathname === item.href ||
+              (item.href === '/trips' && pathname.startsWith('/trips/')) ||
+              (item.href === '/profile' && pathname.startsWith('/profile'))
+            }
           />
         ))}
       </div>
@@ -51,21 +55,24 @@ export function BottomNav() {
 
 function NavButton({
   icon: Icon,
+  label,
   href,
   isActive,
 }: {
   icon: any
+  label: string
   href: string
   isActive: boolean
 }) {
   return (
     <Link
       href={href}
-      className={`w-12 h-12 rounded-full flex items-center justify-center transition-colors ${
-        isActive ? 'bg-[#9B8ABF] text-white' : 'text-gray-400 hover:text-gray-600'
-      }`}
+      className="flex flex-col items-center justify-center gap-1 py-2 px-4 min-w-[80px]"
     >
-      <Icon className="w-5 h-5" />
+      <Icon className={`w-6 h-6 ${isActive ? 'text-purple-600' : 'text-gray-400'}`} />
+      <span className={`text-xs font-medium ${isActive ? 'text-purple-600' : 'text-gray-600'}`}>
+        {label}
+      </span>
     </Link>
   )
 }

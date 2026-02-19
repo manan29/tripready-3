@@ -317,49 +317,51 @@ function HomePageContent() {
         </div>
       </div>
 
-      {/* Your Trips Section */}
-      <div>
-        <h2 className="font-bold text-gray-800 mb-4">Your Trips</h2>
-        <div className="flex gap-4 overflow-x-auto pb-2 -mx-5 px-5 scrollbar-hide">
-          {trips.length > 0 ? (
-            <>
-              {trips.map((trip) => (
-                <TripCardGlass
-                  key={trip.id}
-                  id={trip.id}
-                  destination={trip.destination}
-                  emoji={getDestinationEmoji(trip.destination)}
-                  date={new Date(trip.start_date).toLocaleDateString('en-GB', {
-                    day: 'numeric',
-                    month: 'short',
-                    year: 'numeric',
-                  })}
-                  travelers={(trip.adults || 2) + (trip.kids || 0)}
-                  status={
-                    new Date(trip.end_date) < new Date()
-                      ? 'completed'
-                      : new Date(trip.start_date) <= new Date()
-                      ? 'in-progress'
-                      : 'upcoming'
-                  }
-                  onClick={() => router.push(`/trips/${trip.id}`)}
-                />
-              ))}
-            </>
-          ) : null}
+      {/* Your Trips Section - Only for logged in users */}
+      {user && (
+        <div>
+          <h2 className="font-bold text-gray-800 mb-4">Your Trips</h2>
+          <div className="flex gap-4 overflow-x-auto pb-2 -mx-5 px-5 scrollbar-hide">
+            {trips.length > 0 ? (
+              <>
+                {trips.map((trip) => (
+                  <TripCardGlass
+                    key={trip.id}
+                    id={trip.id}
+                    destination={trip.destination}
+                    emoji={getDestinationEmoji(trip.destination)}
+                    date={new Date(trip.start_date).toLocaleDateString('en-GB', {
+                      day: 'numeric',
+                      month: 'short',
+                      year: 'numeric',
+                    })}
+                    travelers={(trip.adults || 2) + (trip.kids || 0)}
+                    status={
+                      new Date(trip.end_date) < new Date()
+                        ? 'completed'
+                        : new Date(trip.start_date) <= new Date()
+                        ? 'in-progress'
+                        : 'upcoming'
+                    }
+                    onClick={() => router.push(`/trips/${trip.id}`)}
+                  />
+                ))}
+              </>
+            ) : null}
 
-          {/* Create New Trip Card */}
-          <div
-            onClick={() => setShowCreateModal(true)}
-            className="w-36 flex-shrink-0 border-2 border-dashed border-purple-200 rounded-3xl p-5 flex flex-col items-center justify-center cursor-pointer hover:border-purple-400 transition-colors"
-          >
-            <div className="w-10 h-10 bg-purple-50 rounded-full flex items-center justify-center mb-2">
-              <Plus className="w-5 h-5 text-purple-500" />
+            {/* Create New Trip Card */}
+            <div
+              onClick={() => setShowCreateModal(true)}
+              className="w-36 flex-shrink-0 border-2 border-dashed border-purple-200 rounded-3xl p-5 flex flex-col items-center justify-center cursor-pointer hover:border-purple-400 transition-colors"
+            >
+              <div className="w-10 h-10 bg-purple-50 rounded-full flex items-center justify-center mb-2">
+                <Plus className="w-5 h-5 text-purple-500" />
+              </div>
+              <span className="text-purple-500 text-sm font-medium text-center">Create Trip</span>
             </div>
-            <span className="text-purple-500 text-sm font-medium text-center">Create Trip</span>
           </div>
         </div>
-      </div>
+      )}
 
       {/* Create Trip Modal */}
       <CreateTripModal
