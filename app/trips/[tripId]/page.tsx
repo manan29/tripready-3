@@ -134,39 +134,40 @@ export default function TripDetailPage() {
 
   return (
     <div className="min-h-screen pb-32">
-      {/* Header */}
-      <div className="bg-gradient-to-b from-purple-100 to-transparent px-5 pt-6 pb-8">
-        {/* Back Button */}
-        <button onClick={() => router.back()} className="flex items-center gap-2 text-gray-600 mb-4">
-          <ArrowLeft className="w-5 h-5" />
-          <span className="text-sm">Back</span>
-        </button>
+      <div className="max-w-7xl mx-auto">
+        {/* Header */}
+        <div className="bg-gradient-to-b from-purple-100 to-transparent px-4 sm:px-6 lg:px-8 pt-6 pb-8">
+          {/* Back Button */}
+          <button onClick={() => router.back()} className="flex items-center gap-2 text-gray-600 mb-4 hover:text-gray-900 transition-colors">
+            <ArrowLeft className="w-5 h-5" />
+            <span className="text-sm md:text-base">Back</span>
+          </button>
 
-        {/* Destination */}
-        <div className="flex items-center gap-3 mb-2">
-          <span className="text-4xl">{getDestinationEmoji()}</span>
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">{trip.destination}</h1>
-            <p className="text-gray-500">{trip.country}</p>
+          {/* Destination */}
+          <div className="flex items-center gap-3 mb-2">
+            <span className="text-4xl md:text-5xl lg:text-6xl">{getDestinationEmoji()}</span>
+            <div>
+              <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900">{trip.destination}</h1>
+              <p className="text-gray-500 text-sm md:text-base">{trip.country}</p>
+            </div>
           </div>
-        </div>
 
-        {/* Date Range */}
-        <p className="text-gray-500 text-sm mb-6">
-          {new Date(trip.start_date).toLocaleDateString('en-GB', {
-            day: 'numeric',
-            month: 'short',
-          })}
-          {' - '}
-          {new Date(trip.end_date).toLocaleDateString('en-GB', {
-            day: 'numeric',
-            month: 'short',
-            year: 'numeric',
-          })}
-        </p>
+          {/* Date Range */}
+          <p className="text-gray-500 text-sm md:text-base mb-6">
+            {new Date(trip.start_date).toLocaleDateString('en-GB', {
+              day: 'numeric',
+              month: 'short',
+            })}
+            {' - '}
+            {new Date(trip.end_date).toLocaleDateString('en-GB', {
+              day: 'numeric',
+              month: 'short',
+              year: 'numeric',
+            })}
+          </p>
 
-        {/* Stats Cards */}
-        <div className="grid grid-cols-2 gap-3">
+          {/* Stats Cards */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
           {/* Days to Go */}
           <GlassCard className="text-center">
             <p className="text-purple-600 font-bold text-lg">{getDaysToGo()}</p>
@@ -223,55 +224,55 @@ export default function TripDetailPage() {
           </GlassCard>
         </div>
 
-        {/* WhatsApp Share Button */}
-        <div className="mt-4">
-          <WhatsAppShareButton
-            trip={{
-              destination: trip.destination,
-              country: trip.country,
-              startDate: trip.start_date,
-              endDate: trip.end_date,
-              numAdults: trip.num_adults || 2,
-              numKids: trip.num_kids || 0,
-              kidAges: trip.kid_ages,
-            }}
-            className="w-full"
-          />
+          {/* WhatsApp Share Button */}
+          <div className="mt-4">
+            <WhatsAppShareButton
+              trip={{
+                destination: trip.destination,
+                country: trip.country,
+                startDate: trip.start_date,
+                endDate: trip.end_date,
+                numAdults: trip.num_adults || 2,
+                numKids: trip.num_kids || 0,
+                kidAges: trip.kid_ages,
+              }}
+              className="w-full"
+            />
+          </div>
         </div>
-      </div>
 
-      {/* Tab Switcher */}
-      <div className="flex bg-gray-100 rounded-xl p-1 mx-4 mb-4">
-        <button
-          onClick={() => setActiveTab('plan')}
-          className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-colors ${
-            activeTab === 'plan' ? 'bg-white text-purple-600 shadow-sm' : 'text-gray-500'
-          }`}
-        >
-          Plan
-        </button>
-        {trip.num_kids > 0 && (
+        {/* Tab Switcher */}
+        <div className="flex bg-gray-100 rounded-xl p-1 mx-4 sm:mx-6 lg:mx-8 mb-4">
           <button
-            onClick={() => setActiveTab('kids')}
-            className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-colors ${
-              activeTab === 'kids' ? 'bg-white text-purple-600 shadow-sm' : 'text-gray-500'
+            onClick={() => setActiveTab('plan')}
+            className={`flex-1 py-2 px-4 rounded-lg text-sm md:text-base font-medium transition-colors ${
+              activeTab === 'plan' ? 'bg-white text-purple-600 shadow-sm' : 'text-gray-500'
             }`}
           >
-            Kids
+            Plan
           </button>
-        )}
-        <button
-          onClick={() => setActiveTab('adult')}
-          className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-colors ${
-            activeTab === 'adult' ? 'bg-white text-purple-600 shadow-sm' : 'text-gray-500'
-          }`}
-        >
-          Adult
-        </button>
-      </div>
+          {trip.num_kids > 0 && (
+            <button
+              onClick={() => setActiveTab('kids')}
+              className={`flex-1 py-2 px-4 rounded-lg text-sm md:text-base font-medium transition-colors ${
+                activeTab === 'kids' ? 'bg-white text-purple-600 shadow-sm' : 'text-gray-500'
+              }`}
+            >
+              Kids
+            </button>
+          )}
+          <button
+            onClick={() => setActiveTab('adult')}
+            className={`flex-1 py-2 px-4 rounded-lg text-sm md:text-base font-medium transition-colors ${
+              activeTab === 'adult' ? 'bg-white text-purple-600 shadow-sm' : 'text-gray-500'
+            }`}
+          >
+            Adult
+          </button>
+        </div>
 
-      {/* Tab Content */}
-      <div className="px-4">
+        {/* Tab Content */}
+        <div className="px-4 sm:px-6 lg:px-8">
         {activeTab === 'plan' && <PlanTab trip={trip} />}
         {activeTab === 'kids' && (
           <KidsTab
@@ -280,14 +281,15 @@ export default function TripDetailPage() {
             setPackingList={setKidsPackingList}
           />
         )}
-        {activeTab === 'adult' && (
-          <AdultTab
-            tripId={tripId}
-            trip={trip}
-            packingList={adultPackingList}
-            setPackingList={setAdultPackingList}
-          />
-        )}
+          {activeTab === 'adult' && (
+            <AdultTab
+              tripId={tripId}
+              trip={trip}
+              packingList={adultPackingList}
+              setPackingList={setAdultPackingList}
+            />
+          )}
+        </div>
       </div>
     </div>
   )

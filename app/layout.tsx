@@ -51,7 +51,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${inter.className} app-bg`}>
-        <main className="min-h-screen pb-24">
+        <main className="min-h-screen pb-20 md:pb-24">
           {children}
         </main>
         <BottomNav />

@@ -51,7 +51,7 @@
   min-height: 100vh;
 }
 
-/* Safe area padding */
+/* Safe area padding - for devices with notches/rounded corners */
 .safe-top {
   padding-top: env(safe-area-inset-top, 0);
 }
@@ -66,6 +66,37 @@
 
 .safe-right {
   padding-right: env(safe-area-inset-right, 0);
+}
+
+/* Responsive container max-widths */
+.container-responsive {
+  max-width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+@media (min-width: 640px) {
+  .container-responsive {
+    max-width: 640px;
+  }
+}
+
+@media (min-width: 768px) {
+  .container-responsive {
+    max-width: 768px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .container-responsive {
+    max-width: 1024px;
+  }
+}
+
+@media (min-width: 1280px) {
+  .container-responsive {
+    max-width: 1280px;
+  }
 }
 
 /* Glass effect fallback for older browsers */

@@ -242,109 +242,110 @@ function HomePageContent() {
   ]
 
   return (
-    <div className="min-h-screen pb-32 px-5 pt-6">
-      {/* Header */}
-      <div className="mb-6">
-        {user ? (
-          <>
-            <div className="flex items-center gap-3 mb-1">
-              <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center">
-                <span className="text-xl font-bold text-purple-600">
-                  {userName?.charAt(0)?.toUpperCase() || user.email?.charAt(0)?.toUpperCase()}
-                </span>
+    <div className="min-h-screen pb-32">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6">
+        {/* Header */}
+        <div className="mb-6">
+          {user ? (
+            <>
+              <div className="flex items-center gap-3 mb-1">
+                <div className="w-12 h-12 md:w-14 md:h-14 bg-purple-100 rounded-full flex items-center justify-center">
+                  <span className="text-xl md:text-2xl font-bold text-purple-600">
+                    {userName?.charAt(0)?.toUpperCase() || user.email?.charAt(0)?.toUpperCase()}
+                  </span>
+                </div>
+                <div>
+                  <p className="text-gray-500 text-sm md:text-base">Welcome back!</p>
+                  <h1 className="text-xl md:text-2xl lg:text-3xl font-bold text-gray-900">{userName} 👋</h1>
+                </div>
               </div>
-              <div>
-                <p className="text-gray-500 text-sm">Welcome back!</p>
-                <h1 className="text-xl font-bold text-gray-900">{userName} 👋</h1>
-              </div>
+              <p className="text-gray-600 text-sm md:text-base mt-4">
+                AI-powered packing lists for your kids. Know exactly what to pack.
+              </p>
+            </>
+          ) : (
+            <div>
+              <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900">Travel Stress-Free with Kids</h1>
+              <p className="text-purple-600 text-base md:text-lg font-medium italic">Let JourneyAI Plan It</p>
+              <p className="text-gray-600 text-sm md:text-base mt-4">
+                AI-powered packing lists for your kids. Know exactly what to pack for your 3-year-old
+                in Dubai.
+              </p>
             </div>
-            <p className="text-gray-600 mt-4">
-              AI-powered packing lists for your kids. Know exactly what to pack.
-            </p>
-          </>
-        ) : (
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">Travel Stress-Free with Kids</h1>
-            <p className="text-purple-600 font-medium italic">Let JourneyAI Plan It</p>
-            <p className="text-gray-600 mt-4">
-              AI-powered packing lists for your kids. Know exactly what to pack for your 3-year-old
-              in Dubai.
-            </p>
+          )}
+        </div>
+
+        {/* AI Search Bar */}
+        <div className="mb-4">
+          <AISearchBar
+            onSubmit={handleSearch}
+            isLoading={isLoading}
+            placeholder="Where are you taking the kids?"
+          />
+        </div>
+
+        {/* Auto-Scrolling Chips - Kids Focused */}
+        <div className="mb-8">
+          <ScrollingChips
+            chips={[
+              'Dubai with toddler',
+              'Singapore with kids',
+              'Bali family trip',
+              'Thailand with 2 kids',
+              'Malaysia with baby',
+              'Maldives family vacation',
+              'Sri Lanka with toddler',
+              'Japan with kids',
+            ]}
+            onChipClick={handleSearch}
+        />
+      </div>
+
+        {/* Features Section */}
+        <div className="mb-8">
+          <h2 className="font-bold text-gray-800 text-base md:text-lg mb-4">What JourneyAI does for you</h2>
+          <div className="flex gap-4 overflow-x-auto pb-2 -mx-4 px-4 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8 scrollbar-hide">
+            {features.map((feature, index) => (
+              <GlassCard key={index} className="w-44 flex-shrink-0">
+                <IconCircle icon={feature.icon} color={feature.color} size="md" />
+                <h3 className="font-semibold text-gray-800 mt-3 text-sm">{feature.title}</h3>
+                <p className="text-gray-500 text-xs mt-1">{feature.desc}</p>
+              </GlassCard>
+            ))}
           </div>
-        )}
-      </div>
-
-      {/* AI Search Bar */}
-      <div className="mb-4">
-        <AISearchBar
-          onSubmit={handleSearch}
-          isLoading={isLoading}
-          placeholder="Where are you taking the kids?"
-        />
-      </div>
-
-      {/* Auto-Scrolling Chips - Kids Focused */}
-      <div className="mb-8">
-        <ScrollingChips
-          chips={[
-            'Dubai with toddler',
-            'Singapore with kids',
-            'Bali family trip',
-            'Thailand with 2 kids',
-            'Malaysia with baby',
-            'Maldives family vacation',
-            'Sri Lanka with toddler',
-            'Japan with kids',
-          ]}
-          onChipClick={handleSearch}
-        />
-      </div>
-
-      {/* Features Section */}
-      <div className="mb-8">
-        <h2 className="font-bold text-gray-800 mb-4">What JourneyAI does for you</h2>
-        <div className="flex gap-4 overflow-x-auto pb-2 -mx-5 px-5 scrollbar-hide">
-          {features.map((feature, index) => (
-            <GlassCard key={index} className="w-44 flex-shrink-0">
-              <IconCircle icon={feature.icon} color={feature.color} size="md" />
-              <h3 className="font-semibold text-gray-800 mt-3 text-sm">{feature.title}</h3>
-              <p className="text-gray-500 text-xs mt-1">{feature.desc}</p>
-            </GlassCard>
-          ))}
         </div>
-      </div>
 
-      {/* Popular Destinations Section */}
-      <div className="mb-8">
-        <h2 className="font-bold text-gray-800 mb-4 flex items-center gap-2">
-          <TrendingUp className="w-5 h-5 text-purple-500" />
-          Popular Destinations
-        </h2>
-        <div className="grid grid-cols-2 gap-3">
-          {TOP_DESTINATIONS.slice(0, 8).map((dest) => (
-            <GlassCard
-              key={dest.id}
-              onClick={() => {
-                setModalDestination(dest.name)
-                setModalCountry(dest.country)
-                setShowCreateModal(true)
-              }}
-              className="text-center cursor-pointer hover:shadow-lg transition-shadow"
-            >
-              <span className="text-4xl mb-2 block">{dest.emoji}</span>
-              <h3 className="font-semibold text-gray-800 text-sm">{dest.name}</h3>
-              <p className="text-xs text-gray-500">{dest.country}</p>
-              <p className="text-xs text-purple-500 mt-1 line-clamp-1">{dest.kidsHighlights[0]}</p>
-            </GlassCard>
-          ))}
+        {/* Popular Destinations Section */}
+        <div className="mb-8">
+          <h2 className="font-bold text-gray-800 text-base md:text-lg mb-4 flex items-center gap-2">
+            <TrendingUp className="w-5 h-5 md:w-6 md:h-6 text-purple-500" />
+            Popular Destinations
+          </h2>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
+            {TOP_DESTINATIONS.slice(0, 8).map((dest) => (
+              <GlassCard
+                key={dest.id}
+                onClick={() => {
+                  setModalDestination(dest.name)
+                  setModalCountry(dest.country)
+                  setShowCreateModal(true)
+                }}
+                className="text-center cursor-pointer hover:shadow-lg transition-shadow"
+              >
+                <span className="text-4xl md:text-5xl mb-2 block">{dest.emoji}</span>
+                <h3 className="font-semibold text-gray-800 text-sm md:text-base">{dest.name}</h3>
+                <p className="text-xs md:text-sm text-gray-500">{dest.country}</p>
+                <p className="text-xs md:text-sm text-purple-500 mt-1 line-clamp-1">{dest.kidsHighlights[0]}</p>
+              </GlassCard>
+            ))}
+          </div>
         </div>
-      </div>
 
-      {/* Your Trips Section - Only for logged in users */}
-      {user && (
-        <div>
-          <h2 className="font-bold text-gray-800 mb-4">Your Trips</h2>
-          <div className="flex gap-4 overflow-x-auto pb-2 -mx-5 px-5 scrollbar-hide">
+        {/* Your Trips Section - Only for logged in users */}
+        {user && (
+          <div>
+            <h2 className="font-bold text-gray-800 text-base md:text-lg mb-4">Your Trips</h2>
+            <div className="flex gap-4 overflow-x-auto pb-2 -mx-4 px-4 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8 scrollbar-hide">
             {trips.length > 0 ? (
               <>
                 {trips.map((trip) => (
@@ -381,24 +382,25 @@ function HomePageContent() {
                 <Plus className="w-5 h-5 text-purple-500" />
               </div>
               <span className="text-purple-500 text-sm font-medium text-center">Create Trip</span>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {/* Create Trip Modal */}
-      <CreateTripModal
-        isOpen={showCreateModal}
-        onClose={() => setShowCreateModal(false)}
-        initialDestination={modalDestination}
-        initialCountry={modalCountry}
-        initialNumKids={modalNumKids}
-        initialKidAges={modalKidAges}
-        initialStartDate={modalStartDate}
-        initialEndDate={modalEndDate}
-        initialNumAdults={modalNumAdults}
-        onTripCreated={handleTripCreated}
-      />
+        {/* Create Trip Modal */}
+        <CreateTripModal
+          isOpen={showCreateModal}
+          onClose={() => setShowCreateModal(false)}
+          initialDestination={modalDestination}
+          initialCountry={modalCountry}
+          initialNumKids={modalNumKids}
+          initialKidAges={modalKidAges}
+          initialStartDate={modalStartDate}
+          initialEndDate={modalEndDate}
+          initialNumAdults={modalNumAdults}
+          onTripCreated={handleTripCreated}
+        />
+      </div>
     </div>
   )
 }
