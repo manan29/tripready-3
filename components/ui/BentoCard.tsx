@@ -15,6 +15,9 @@ export function BentoCard({ children, size = 'medium', className, onClick }: Ben
     large: 'p-6',
   }
 
+  // Defensive: Fallback to medium size if invalid value provided
+  const safeSize = sizeClasses[size] || sizeClasses.medium
+
   return (
     <div
       onClick={onClick}
@@ -23,7 +26,7 @@ export function BentoCard({ children, size = 'medium', className, onClick }: Ben
         'shadow-[0_4px_20px_rgba(0,0,0,0.05)]',
         'hover:shadow-[0_8px_30px_rgba(0,0,0,0.08)]',
         'transition-all duration-300',
-        sizeClasses[size],
+        safeSize,
         onClick && 'cursor-pointer',
         className
       )}

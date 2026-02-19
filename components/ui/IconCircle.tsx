@@ -32,9 +32,14 @@ const iconSizeMap = {
 }
 
 export function IconCircle({ icon, color = 'lavender', size = 'md' }: IconCircleProps) {
+  // Defensive: Fallback to defaults if invalid values provided
+  const bgColor = colorMap[color] || colorMap.lavender
+  const circleSize = sizeMap[size] || sizeMap.md
+  const iconSize = iconSizeMap[size] || iconSizeMap.md
+
   return (
-    <div className={`${colorMap[color]} ${sizeMap[size]} rounded-full flex items-center justify-center text-white`}>
-      <span className={iconSizeMap[size]}>{icon}</span>
+    <div className={`${bgColor} ${circleSize} rounded-full flex items-center justify-center text-white`}>
+      <span className={iconSize}>{icon}</span>
     </div>
   )
 }

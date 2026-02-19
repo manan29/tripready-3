@@ -17,6 +17,9 @@ const paddingMap = {
 }
 
 export function GlassCard({ children, className = '', onClick, padding = 'md' }: GlassCardProps) {
+  // Defensive: Fallback to md padding if invalid value provided
+  const safePadding = paddingMap[padding] || paddingMap.md
+
   return (
     <div
       onClick={onClick}
@@ -26,7 +29,7 @@ export function GlassCard({ children, className = '', onClick, padding = 'md' }:
         shadow-[0_4px_20px_rgba(0,0,0,0.05)]
         hover:shadow-[0_8px_30px_rgba(0,0,0,0.08)]
         transition-all duration-300
-        ${paddingMap[padding]}
+        ${safePadding}
         ${onClick ? 'cursor-pointer active:scale-[0.98]' : ''}
         ${className}
       `}

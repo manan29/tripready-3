@@ -42,7 +42,12 @@ export function StatusBadge({ status, label, showIcon = true, size = 'md' }: Sta
     },
   }
 
-  const config = statusConfig[status]
+  // Defensive: Fallback to completed config if invalid status
+  const config = statusConfig[status] || statusConfig.completed
+
+  // Defensive: Fallback to md size if invalid size
+  const safeSize = sizeClasses[size] || sizeClasses.md
+  const safeIconSize = iconSize[size] || iconSize.md
 
   return (
     <div className="flex items-center gap-2">
@@ -50,7 +55,7 @@ export function StatusBadge({ status, label, showIcon = true, size = 'md' }: Sta
         <div
           className={cn(
             'rounded-full flex items-center justify-center',
-            sizeClasses[size],
+            safeSize,
             config.bg,
             config.text
           )}
