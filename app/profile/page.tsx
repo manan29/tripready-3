@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { GlassCard } from '@/components/ui/GlassCard'
+import { LANGUAGES, DEFAULT_LANGUAGE } from '@/lib/language'
 import {
   User,
   Mail,
@@ -15,6 +16,7 @@ import {
   LogOut,
   ChevronRight,
   Loader2,
+  Globe,
 } from 'lucide-react'
 
 export default function ProfilePage() {
@@ -24,9 +26,15 @@ export default function ProfilePage() {
   const [stats, setStats] = useState({ totalTrips: 0, countries: 0, upcomingTrips: 0 })
   const [loading, setLoading] = useState(true)
   const [signingOut, setSigningOut] = useState(false)
+  const [language, setLanguage] = useState(DEFAULT_LANGUAGE)
 
   useEffect(() => {
     fetchUserData()
+    // Load language preference from localStorage
+    const savedLanguage = localStorage.getItem('journeyai-language')
+    if (savedLanguage) {
+      setLanguage(savedLanguage)
+    }
   }, [])
 
   const fetchUserData = async () => {
@@ -62,6 +70,11 @@ export default function ProfilePage() {
     setSigningOut(true)
     await supabase.auth.signOut()
     router.push('/')
+  }
+
+  const handleLanguageChange = (code: string) => {
+    setLanguage(code)
+    localStorage.setItem('journeyai-language', code)
   }
 
   const menuItems = [
@@ -161,6 +174,38 @@ export default function ProfilePage() {
               </span>
             </div>
           </div>
+        </GlassCard>
+      </div>
+
+      {/* Language Settings */}
+      <div className="px-5 mb-6">
+        <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3 flex items-center gap-2">
+          <Globe className="w-4 h-4" />
+          Language
+        </h3>
+        <GlassCard>
+          <div className="space-y-2">
+            {LANGUAGES.map((lang) => (
+              <button
+                key={lang.code}
+                onClick={() => handleLanguageChange(lang.code)}
+                className={`w-full p-3 rounded-xl text-left flex items-center justify-between transition-colors ${
+                  language === lang.code
+                    ? 'bg-purple-100 border-2 border-purple-500'
+                    : 'bg-gray-50 border-2 border-transparent hover:bg-gray-100'
+                }`}
+              >
+                <div>
+                  <span className="font-medium text-gray-900">{lang.nativeName}</span>
+                  <span className="text-sm text-gray-500 ml-2">({lang.name})</span>
+                </div>
+                {language === lang.code && <span className="text-purple-600 text-xl">✓</span>}
+              </button>
+            ))}
+          </div>
+          <p className="text-xs text-gray-400 mt-3 text-center">
+            🚀 Sarvam AI translation coming soon for Hindi & Kannada
+          </p>
         </GlassCard>
       </div>
 

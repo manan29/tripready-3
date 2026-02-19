@@ -31,14 +31,10 @@ export function KidsTab({ trip }: KidsTabProps) {
 
   const categories = ['Medicines', 'Clothes', 'Entertainment', 'Essentials', 'Baby Gear', 'Food & Snacks'];
 
-  // AUTO-LOAD on mount if trip has kids
+  // Set initial loading to false - only generate when user clicks button
   useEffect(() => {
-    if (trip.num_kids > 0 && trip.kid_ages?.length > 0) {
-      generatePackingList();
-    } else {
-      setLoading(false);
-    }
-  }, [trip.id]); // Run once when trip loads
+    setLoading(false);
+  }, []);
 
   const generatePackingList = async () => {
     setLoading(true);
@@ -176,7 +172,7 @@ export function KidsTab({ trip }: KidsTabProps) {
             className="flex-1 py-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-xl font-medium flex items-center justify-center gap-2"
           >
             <RefreshCw className="w-5 h-5" />
-            Regenerate List
+            {packingList.length > 0 ? 'Regenerate List' : 'Generate Kids List'}
           </button>
 
           <button
