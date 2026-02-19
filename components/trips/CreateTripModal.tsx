@@ -88,6 +88,22 @@ export function CreateTripModal({
       .filter((age) => !isNaN(age) && age >= 0 && age <= 18);
   };
 
+  // Auto-generate preview when form is complete
+  useEffect(() => {
+    if (!isOpen || step !== 'form' || isLoading) return;
+
+    const isFormComplete = destination && startDate && endDate;
+    if (!isFormComplete) return;
+
+    const timer = setTimeout(() => {
+      if (!isLoading) {
+        handleGeneratePreview();
+      }
+    }, 1500);
+
+    return () => clearTimeout(timer);
+  }, [destination, startDate, endDate, isOpen, step]);
+
   const handleGeneratePreview = async () => {
     setIsLoading(true);
     try {

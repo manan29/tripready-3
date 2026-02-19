@@ -10,6 +10,7 @@ import { IconCircle } from '@/components/ui/IconCircle'
 import { CreateTripModal } from '@/components/trips/CreateTripModal'
 import { CheckSquare, Wallet, Baby, Plane, FileText, Plus, TrendingUp } from 'lucide-react'
 import { TOP_DESTINATIONS } from '@/lib/destinations'
+import { ScrollingChips } from '@/components/ui/ScrollingChips'
 
 function HomePageContent() {
   const router = useRouter()
@@ -282,27 +283,22 @@ function HomePageContent() {
         />
       </div>
 
-      {/* Quick Chips - Kids Focused */}
-      {!user && (
-        <div className="mb-8">
-          <div className="flex flex-wrap justify-center gap-2">
-            {[
-              'Dubai with toddler',
-              'Singapore with kids',
-              'Bali family trip',
-              'Thailand with 2 kids',
-            ].map((chip) => (
-              <button
-                key={chip}
-                onClick={() => handleSearch(chip)}
-                className="px-4 py-2 bg-white border border-purple-200 rounded-full text-sm text-gray-700 hover:bg-purple-50 hover:border-purple-300 transition-colors"
-              >
-                {chip}
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
+      {/* Auto-Scrolling Chips - Kids Focused */}
+      <div className="mb-8">
+        <ScrollingChips
+          chips={[
+            'Dubai with toddler',
+            'Singapore with kids',
+            'Bali family trip',
+            'Thailand with 2 kids',
+            'Malaysia with baby',
+            'Maldives family vacation',
+            'Sri Lanka with toddler',
+            'Japan with kids',
+          ]}
+          onChipClick={handleSearch}
+        />
+      </div>
 
       {/* Features Section */}
       <div className="mb-8">

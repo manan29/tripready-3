@@ -136,3 +136,22 @@
 .fade-in {
   animation: fadeIn 0.5s ease-out;
 }
+
+/* Marquee animation for scrolling chips */
+@keyframes marquee {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-marquee {
+  animation: marquee 30s linear infinite;
+}
+
+.animate-marquee-paused {
+  animation: marquee 30s linear infinite;
+  animation-play-state: paused;
+}
