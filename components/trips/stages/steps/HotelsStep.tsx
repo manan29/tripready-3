@@ -44,11 +44,11 @@ export function HotelsStep({ trip, stageData, onBack, onComplete }: HotelsStepPr
       {/* Header */}
       <div className="flex items-center gap-3 mb-2">
         <button onClick={onBack} className="p-2 hover:bg-gray-100 rounded-full transition-colors">
-          <ArrowLeft className="w-5 h-5 text-gray-600" />
+          <ArrowLeft className="w-5 h-5 text-[#1E293B]" />
         </button>
         <div>
           <h2 className="text-xl font-bold text-gray-900">Book Hotels</h2>
-          <p className="text-sm text-gray-500">Family-friendly accommodations</p>
+          <p className="text-sm text-[#64748B]">Family-friendly accommodations</p>
         </div>
       </div>
 
@@ -67,7 +67,7 @@ export function HotelsStep({ trip, stageData, onBack, onComplete }: HotelsStepPr
 
       {/* Booking Links */}
       <GlassCard>
-        <h3 className="font-semibold text-gray-800 mb-3">Search Hotels</h3>
+        <h3 className="font-semibold text-[#1E293B] mb-3">Search Hotels</h3>
         <div className="space-y-2">
           {bookingLinks.map((link) => (
             <a
@@ -77,7 +77,7 @@ export function HotelsStep({ trip, stageData, onBack, onComplete }: HotelsStepPr
               rel="noopener noreferrer"
               className="flex items-center justify-between p-3 rounded-xl hover:shadow-md transition-all bg-gray-50 border border-gray-200 hover:border-purple-300"
             >
-              <span className="font-medium text-gray-800">{link.name}</span>
+              <span className="font-medium text-[#1E293B]">{link.name}</span>
               <ExternalLink className="w-4 h-4 text-purple-600" />
             </a>
           ))}
@@ -86,7 +86,7 @@ export function HotelsStep({ trip, stageData, onBack, onComplete }: HotelsStepPr
 
       {/* Already Booked Form */}
       <GlassCard>
-        <h3 className="font-semibold text-gray-800 mb-3">Already Booked?</h3>
+        <h3 className="font-semibold text-[#1E293B] mb-3">Already Booked?</h3>
         <div className="space-y-3">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Hotel Name</label>

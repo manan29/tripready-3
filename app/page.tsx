@@ -255,11 +255,11 @@ function HomePageContent() {
                   </span>
                 </div>
                 <div>
-                  <p className="text-gray-500 text-sm md:text-base">Welcome back!</p>
+                  <p className="text-[#64748B] text-sm md:text-base">Welcome back!</p>
                   <h1 className="text-xl md:text-2xl lg:text-3xl font-bold text-gray-900">{userName} 👋</h1>
                 </div>
               </div>
-              <p className="text-gray-600 text-sm md:text-base mt-4">
+              <p className="text-[#1E293B] text-sm md:text-base mt-4">
                 AI-powered packing lists for your kids. Know exactly what to pack.
               </p>
             </>
@@ -267,7 +267,7 @@ function HomePageContent() {
             <div>
               <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900">Travel Stress-Free with Kids</h1>
               <p className="text-purple-600 text-base md:text-lg font-medium italic">Let JourneyAI Plan It</p>
-              <p className="text-gray-600 text-sm md:text-base mt-4">
+              <p className="text-[#1E293B] text-sm md:text-base mt-4">
                 AI-powered packing lists for your kids. Know exactly what to pack for your 3-year-old
                 in Dubai.
               </p>
@@ -303,13 +303,13 @@ function HomePageContent() {
 
         {/* Features Section */}
         <div className="mb-8">
-          <h2 className="font-bold text-gray-800 text-base md:text-lg mb-4">What JourneyAI does for you</h2>
+          <h2 className="font-bold text-[#1E293B] text-base md:text-lg mb-4">What JourneyAI does for you</h2>
           <div className="flex gap-4 overflow-x-auto pb-2 -mx-4 px-4 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8 scrollbar-hide">
             {features.map((feature, index) => (
               <GlassCard key={index} className="w-44 flex-shrink-0">
                 <IconCircle icon={feature.icon} color={feature.color} size="md" />
-                <h3 className="font-semibold text-gray-800 mt-3 text-sm">{feature.title}</h3>
-                <p className="text-gray-500 text-xs mt-1">{feature.desc}</p>
+                <h3 className="font-semibold text-[#1E293B] mt-3 text-sm">{feature.title}</h3>
+                <p className="text-[#64748B] text-xs mt-1">{feature.desc}</p>
               </GlassCard>
             ))}
           </div>
@@ -317,7 +317,7 @@ function HomePageContent() {
 
         {/* Popular Destinations Section */}
         <div className="mb-8">
-          <h2 className="font-bold text-gray-800 text-base md:text-lg mb-4 flex items-center gap-2">
+          <h2 className="font-bold text-[#1E293B] text-base md:text-lg mb-4 flex items-center gap-2">
             <TrendingUp className="w-5 h-5 md:w-6 md:h-6 text-purple-500" />
             Popular Destinations
           </h2>
@@ -333,8 +333,8 @@ function HomePageContent() {
                 className="text-center cursor-pointer hover:shadow-lg transition-shadow"
               >
                 <span className="text-4xl md:text-5xl mb-2 block">{dest.emoji}</span>
-                <h3 className="font-semibold text-gray-800 text-sm md:text-base">{dest.name}</h3>
-                <p className="text-xs md:text-sm text-gray-500">{dest.country}</p>
+                <h3 className="font-semibold text-[#1E293B] text-sm md:text-base">{dest.name}</h3>
+                <p className="text-xs md:text-sm text-[#64748B]">{dest.country}</p>
                 <p className="text-xs md:text-sm text-purple-500 mt-1 line-clamp-1">{dest.kidsHighlights[0]}</p>
               </GlassCard>
             ))}
@@ -344,7 +344,7 @@ function HomePageContent() {
         {/* Your Trips Section - Only for logged in users */}
         {user && (
           <div>
-            <h2 className="font-bold text-gray-800 text-base md:text-lg mb-4">Your Trips</h2>
+            <h2 className="font-bold text-[#1E293B] text-base md:text-lg mb-4">Your Trips</h2>
             <div className="flex gap-4 overflow-x-auto pb-2 -mx-4 px-4 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8 scrollbar-hide">
             {trips.length > 0 ? (
               <>

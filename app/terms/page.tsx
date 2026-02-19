@@ -18,8 +18,8 @@ export default function TermsPage() {
       <div className="container mx-auto px-4 py-12 max-w-3xl">
         <h1 className="text-3xl font-bold text-gray-900 mb-8">Terms of Service</h1>
         
-        <div className="bg-white rounded-2xl p-8 shadow-sm space-y-6 text-gray-600">
-          <p className="text-sm text-gray-500">Last updated: February 1, 2026</p>
+        <div className="bg-white rounded-2xl p-8 shadow-sm space-y-6 text-[#1E293B]">
+          <p className="text-sm text-[#64748B]">Last updated: February 1, 2026</p>
 
           <section>
             <h2 className="text-xl font-semibold text-gray-900 mb-3">1. Acceptance of Terms</h2>

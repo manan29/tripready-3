@@ -47,11 +47,11 @@ export function LastMinuteStep({ trip, stageData, onBack, onComplete }: LastMinu
       {/* Header */}
       <div className="flex items-center gap-3 mb-2">
         <button onClick={onBack} className="p-2 hover:bg-gray-100 rounded-full transition-colors">
-          <ArrowLeft className="w-5 h-5 text-gray-600" />
+          <ArrowLeft className="w-5 h-5 text-[#1E293B]" />
         </button>
         <div className="flex-1">
           <h2 className="text-xl font-bold text-gray-900">Last Minute Checklist</h2>
-          <p className="text-sm text-gray-500">Final preparations before departure</p>
+          <p className="text-sm text-[#64748B]">Final preparations before departure</p>
         </div>
       </div>
 
@@ -95,12 +95,12 @@ export function LastMinuteStep({ trip, stageData, onBack, onComplete }: LastMinu
                 <div className="flex-1">
                   <p
                     className={`font-medium ${
-                      checkedItems.includes(item.id) ? 'text-gray-600 line-through' : 'text-gray-800'
+                      checkedItems.includes(item.id) ? 'text-[#1E293B] line-through' : 'text-[#1E293B]'
                     }`}
                   >
                     {item.title}
                   </p>
-                  <p className="text-xs text-gray-500 mt-0.5">{item.description}</p>
+                  <p className="text-xs text-[#64748B] mt-0.5">{item.description}</p>
                 </div>
               </div>
             ))}
@@ -109,7 +109,7 @@ export function LastMinuteStep({ trip, stageData, onBack, onComplete }: LastMinu
 
       {/* Other Items */}
       <GlassCard>
-        <h3 className="font-semibold text-gray-800 mb-3">Other Preparations</h3>
+        <h3 className="font-semibold text-[#1E293B] mb-3">Other Preparations</h3>
         <div className="space-y-2">
           {lastMinuteItems
             .filter((item) => !item.urgent)
@@ -131,12 +131,12 @@ export function LastMinuteStep({ trip, stageData, onBack, onComplete }: LastMinu
                 <div className="flex-1">
                   <p
                     className={`font-medium ${
-                      checkedItems.includes(item.id) ? 'text-gray-600 line-through' : 'text-gray-800'
+                      checkedItems.includes(item.id) ? 'text-[#1E293B] line-through' : 'text-[#1E293B]'
                     }`}
                   >
                     {item.title}
                   </p>
-                  <p className="text-xs text-gray-500 mt-0.5">{item.description}</p>
+                  <p className="text-xs text-[#64748B] mt-0.5">{item.description}</p>
                 </div>
               </div>
             ))}

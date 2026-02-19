@@ -51,7 +51,7 @@ export default function LoginPage() {
             <Plane className="h-10 w-10 text-primary-500" />
             <span className="text-3xl font-bold text-gray-900">TripReady</span>
           </div>
-          <p className="text-gray-600">AI-powered family travel planning</p>
+          <p className="text-[#1E293B]">AI-powered family travel planning</p>
         </div>
 
         {/* Login Card */}
@@ -109,7 +109,7 @@ export default function LoginPage() {
             </button>
           </div>
 
-          <p className="text-center text-sm text-gray-500 mt-6">
+          <p className="text-center text-sm text-[#64748B] mt-6">
             By continuing, you agree to our{' '}
             <Link href="/terms" className="text-primary-500 hover:underline">
               Terms of Service

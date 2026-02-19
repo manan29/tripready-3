@@ -12,7 +12,7 @@ export default function ExplorePage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center">
-      <p className="text-gray-500">Redirecting...</p>
+      <p className="text-[#64748B]">Redirecting...</p>
     </div>
   )
 }

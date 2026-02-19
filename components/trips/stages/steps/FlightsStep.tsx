@@ -51,11 +51,11 @@ export function FlightsStep({ trip, stageData, onBack, onComplete }: FlightsStep
       {/* Header */}
       <div className="flex items-center gap-3 mb-2">
         <button onClick={onBack} className="p-2 hover:bg-gray-100 rounded-full transition-colors">
-          <ArrowLeft className="w-5 h-5 text-gray-600" />
+          <ArrowLeft className="w-5 h-5 text-[#1E293B]" />
         </button>
         <div>
           <h2 className="text-xl font-bold text-gray-900">Book Flights</h2>
-          <p className="text-sm text-gray-500">{daysUntil} days until trip</p>
+          <p className="text-sm text-[#64748B]">{daysUntil} days until trip</p>
         </div>
       </div>
 
@@ -102,7 +102,7 @@ export function FlightsStep({ trip, stageData, onBack, onComplete }: FlightsStep
       <GlassCard>
         <div className="flex items-center gap-2 mb-3">
           <TrendingUp className="w-5 h-5 text-purple-600" />
-          <h3 className="font-semibold text-gray-800">Price Trend (Typical)</h3>
+          <h3 className="font-semibold text-[#1E293B]">Price Trend (Typical)</h3>
         </div>
         <div className="flex items-end justify-between h-32 gap-2">
           {[
@@ -114,16 +114,16 @@ export function FlightsStep({ trip, stageData, onBack, onComplete }: FlightsStep
           ].map((bar, idx) => (
             <div key={idx} className="flex-1 flex flex-col items-center gap-1">
               <div className={`w-full ${bar.color} rounded-t-lg transition-all`} style={{ height: `${bar.height}%` }} />
-              <span className="text-xs text-gray-500">{bar.label}d</span>
+              <span className="text-xs text-[#64748B]">{bar.label}d</span>
             </div>
           ))}
         </div>
-        <p className="text-xs text-gray-500 text-center mt-3">Days before departure</p>
+        <p className="text-xs text-[#64748B] text-center mt-3">Days before departure</p>
       </GlassCard>
 
       {/* Booking Links */}
       <GlassCard>
-        <h3 className="font-semibold text-gray-800 mb-3">Search Flights</h3>
+        <h3 className="font-semibold text-[#1E293B] mb-3">Search Flights</h3>
         <div className="space-y-2">
           {bookingLinks.map((link) => (
             <a
@@ -148,7 +148,7 @@ export function FlightsStep({ trip, stageData, onBack, onComplete }: FlightsStep
 
       {/* Already Booked Form */}
       <GlassCard>
-        <h3 className="font-semibold text-gray-800 mb-3">Already Booked?</h3>
+        <h3 className="font-semibold text-[#1E293B] mb-3">Already Booked?</h3>
         <div className="space-y-3">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Airline</label>

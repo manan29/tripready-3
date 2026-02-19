@@ -57,11 +57,11 @@ export function PackingStep({
       {/* Header */}
       <div className="flex items-center gap-3 mb-2">
         <button onClick={onBack} className="p-2 hover:bg-gray-100 rounded-full transition-colors">
-          <ArrowLeft className="w-5 h-5 text-gray-600" />
+          <ArrowLeft className="w-5 h-5 text-[#1E293B]" />
         </button>
         <div className="flex-1">
           <h2 className="text-xl font-bold text-gray-900">Packing Lists</h2>
-          <p className="text-sm text-gray-500">Pack smart, travel light</p>
+          <p className="text-sm text-[#64748B]">Pack smart, travel light</p>
         </div>
       </div>
 
@@ -85,7 +85,7 @@ export function PackingStep({
           <button
             onClick={() => setActiveTab('kids')}
             className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-colors ${
-              activeTab === 'kids' ? 'bg-white text-purple-600 shadow-sm' : 'text-gray-500'
+              activeTab === 'kids' ? 'bg-white text-purple-600 shadow-sm' : 'text-[#64748B]'
             }`}
           >
             Kids ({kidsProgress}%)
@@ -93,7 +93,7 @@ export function PackingStep({
           <button
             onClick={() => setActiveTab('adult')}
             className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-colors ${
-              activeTab === 'adult' ? 'bg-white text-purple-600 shadow-sm' : 'text-gray-500'
+              activeTab === 'adult' ? 'bg-white text-purple-600 shadow-sm' : 'text-[#64748B]'
             }`}
           >
             Adults ({adultProgress}%)

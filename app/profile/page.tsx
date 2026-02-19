@@ -124,7 +124,7 @@ export default function ProfilePage() {
     <div className="min-h-screen pb-32">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="bg-gradient-to-b from-purple-100 to-transparent px-4 sm:px-6 lg:px-8 pt-6 pb-8">
+        <div className="px-4 sm:px-6 lg:px-8 pt-6 pb-8">
           <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-6">Profile</h1>
 
           {/* User Info Card */}
@@ -135,7 +135,7 @@ export default function ProfilePage() {
             <h2 className="text-xl md:text-2xl font-semibold text-gray-900 mb-1">
               {user?.user_metadata?.name || 'Traveler'}
             </h2>
-            <p className="text-sm md:text-base text-gray-500 flex items-center justify-center gap-1">
+            <p className="text-sm md:text-base text-[#64748B] flex items-center justify-center gap-1">
               <Mail className="w-4 h-4 md:w-5 md:h-5" />
               {user?.email}
             </p>
@@ -147,15 +147,15 @@ export default function ProfilePage() {
           <div className="grid grid-cols-3 gap-3 md:gap-4 max-w-2xl mx-auto">
             <GlassCard className="text-center" padding="sm">
               <p className="text-2xl md:text-3xl font-bold text-purple-600">{stats.totalTrips}</p>
-              <p className="text-xs md:text-sm text-gray-500 mt-1">Total Trips</p>
+              <p className="text-xs md:text-sm text-[#64748B] mt-1">Total Trips</p>
             </GlassCard>
             <GlassCard className="text-center" padding="sm">
               <p className="text-2xl md:text-3xl font-bold text-purple-600">{stats.countries}</p>
-              <p className="text-xs md:text-sm text-gray-500 mt-1">Countries</p>
+              <p className="text-xs md:text-sm text-[#64748B] mt-1">Countries</p>
             </GlassCard>
             <GlassCard className="text-center" padding="sm">
               <p className="text-2xl md:text-3xl font-bold text-purple-600">{stats.upcomingTrips}</p>
-              <p className="text-xs md:text-sm text-gray-500 mt-1">Upcoming</p>
+              <p className="text-xs md:text-sm text-[#64748B] mt-1">Upcoming</p>
             </GlassCard>
           </div>
         </div>
@@ -163,12 +163,12 @@ export default function ProfilePage() {
         {/* Shareable Stats Cards */}
         {trips.length > 0 && (
           <div className="px-4 sm:px-6 lg:px-8 mb-6">
-            <h3 className="text-sm md:text-base font-semibold text-gray-500 uppercase tracking-wide mb-3 max-w-2xl mx-auto flex items-center gap-2">
+            <h3 className="text-sm md:text-base font-semibold text-[#64748B] uppercase tracking-wide mb-3 max-w-2xl mx-auto flex items-center gap-2">
               <Camera className="w-4 h-4 md:w-5 md:h-5" />
               Share Your Journey
             </h3>
             <GlassCard className="max-w-2xl mx-auto">
-              <p className="text-sm md:text-base text-gray-600 mb-4">
+              <p className="text-sm md:text-base text-[#1E293B] mb-4">
                 Create beautiful shareable cards of your travel stats
               </p>
               <div className="grid grid-cols-2 gap-3">
@@ -196,7 +196,7 @@ export default function ProfilePage() {
               </div>
               <div className="mt-4 pt-4 border-t border-gray-100">
                 <div className="flex items-center justify-between text-xs md:text-sm">
-                  <span className="text-gray-500">Total Air Miles:</span>
+                  <span className="text-[#64748B]">Total Air Miles:</span>
                   <span className="font-bold text-purple-600 text-base md:text-lg">
                     {formatAirMiles(calculateTotalAirMiles(trips))}
                   </span>
@@ -208,19 +208,19 @@ export default function ProfilePage() {
 
         {/* Account Details */}
         <div className="px-4 sm:px-6 lg:px-8 mb-6">
-          <h3 className="text-sm md:text-base font-semibold text-gray-500 uppercase tracking-wide mb-3 max-w-2xl mx-auto">
+          <h3 className="text-sm md:text-base font-semibold text-[#64748B] uppercase tracking-wide mb-3 max-w-2xl mx-auto">
             Account Details
           </h3>
           <GlassCard className="max-w-2xl mx-auto">
             <div className="space-y-3">
               <div className="flex items-center gap-3 text-sm md:text-base">
-                <User className="w-4 h-4 md:w-5 md:h-5 text-gray-400" />
-                <span className="text-gray-500">User ID:</span>
+                <User className="w-4 h-4 md:w-5 md:h-5 text-[#94A3B8]" />
+                <span className="text-[#64748B]">User ID:</span>
                 <span className="text-gray-900 font-mono text-xs md:text-sm">{user?.id.slice(0, 8)}...</span>
               </div>
               <div className="flex items-center gap-3 text-sm md:text-base">
-                <Calendar className="w-4 h-4 md:w-5 md:h-5 text-gray-400" />
-                <span className="text-gray-500">Member since:</span>
+                <Calendar className="w-4 h-4 md:w-5 md:h-5 text-[#94A3B8]" />
+                <span className="text-[#64748B]">Member since:</span>
                 <span className="text-gray-900">
                   {new Date(user?.created_at).toLocaleDateString('en-US', {
                     month: 'long',
@@ -234,7 +234,7 @@ export default function ProfilePage() {
 
         {/* Language Settings */}
         <div className="px-4 sm:px-6 lg:px-8 mb-6">
-          <h3 className="text-sm md:text-base font-semibold text-gray-500 uppercase tracking-wide mb-3 flex items-center gap-2 max-w-2xl mx-auto">
+          <h3 className="text-sm md:text-base font-semibold text-[#64748B] uppercase tracking-wide mb-3 flex items-center gap-2 max-w-2xl mx-auto">
             <Globe className="w-4 h-4 md:w-5 md:h-5" />
             Language
           </h3>
@@ -252,13 +252,13 @@ export default function ProfilePage() {
               >
                   <div>
                     <span className="font-medium text-gray-900 text-sm md:text-base">{lang.nativeName}</span>
-                    <span className="text-xs md:text-sm text-gray-500 ml-2">({lang.name})</span>
+                    <span className="text-xs md:text-sm text-[#64748B] ml-2">({lang.name})</span>
                   </div>
                   {language === lang.code && <span className="text-purple-600 text-xl md:text-2xl">✓</span>}
                 </button>
               ))}
             </div>
-            <p className="text-xs md:text-sm text-gray-400 mt-3 text-center">
+            <p className="text-xs md:text-sm text-[#94A3B8] mt-3 text-center">
               🚀 Sarvam AI translation coming soon for Hindi & Kannada
             </p>
           </GlassCard>
@@ -266,7 +266,7 @@ export default function ProfilePage() {
 
         {/* Menu Items */}
         <div className="px-4 sm:px-6 lg:px-8">
-          <h3 className="text-sm md:text-base font-semibold text-gray-500 uppercase tracking-wide mb-3 max-w-2xl mx-auto">Menu</h3>
+          <h3 className="text-sm md:text-base font-semibold text-[#64748B] uppercase tracking-wide mb-3 max-w-2xl mx-auto">Menu</h3>
           <div className="space-y-2 max-w-2xl mx-auto">
           {menuItems.map((item, idx) => (
             <GlassCard
@@ -276,24 +276,24 @@ export default function ProfilePage() {
             >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <div className={item.danger ? 'text-red-500' : 'text-gray-600'}>{item.icon}</div>
+                    <div className={item.danger ? 'text-red-500' : 'text-[#1E293B]'}>{item.icon}</div>
                     <span className={`font-medium text-sm md:text-base ${item.danger ? 'text-red-500' : 'text-gray-900'}`}>
                       {item.label}
                     </span>
                     {item.disabled && (
-                      <span className="text-xs md:text-sm text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">
+                      <span className="text-xs md:text-sm text-[#94A3B8] bg-gray-100 px-2 py-0.5 rounded-full">
                         Coming Soon
                       </span>
                     )}
                   </div>
                   {item.label === 'Sign Out' ? (
                     signingOut ? (
-                      <Loader2 className="w-5 h-5 md:w-6 md:h-6 text-gray-400 animate-spin" />
+                      <Loader2 className="w-5 h-5 md:w-6 md:h-6 text-[#94A3B8] animate-spin" />
                     ) : (
-                      <ChevronRight className="w-5 h-5 md:w-6 md:h-6 text-gray-400" />
+                      <ChevronRight className="w-5 h-5 md:w-6 md:h-6 text-[#94A3B8]" />
                     )
                   ) : (
-                    <ChevronRight className="w-5 h-5 md:w-6 md:h-6 text-gray-400" />
+                    <ChevronRight className="w-5 h-5 md:w-6 md:h-6 text-[#94A3B8]" />
                   )}
                 </div>
               </GlassCard>
@@ -303,8 +303,8 @@ export default function ProfilePage() {
 
         {/* App Version */}
         <div className="px-4 sm:px-6 lg:px-8 mt-8 text-center">
-          <p className="text-xs md:text-sm text-gray-400">JourneyAI v1.0.0</p>
-          <p className="text-xs md:text-sm text-gray-400 mt-1">Made with ❤️ for travelers</p>
+          <p className="text-xs md:text-sm text-[#94A3B8]">JourneyAI v1.0.0</p>
+          <p className="text-xs md:text-sm text-[#94A3B8] mt-1">Made with ❤️ for travelers</p>
         </div>
 
         {/* Stats Card Modal */}

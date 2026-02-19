@@ -217,7 +217,7 @@ function TripNewContent() {
         {/* Back Button */}
         <button
           onClick={() => router.push('/')}
-          className="flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-6 transition-colors"
+          className="flex items-center gap-2 text-[#1E293B] hover:text-gray-900 mb-6 transition-colors"
         >
           <ArrowLeft className="h-5 w-5" />
           <span>Back to Home</span>
@@ -260,7 +260,7 @@ function TripNewContent() {
                   <>
                     <h1 className="text-4xl font-bold text-gray-900 mb-2">
                       {destination}
-                      {country && <span className="text-gray-500 text-2xl ml-2">{country}</span>}
+                      {country && <span className="text-[#64748B] text-2xl ml-2">{country}</span>}
                     </h1>
                     <button
                       onClick={() => setDestination('Unknown')}
@@ -284,7 +284,7 @@ function TripNewContent() {
                   <Calendar className="h-6 w-6 text-primary" />
                 </div>
                 <div>
-                  <p className="text-sm text-gray-500">Duration</p>
+                  <p className="text-sm text-[#64748B]">Duration</p>
                   <p className="text-lg font-semibold text-gray-900">{duration} days</p>
                 </div>
               </div>
@@ -295,10 +295,10 @@ function TripNewContent() {
                   <Users className="h-6 w-6 text-primary" />
                 </div>
                 <div className="flex-1">
-                  <p className="text-sm text-gray-500 mb-2">Travelers</p>
+                  <p className="text-sm text-[#64748B] mb-2">Travelers</p>
                   <div className="space-y-2">
                     <div className="flex items-center gap-2">
-                      <span className="text-sm text-gray-600 w-16">Adults:</span>
+                      <span className="text-sm text-[#1E293B] w-16">Adults:</span>
                       <button
                         onClick={() => setNumAdults(Math.max(1, numAdults - 1))}
                         className="w-7 h-7 rounded-full border border-gray-300 flex items-center justify-center hover:bg-gray-50"
@@ -314,7 +314,7 @@ function TripNewContent() {
                       </button>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="text-sm text-gray-600 w-16">Kids:</span>
+                      <span className="text-sm text-[#1E293B] w-16">Kids:</span>
                       <button
                         onClick={() => setNumKids(Math.max(0, numKids - 1))}
                         className="w-7 h-7 rounded-full border border-gray-300 flex items-center justify-center hover:bg-gray-50"
@@ -339,7 +339,7 @@ function TripNewContent() {
                   <MapPin className="h-6 w-6 text-primary" />
                 </div>
                 <div className="flex-1">
-                  <p className="text-sm text-gray-500 mb-2">Start Date</p>
+                  <p className="text-sm text-[#64748B] mb-2">Start Date</p>
                   <input
                     type="date"
                     value={startDate}
@@ -348,7 +348,7 @@ function TripNewContent() {
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-sm"
                   />
                   {endDate && (
-                    <p className="text-xs text-gray-500 mt-1">End: {endDate}</p>
+                    <p className="text-xs text-[#64748B] mt-1">End: {endDate}</p>
                   )}
                 </div>
               </div>
@@ -377,12 +377,12 @@ function TripNewContent() {
                       className="w-16 h-16"
                     />
                   </div>
-                  <p className="text-gray-600 capitalize">{weather.description}</p>
+                  <p className="text-[#1E293B] capitalize">{weather.description}</p>
                 </div>
               ) : (
                 <div className="py-4">
-                  <p className="text-gray-500 text-sm">Weather data unavailable</p>
-                  <p className="text-gray-400 text-xs mt-1">
+                  <p className="text-[#64748B] text-sm">Weather data unavailable</p>
+                  <p className="text-[#94A3B8] text-xs mt-1">
                     Check weather closer to your trip date
                   </p>
                 </div>
@@ -404,14 +404,14 @@ function TripNewContent() {
                   <div className="text-3xl font-bold text-gray-900 mb-2">
                     ₹{currency.rate.toFixed(2)}
                   </div>
-                  <p className="text-gray-600">
+                  <p className="text-[#1E293B]">
                     1 {currency.from} = {currency.rate.toFixed(2)} {currency.to}
                   </p>
                 </div>
               ) : (
                 <div className="py-4">
-                  <p className="text-gray-500 text-sm">Currency rate unavailable</p>
-                  <p className="text-gray-400 text-xs mt-1">
+                  <p className="text-[#64748B] text-sm">Currency rate unavailable</p>
+                  <p className="text-[#94A3B8] text-xs mt-1">
                     You can add this later from your trip page
                   </p>
                 </div>
@@ -443,7 +443,7 @@ function TripNewContent() {
                 Start Over
               </button>
             </div>
-            <p className="text-sm text-gray-500 mt-4 text-center">
+            <p className="text-sm text-[#64748B] mt-4 text-center">
               We'll generate a smart packing list based on your destination and travelers
             </p>
           </div>

@@ -44,17 +44,17 @@ export function VisaDocsStep({ trip, stageData, onBack, onComplete }: VisaDocsSt
       {/* Header */}
       <div className="flex items-center gap-3 mb-2">
         <button onClick={onBack} className="p-2 hover:bg-gray-100 rounded-full transition-colors">
-          <ArrowLeft className="w-5 h-5 text-gray-600" />
+          <ArrowLeft className="w-5 h-5 text-[#1E293B]" />
         </button>
         <div>
           <h2 className="text-xl font-bold text-gray-900">Visa & Documents</h2>
-          <p className="text-sm text-gray-500">Essential travel documents</p>
+          <p className="text-sm text-[#64748B]">Essential travel documents</p>
         </div>
       </div>
 
       {/* Visa Status */}
       <GlassCard>
-        <h3 className="font-semibold text-gray-800 mb-3">Visa Status for {trip.country}</h3>
+        <h3 className="font-semibold text-[#1E293B] mb-3">Visa Status for {trip.country}</h3>
         <div className="space-y-2">
           {['not-required', 'pending', 'applied', 'approved'].map((status) => (
             <label
@@ -70,7 +70,7 @@ export function VisaDocsStep({ trip, stageData, onBack, onComplete }: VisaDocsSt
                 onChange={() => setVisaStatus(status)}
                 className="w-4 h-4 text-purple-600"
               />
-              <span className="font-medium text-gray-800 capitalize">{status.replace('-', ' ')}</span>
+              <span className="font-medium text-[#1E293B] capitalize">{status.replace('-', ' ')}</span>
             </label>
           ))}
         </div>
@@ -78,7 +78,7 @@ export function VisaDocsStep({ trip, stageData, onBack, onComplete }: VisaDocsSt
 
       {/* Document Checklist */}
       <GlassCard>
-        <h3 className="font-semibold text-gray-800 mb-3">Document Checklist</h3>
+        <h3 className="font-semibold text-[#1E293B] mb-3">Document Checklist</h3>
         <div className="space-y-2">
           {documents.map((doc) => (
             <div
@@ -96,10 +96,10 @@ export function VisaDocsStep({ trip, stageData, onBack, onComplete }: VisaDocsSt
                 {checkedDocs.includes(doc.id) && <Check className="w-3 h-3 text-white" />}
               </div>
               <div className="flex-1">
-                <p className={`font-medium ${checkedDocs.includes(doc.id) ? 'text-gray-600 line-through' : 'text-gray-800'}`}>
+                <p className={`font-medium ${checkedDocs.includes(doc.id) ? 'text-[#1E293B] line-through' : 'text-[#1E293B]'}`}>
                   {doc.name}
                 </p>
-                <p className="text-xs text-gray-500 mt-0.5">{doc.note}</p>
+                <p className="text-xs text-[#64748B] mt-0.5">{doc.note}</p>
               </div>
               <button className="p-2 text-purple-600 hover:bg-purple-100 rounded-lg transition-colors">
                 <Upload className="w-4 h-4" />

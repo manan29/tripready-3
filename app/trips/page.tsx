@@ -101,7 +101,7 @@ export default function TripsPage() {
         {/* Header */}
         <div className="mb-6">
           <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-1">My Trips</h1>
-          <p className="text-gray-500 text-sm md:text-base">All your adventures in one place</p>
+          <p className="text-[#64748B] text-sm md:text-base">All your adventures in one place</p>
         </div>
 
         {/* Grid of Trips */}
@@ -115,8 +115,8 @@ export default function TripsPage() {
                 >
                   <div className="text-4xl md:text-5xl mb-2">{getDestinationEmoji(trip.destination)}</div>
                   <h3 className="font-bold text-base md:text-lg line-clamp-1">{trip.destination}</h3>
-                  <p className="text-gray-500 text-sm md:text-base line-clamp-1">{trip.country}</p>
-                  <p className="text-gray-400 text-xs md:text-sm mt-2">
+                  <p className="text-[#64748B] text-sm md:text-base line-clamp-1">{trip.country}</p>
+                  <p className="text-[#94A3B8] text-xs md:text-sm mt-2">
                     {formatDate(trip.start_date)} - {formatDate(trip.end_date)}
                   </p>
 
@@ -128,7 +128,7 @@ export default function TripsPage() {
                     }}
                     className="absolute top-2 right-2 p-1.5 rounded-full hover:bg-gray-100 bg-white/80 shadow-sm z-10 transition-colors"
                   >
-                    <MoreVertical className="w-4 h-4 text-gray-500" />
+                    <MoreVertical className="w-4 h-4 text-[#64748B]" />
                   </button>
                 </div>
 
@@ -162,14 +162,14 @@ export default function TripsPage() {
               <div className="w-12 h-12 md:w-14 md:h-14 bg-purple-100 rounded-full flex items-center justify-center mb-2">
                 <Plus className="w-6 h-6 md:w-7 md:h-7 text-purple-600" />
               </div>
-              <p className="text-gray-500 text-sm md:text-base font-medium">New Trip</p>
+              <p className="text-[#64748B] text-sm md:text-base font-medium">New Trip</p>
             </div>
           </div>
         ) : (
           <div className="text-center py-12">
             <div className="text-6xl md:text-7xl lg:text-8xl mb-4">✈️</div>
-            <h3 className="text-xl md:text-2xl lg:text-3xl font-semibold text-gray-800 mb-2">No trips yet</h3>
-            <p className="text-gray-500 text-sm md:text-base mb-6">Start planning your first adventure!</p>
+            <h3 className="text-xl md:text-2xl lg:text-3xl font-semibold text-[#1E293B] mb-2">No trips yet</h3>
+            <p className="text-[#64748B] text-sm md:text-base mb-6">Start planning your first adventure!</p>
             <button
               onClick={() => router.push('/')}
               className="bg-purple-600 text-white px-6 py-3 rounded-2xl text-sm md:text-base font-medium flex items-center gap-2 mx-auto hover:bg-purple-700 transition-colors"

@@ -156,7 +156,7 @@ export default function TripDetailPage() {
   if (!trip) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <p className="text-gray-500">Trip not found</p>
+        <p className="text-[#64748B]">Trip not found</p>
       </div>
     )
   }
@@ -198,9 +198,9 @@ export default function TripDetailPage() {
     <div className="min-h-screen pb-32">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="bg-gradient-to-b from-purple-100 to-transparent px-4 sm:px-6 lg:px-8 pt-6 pb-8">
+        <div className="px-4 sm:px-6 lg:px-8 pt-6 pb-8">
           {/* Back Button */}
-          <button onClick={() => router.back()} className="flex items-center gap-2 text-gray-600 mb-4 hover:text-gray-900 transition-colors">
+          <button onClick={() => router.back()} className="flex items-center gap-2 text-[#1E293B] mb-4 hover:text-gray-900 transition-colors">
             <ArrowLeft className="w-5 h-5" />
             <span className="text-sm md:text-base">Back</span>
           </button>
@@ -211,7 +211,7 @@ export default function TripDetailPage() {
               <span className="text-4xl md:text-5xl lg:text-6xl">{getDestinationEmoji()}</span>
               <div>
                 <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900">{trip.destination}</h1>
-                <p className="text-gray-500 text-sm md:text-base">{trip.country}</p>
+                <p className="text-[#64748B] text-sm md:text-base">{trip.country}</p>
               </div>
             </div>
 
@@ -224,7 +224,7 @@ export default function TripDetailPage() {
           </div>
 
           {/* Date Range */}
-          <p className="text-gray-500 text-sm md:text-base mb-6">
+          <p className="text-[#64748B] text-sm md:text-base mb-6">
             {new Date(trip.start_date).toLocaleDateString('en-GB', {
               day: 'numeric',
               month: 'short',
@@ -243,7 +243,7 @@ export default function TripDetailPage() {
               {/* Days to Go */}
               <GlassCard className="text-center">
                 <p className="text-purple-600 font-bold text-lg">{getDaysToGo()}</p>
-                <p className="text-gray-500 text-xs">
+                <p className="text-[#64748B] text-xs">
                   {new Date(trip.start_date).toLocaleDateString('en-GB', {
                     day: 'numeric',
                     month: 'short',
@@ -254,8 +254,8 @@ export default function TripDetailPage() {
 
               {/* Duration */}
               <GlassCard className="text-center">
-                <p className="text-gray-800 font-bold text-lg">{getTripDuration()}</p>
-                <p className="text-gray-500 text-xs">Duration</p>
+                <p className="text-[#1E293B] font-bold text-lg">{getTripDuration()}</p>
+                <p className="text-[#64748B] text-xs">Duration</p>
               </GlassCard>
 
               {/* Weather */}
@@ -270,7 +270,7 @@ export default function TripDetailPage() {
                     </p>
                     <p className="text-gray-700 text-[11px] font-medium mt-1 leading-tight">{weather.insight}</p>
                     {weather.packingTip && (
-                      <p className="text-gray-500 text-[10px] mt-1.5 leading-tight">📦 {weather.packingTip}</p>
+                      <p className="text-[#64748B] text-[10px] mt-1.5 leading-tight">📦 {weather.packingTip}</p>
                     )}
                   </>
                 ) : (
@@ -279,10 +279,10 @@ export default function TripDetailPage() {
                       {weather ? `${weather.temp}°C` : '—'}
                       {weather && <span className="ml-1">☀️</span>}
                     </p>
-                    <p className="text-gray-500 text-xs">
+                    <p className="text-[#64748B] text-xs">
                       {weather?.description || 'Weather'}
                       {weather?.context && (
-                        <span className="block text-[10px] text-gray-400 mt-0.5">{weather.context}</span>
+                        <span className="block text-[10px] text-[#94A3B8] mt-0.5">{weather.context}</span>
                       )}
                     </p>
                   </>
@@ -292,7 +292,7 @@ export default function TripDetailPage() {
               {/* Currency */}
               <GlassCard className="text-center">
                 <p className="text-green-600 font-bold text-lg">{currency ? `₹${currency.rate?.toFixed(2)}` : '—'}</p>
-                <p className="text-gray-500 text-xs">{currency ? `1 ${currency.from} = INR` : 'Currency'}</p>
+                <p className="text-[#64748B] text-xs">{currency ? `1 ${currency.from} = INR` : 'Currency'}</p>
               </GlassCard>
             </div>
           )}

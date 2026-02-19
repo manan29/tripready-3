@@ -127,7 +127,7 @@ export default function SettingsPage() {
       <header className="bg-white border-b border-gray-200">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center gap-4">
-            <Link href="/trips" className="text-gray-400 hover:text-gray-600 transition-colors">
+            <Link href="/trips" className="text-[#94A3B8] hover:text-[#1E293B] transition-colors">
               <ArrowLeft className="h-6 w-6" />
             </Link>
             <div className="flex items-center gap-2">
@@ -143,7 +143,7 @@ export default function SettingsPage() {
         {/* Profile Section */}
         <div className="bg-white rounded-2xl p-6 mb-6">
           <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-            <User className="h-5 w-5 text-gray-400" />
+            <User className="h-5 w-5 text-[#94A3B8]" />
             Profile
           </h2>
           <div className="flex items-center gap-4">
@@ -158,7 +158,7 @@ export default function SettingsPage() {
             )}
             <div>
               <p className="font-medium text-gray-900">{profile?.display_name || 'User'}</p>
-              <p className="text-sm text-gray-500">{user?.email}</p>
+              <p className="text-sm text-[#64748B]">{user?.email}</p>
             </div>
           </div>
         </div>
@@ -166,7 +166,7 @@ export default function SettingsPage() {
         {/* Legal Section */}
         <div className="bg-white rounded-2xl p-6 mb-6">
           <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-            <FileText className="h-5 w-5 text-gray-400" />
+            <FileText className="h-5 w-5 text-[#94A3B8]" />
             Legal
           </h2>
           <div className="space-y-2">
@@ -175,14 +175,14 @@ export default function SettingsPage() {
               className="flex items-center justify-between p-3 rounded-xl hover:bg-gray-50 transition-colors"
             >
               <span className="text-gray-700">Privacy Policy</span>
-              <span className="text-gray-400">→</span>
+              <span className="text-[#94A3B8]">→</span>
             </Link>
             <Link
               href="/terms"
               className="flex items-center justify-between p-3 rounded-xl hover:bg-gray-50 transition-colors"
             >
               <span className="text-gray-700">Terms of Service</span>
-              <span className="text-gray-400">→</span>
+              <span className="text-[#94A3B8]">→</span>
             </Link>
           </div>
         </div>
@@ -190,7 +190,7 @@ export default function SettingsPage() {
         {/* Archived Trips */}
         <div className="bg-white rounded-2xl p-6 mb-6">
           <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-            <Archive className="h-5 w-5 text-gray-400" />
+            <Archive className="h-5 w-5 text-[#94A3B8]" />
             Archived Trips
           </h2>
           {loadingArchived ? (
@@ -206,7 +206,7 @@ export default function SettingsPage() {
                 >
                   <div className="flex-1">
                     <p className="font-medium text-gray-900">{trip.destination}</p>
-                    <p className="text-sm text-gray-500">
+                    <p className="text-sm text-[#64748B]">
                       {formatDate(trip.start_date)} - {formatDate(trip.end_date)}
                     </p>
                   </div>
@@ -223,7 +223,7 @@ export default function SettingsPage() {
           ) : (
             <div className="text-center py-8">
               <Archive className="h-12 w-12 text-gray-300 mx-auto mb-2" />
-              <p className="text-gray-500 text-sm">No archived trips</p>
+              <p className="text-[#64748B] text-sm">No archived trips</p>
             </div>
           )}
         </div>
@@ -306,7 +306,7 @@ export default function SettingsPage() {
           )}
         </div>
 
-        <p className="text-center text-sm text-gray-400 mt-8">
+        <p className="text-center text-sm text-[#94A3B8] mt-8">
           TripReady v2.0 • Made for families who love to travel
         </p>
       </div>

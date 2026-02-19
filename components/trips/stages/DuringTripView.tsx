@@ -75,8 +75,8 @@ export function DuringTripView({ trip, stageData, weather, onUpdateStageData }: 
             <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center mb-2">
               <Plane className="w-5 h-5 text-purple-600" />
             </div>
-            <p className="font-semibold text-gray-800 text-sm">Flight Info</p>
-            <p className="text-xs text-gray-500 mt-1">
+            <p className="font-semibold text-[#1E293B] text-sm">Flight Info</p>
+            <p className="text-xs text-[#64748B] mt-1">
               {stageData?.pre_trip?.flights?.airline || 'Not added'}
             </p>
           </div>
@@ -87,8 +87,8 @@ export function DuringTripView({ trip, stageData, weather, onUpdateStageData }: 
             <div className="w-10 h-10 bg-pink-100 rounded-full flex items-center justify-center mb-2">
               <Hotel className="w-5 h-5 text-pink-600" />
             </div>
-            <p className="font-semibold text-gray-800 text-sm">Hotel Info</p>
-            <p className="text-xs text-gray-500 mt-1">
+            <p className="font-semibold text-[#1E293B] text-sm">Hotel Info</p>
+            <p className="text-xs text-[#64748B] mt-1">
               {stageData?.pre_trip?.hotels?.name || 'Not added'}
             </p>
           </div>
@@ -99,11 +99,11 @@ export function DuringTripView({ trip, stageData, weather, onUpdateStageData }: 
       <GlassCard>
         <div className="flex items-center gap-2 mb-3">
           <DollarSign className="w-5 h-5 text-purple-600" />
-          <h3 className="font-bold text-gray-800">Quick Currency</h3>
+          <h3 className="font-bold text-[#1E293B]">Quick Currency</h3>
         </div>
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="text-xs text-gray-500 mb-1 block">INR</label>
+            <label className="text-xs text-[#64748B] mb-1 block">INR</label>
             <input
               type="number"
               value={inrAmount}
@@ -113,7 +113,7 @@ export function DuringTripView({ trip, stageData, weather, onUpdateStageData }: 
             />
           </div>
           <div>
-            <label className="text-xs text-gray-500 mb-1 block">{localCurrency}</label>
+            <label className="text-xs text-[#64748B] mb-1 block">{localCurrency}</label>
             <div className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm font-semibold text-purple-600">
               {convertedAmount || '—'}
             </div>
@@ -125,7 +125,7 @@ export function DuringTripView({ trip, stageData, weather, onUpdateStageData }: 
       <GlassCard>
         <div className="flex items-center gap-2 mb-3">
           <AlertCircle className="w-5 h-5 text-red-600" />
-          <h3 className="font-bold text-gray-800">Emergency Contacts</h3>
+          <h3 className="font-bold text-[#1E293B]">Emergency Contacts</h3>
         </div>
         <div className="space-y-2">
           <a
@@ -134,7 +134,7 @@ export function DuringTripView({ trip, stageData, weather, onUpdateStageData }: 
           >
             <div className="flex items-center gap-3">
               <Phone className="w-4 h-4 text-red-600" />
-              <span className="font-medium text-gray-800 text-sm">Police</span>
+              <span className="font-medium text-[#1E293B] text-sm">Police</span>
             </div>
             <span className="text-red-600 font-bold">{emergencyContacts.police}</span>
           </a>
@@ -144,13 +144,13 @@ export function DuringTripView({ trip, stageData, weather, onUpdateStageData }: 
           >
             <div className="flex items-center gap-3">
               <Phone className="w-4 h-4 text-orange-600" />
-              <span className="font-medium text-gray-800 text-sm">Ambulance</span>
+              <span className="font-medium text-[#1E293B] text-sm">Ambulance</span>
             </div>
             <span className="text-orange-600 font-bold">{emergencyContacts.ambulance}</span>
           </a>
           <div className="p-3 bg-blue-50 rounded-lg">
             <div className="flex items-center justify-between">
-              <span className="font-medium text-gray-800 text-sm">{emergencyContacts.embassy}</span>
+              <span className="font-medium text-[#1E293B] text-sm">{emergencyContacts.embassy}</span>
               <a href={`tel:${emergencyContacts.embassyPhone}`} className="text-blue-600 font-bold text-sm">
                 {emergencyContacts.embassyPhone}
               </a>
@@ -161,7 +161,7 @@ export function DuringTripView({ trip, stageData, weather, onUpdateStageData }: 
 
       {/* Daily Checklist */}
       <GlassCard>
-        <h3 className="font-bold text-gray-800 mb-3">Today's Checklist</h3>
+        <h3 className="font-bold text-[#1E293B] mb-3">Today's Checklist</h3>
         <div className="space-y-2">
           {dailyChecklistItems.map((item) => (
             <div
@@ -180,7 +180,7 @@ export function DuringTripView({ trip, stageData, weather, onUpdateStageData }: 
               </div>
               <span
                 className={`text-sm ${
-                  dailyChecklist.includes(item) ? 'line-through text-gray-400' : 'text-gray-800'
+                  dailyChecklist.includes(item) ? 'line-through text-[#94A3B8]' : 'text-[#1E293B]'
                 }`}
               >
                 {item}

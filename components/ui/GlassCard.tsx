@@ -11,9 +11,9 @@ interface GlassCardProps {
 
 const paddingMap = {
   none: '',
-  sm: 'p-3',
-  md: 'p-4',
-  lg: 'p-5',
+  sm: 'p-4',
+  md: 'p-5',
+  lg: 'p-6',
 }
 
 export function GlassCard({ children, className = '', onClick, padding = 'md' }: GlassCardProps) {
@@ -21,13 +21,13 @@ export function GlassCard({ children, className = '', onClick, padding = 'md' }:
     <div
       onClick={onClick}
       className={`
-        bg-white/70
-        backdrop-blur-xl
-        border border-white/40
-        rounded-3xl
-        shadow-[0px_8px_30px_rgba(0,0,0,0.04)]
+        bg-white
+        rounded-[20px]
+        shadow-[0_4px_20px_rgba(0,0,0,0.05)]
+        hover:shadow-[0_8px_30px_rgba(0,0,0,0.08)]
+        transition-all duration-300
         ${paddingMap[padding]}
-        ${onClick ? 'cursor-pointer active:scale-[0.98] transition-transform' : ''}
+        ${onClick ? 'cursor-pointer active:scale-[0.98]' : ''}
         ${className}
       `}
     >
