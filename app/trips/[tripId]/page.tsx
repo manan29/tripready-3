@@ -4,30 +4,12 @@ import { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { GlassCard } from '@/components/ui/GlassCard'
-import { ExpandableSection } from '@/components/ui/ExpandableSection'
-import {
-  ArrowLeft,
-  Calendar,
-  Users,
-  Cloud,
-  DollarSign,
-  CheckSquare,
-  Plane,
-  FileText,
-  Wallet,
-  MapPin,
-  Clock,
-  Baby,
-} from 'lucide-react'
-
-// Import section components
-import KidsSection from '@/components/trips/sections/KidsSection'
-import PackingSection from '@/components/trips/sections/PackingSection'
-import BookingsSection from '@/components/trips/sections/BookingsSection'
-import DocumentsSection from '@/components/trips/sections/DocumentsSection'
-import BudgetSection from '@/components/trips/sections/BudgetSection'
+import { ArrowLeft, Calendar, Users, Cloud, DollarSign, Baby } from 'lucide-react'
 import { WhatsAppShareButton } from '@/components/ui/WhatsAppShareButton'
 import { getCurrencyForCountry } from '@/lib/destinations'
+import { PlanTab } from '@/components/trips/tabs/PlanTab'
+import { KidsTab } from '@/components/trips/tabs/KidsTab'
+import { AdultTab } from '@/components/trips/tabs/AdultTab'
 
 export default function TripDetailPage() {
   const params = useParams()
@@ -39,6 +21,7 @@ export default function TripDetailPage() {
   const [weather, setWeather] = useState<any>(null)
   const [currency, setCurrency] = useState<any>(null)
   const [loading, setLoading] = useState(true)
+  const [activeTab, setActiveTab] = useState<'plan' | 'kids' | 'adult'>('plan')
 
   useEffect(() => {
     fetchTripData()
@@ -204,15 +187,13 @@ export default function TripDetailPage() {
               <>
                 <p className="text-orange-500 font-bold text-lg flex items-center justify-center gap-1">
                   <span>{weather.icon}</span>
-                  <span>{weather.tempMin}-{weather.tempMax}°C</span>
+                  <span>
+                    {weather.tempMin}-{weather.tempMax}°C
+                  </span>
                 </p>
-                <p className="text-gray-700 text-[11px] font-medium mt-1 leading-tight">
-                  {weather.insight}
-                </p>
+                <p className="text-gray-700 text-[11px] font-medium mt-1 leading-tight">{weather.insight}</p>
                 {weather.packingTip && (
-                  <p className="text-gray-500 text-[10px] mt-1.5 leading-tight">
-                    📦 {weather.packingTip}
-                  </p>
+                  <p className="text-gray-500 text-[10px] mt-1.5 leading-tight">📦 {weather.packingTip}</p>
                 )}
               </>
             ) : (
@@ -224,9 +205,7 @@ export default function TripDetailPage() {
                 <p className="text-gray-500 text-xs">
                   {weather?.description || 'Weather'}
                   {weather?.context && (
-                    <span className="block text-[10px] text-gray-400 mt-0.5">
-                      {weather.context}
-                    </span>
+                    <span className="block text-[10px] text-gray-400 mt-0.5">{weather.context}</span>
                   )}
                 </p>
               </>
@@ -235,17 +214,13 @@ export default function TripDetailPage() {
 
           {/* Currency */}
           <GlassCard className="text-center">
-            <p className="text-green-600 font-bold text-lg">
-              {currency ? `₹${currency.rate?.toFixed(2)}` : '—'}
-            </p>
-            <p className="text-gray-500 text-xs">
-              {currency ? `1 ${currency.from} = INR` : 'Currency'}
-            </p>
+            <p className="text-green-600 font-bold text-lg">{currency ? `₹${currency.rate?.toFixed(2)}` : '—'}</p>
+            <p className="text-gray-500 text-xs">{currency ? `1 ${currency.from} = INR` : 'Currency'}</p>
           </GlassCard>
         </div>
 
         {/* WhatsApp Share Button */}
-        <div className="px-5 mt-4">
+        <div className="mt-4">
           <WhatsAppShareButton
             trip={{
               destination: trip.destination,
@@ -253,7 +228,7 @@ export default function TripDetailPage() {
               startDate: trip.start_date,
               endDate: trip.end_date,
               numAdults: trip.num_adults || 2,
-              numKids: trip.num_kids || trip.kids || 0,
+              numKids: trip.num_kids || 0,
               kidAges: trip.kid_ages,
             }}
             className="w-full"
@@ -261,61 +236,48 @@ export default function TripDetailPage() {
         </div>
       </div>
 
-      {/* Content Sections */}
-      <div className="px-5 space-y-4">
-        {/* Kids Essentials - THE MAGIC MOMENT (Show first if kids present) */}
-        {trip.num_kids > 0 && (
-          <ExpandableSection
-            title="Kids Essentials"
-            icon={<Baby className="w-4 h-4" />}
-            iconColor="grape"
-            defaultExpanded={true}
-          >
-            <KidsSection
-              tripId={tripId}
-              numKids={trip.num_kids || 0}
-              kidAges={trip.kid_ages}
-            />
-          </ExpandableSection>
-        )}
-
-        {/* Packing List */}
-        <ExpandableSection
-          title="Packing List"
-          icon={<CheckSquare className="w-4 h-4" />}
-          iconColor="lavender"
-          defaultExpanded={!trip.num_kids}
+      {/* Tab Switcher */}
+      <div className="flex bg-gray-100 rounded-xl p-1 mx-4 mb-4">
+        <button
+          onClick={() => setActiveTab('plan')}
+          className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-colors ${
+            activeTab === 'plan' ? 'bg-white text-purple-600 shadow-sm' : 'text-gray-500'
+          }`}
         >
-          <PackingSection
+          Plan
+        </button>
+        {trip.num_kids > 0 && (
+          <button
+            onClick={() => setActiveTab('kids')}
+            className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-colors ${
+              activeTab === 'kids' ? 'bg-white text-purple-600 shadow-sm' : 'text-gray-500'
+            }`}
+          >
+            Kids
+          </button>
+        )}
+        <button
+          onClick={() => setActiveTab('adult')}
+          className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-colors ${
+            activeTab === 'adult' ? 'bg-white text-purple-600 shadow-sm' : 'text-gray-500'
+          }`}
+        >
+          Adult
+        </button>
+      </div>
+
+      {/* Tab Content */}
+      <div className="px-4">
+        {activeTab === 'plan' && <PlanTab trip={trip} />}
+        {activeTab === 'kids' && <KidsTab tripId={tripId} numKids={trip.num_kids || 0} kidAges={trip.kid_ages} />}
+        {activeTab === 'adult' && (
+          <AdultTab
             tripId={tripId}
             destination={trip.destination}
             numKids={trip.num_kids || 0}
             kidAges={trip.kid_ages}
           />
-        </ExpandableSection>
-
-        {/* Bookings */}
-        <ExpandableSection
-          title="Bookings"
-          icon={<Plane className="w-4 h-4" />}
-          iconColor="plum"
-        >
-          <BookingsSection tripId={tripId} />
-        </ExpandableSection>
-
-        {/* Documents */}
-        <ExpandableSection
-          title="Documents"
-          icon={<FileText className="w-4 h-4" />}
-          iconColor="grape"
-        >
-          <DocumentsSection tripId={tripId} />
-        </ExpandableSection>
-
-        {/* Budget */}
-        <ExpandableSection title="Budget" icon={<Wallet className="w-4 h-4" />} iconColor="lavender">
-          <BudgetSection tripId={tripId} currency={currency} />
-        </ExpandableSection>
+        )}
       </div>
     </div>
   )

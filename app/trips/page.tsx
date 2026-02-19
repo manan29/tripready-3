@@ -3,8 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import { GlassCard } from '@/components/ui/GlassCard'
-import { Plus, Calendar, Users, MapPin, ChevronRight } from 'lucide-react'
+import { Plus } from 'lucide-react'
 
 export default function TripsPage() {
   const router = useRouter()
@@ -46,23 +45,17 @@ export default function TripsPage() {
       maldives: '🐚',
       japan: '🗾',
       india: '🇮🇳',
+      'sri lanka': '🌺',
     }
     return emojiMap[destination?.toLowerCase()] || '✈️'
   }
 
-  const getTripStatus = (trip: any) => {
-    const today = new Date()
-    const start = new Date(trip.start_date)
-    const end = new Date(trip.end_date)
-
-    if (today < start) return 'upcoming'
-    if (today >= start && today <= end) return 'ongoing'
-    return 'past'
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-GB', {
+      day: 'numeric',
+      month: 'short',
+    })
   }
-
-  const ongoing = trips.filter((t) => getTripStatus(t) === 'ongoing')
-  const upcoming = trips.filter((t) => getTripStatus(t) === 'upcoming')
-  const past = trips.filter((t) => getTripStatus(t) === 'past')
 
   if (loading) {
     return (
@@ -73,141 +66,50 @@ export default function TripsPage() {
   }
 
   return (
-    <div className="min-h-screen pb-32 px-5 pt-6">
+    <div className="min-h-screen pb-32 px-4 pt-6">
       {/* Header */}
       <div className="mb-6">
         <h1 className="text-3xl font-bold text-gray-900 mb-1">My Trips</h1>
         <p className="text-gray-500">All your adventures in one place</p>
       </div>
 
-      {/* Ongoing Trips */}
-      {ongoing.length > 0 && (
-        <div className="mb-6">
-          <h2 className="text-lg font-semibold text-gray-800 mb-3 flex items-center gap-2">
-            <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-            Ongoing
-          </h2>
-          <div className="space-y-3">
-            {ongoing.map((trip) => (
-              <GlassCard
-                key={trip.id}
-                onClick={() => router.push(`/trips/${trip.id}`)}
-                className="cursor-pointer"
-              >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <span className="text-3xl">{getDestinationEmoji(trip.destination)}</span>
-                    <div>
-                      <h3 className="font-semibold text-gray-900">{trip.destination}</h3>
-                      <p className="text-xs text-gray-500">{trip.country}</p>
-                      <p className="text-xs text-green-600 font-medium mt-1">Currently traveling</p>
-                    </div>
-                  </div>
-                  <ChevronRight className="w-5 h-5 text-gray-400" />
-                </div>
-              </GlassCard>
-            ))}
+      {/* Grid of Trips */}
+      {trips.length > 0 ? (
+        <div className="grid grid-cols-2 gap-4">
+          {trips.map((trip) => (
+            <div
+              key={trip.id}
+              onClick={() => router.push(`/trips/${trip.id}`)}
+              className="bg-white rounded-2xl p-4 shadow-sm cursor-pointer hover:shadow-md transition-shadow"
+            >
+              <div className="text-4xl mb-2">{getDestinationEmoji(trip.destination)}</div>
+              <h3 className="font-bold text-lg line-clamp-1">{trip.destination}</h3>
+              <p className="text-gray-500 text-sm line-clamp-1">{trip.country}</p>
+              <p className="text-gray-400 text-xs mt-2">
+                {formatDate(trip.start_date)} - {formatDate(trip.end_date)}
+              </p>
+            </div>
+          ))}
+
+          {/* Add New Trip Card */}
+          <div
+            onClick={() => router.push('/')}
+            className="bg-gray-50 border-2 border-dashed border-gray-200 rounded-2xl p-4 flex flex-col items-center justify-center cursor-pointer hover:border-purple-300 transition-colors min-h-[140px]"
+          >
+            <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mb-2">
+              <Plus className="w-6 h-6 text-purple-600" />
+            </div>
+            <p className="text-gray-500 font-medium">New Trip</p>
           </div>
         </div>
-      )}
-
-      {/* Upcoming Trips */}
-      {upcoming.length > 0 && (
-        <div className="mb-6">
-          <h2 className="text-lg font-semibold text-gray-800 mb-3">Upcoming</h2>
-          <div className="space-y-3">
-            {upcoming.map((trip) => {
-              const daysToGo = Math.ceil(
-                (new Date(trip.start_date).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)
-              )
-
-              return (
-                <GlassCard
-                  key={trip.id}
-                  onClick={() => router.push(`/trips/${trip.id}`)}
-                  className="cursor-pointer"
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <span className="text-3xl">{getDestinationEmoji(trip.destination)}</span>
-                      <div>
-                        <h3 className="font-semibold text-gray-900">{trip.destination}</h3>
-                        <p className="text-xs text-gray-500 mb-1">{trip.country}</p>
-                        <div className="flex items-center gap-3 text-xs text-gray-500">
-                          <span className="flex items-center gap-1">
-                            <Calendar className="w-3 h-3" />
-                            {new Date(trip.start_date).toLocaleDateString('en-GB', {
-                              day: 'numeric',
-                              month: 'short',
-                            })}
-                          </span>
-                          {trip.travelers && (
-                            <span className="flex items-center gap-1">
-                              <Users className="w-3 h-3" />
-                              {trip.travelers}
-                            </span>
-                          )}
-                        </div>
-                        <p className="text-xs text-purple-600 font-medium mt-1">
-                          {daysToGo === 0
-                            ? 'Tomorrow!'
-                            : daysToGo === 1
-                              ? '1 day to go'
-                              : `${daysToGo} days to go`}
-                        </p>
-                      </div>
-                    </div>
-                    <ChevronRight className="w-5 h-5 text-gray-400" />
-                  </div>
-                </GlassCard>
-              )
-            })}
-          </div>
-        </div>
-      )}
-
-      {/* Past Trips */}
-      {past.length > 0 && (
-        <div className="mb-6">
-          <h2 className="text-lg font-semibold text-gray-800 mb-3">Past Trips</h2>
-          <div className="space-y-3">
-            {past.map((trip) => (
-              <GlassCard
-                key={trip.id}
-                onClick={() => router.push(`/trips/${trip.id}`)}
-                className="cursor-pointer opacity-80"
-              >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <span className="text-3xl grayscale">{getDestinationEmoji(trip.destination)}</span>
-                    <div>
-                      <h3 className="font-semibold text-gray-700">{trip.destination}</h3>
-                      <p className="text-xs text-gray-500">{trip.country}</p>
-                      <p className="text-xs text-gray-400 mt-1">
-                        {new Date(trip.start_date).toLocaleDateString('en-GB', {
-                          month: 'short',
-                          year: 'numeric',
-                        })}
-                      </p>
-                    </div>
-                  </div>
-                  <ChevronRight className="w-5 h-5 text-gray-400" />
-                </div>
-              </GlassCard>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Empty State */}
-      {trips.length === 0 && (
+      ) : (
         <div className="text-center py-12">
           <div className="text-6xl mb-4">✈️</div>
           <h3 className="text-xl font-semibold text-gray-800 mb-2">No trips yet</h3>
           <p className="text-gray-500 mb-6">Start planning your first adventure!</p>
           <button
             onClick={() => router.push('/')}
-            className="bg-purple-600 text-white px-6 py-3 rounded-2xl font-medium flex items-center gap-2 mx-auto"
+            className="bg-purple-600 text-white px-6 py-3 rounded-2xl font-medium flex items-center gap-2 mx-auto hover:bg-purple-700 transition-colors"
           >
             <Plus className="w-5 h-5" />
             Create Your First Trip
