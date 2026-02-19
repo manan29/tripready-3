@@ -151,8 +151,17 @@ export function CreateTripModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 backdrop-blur-sm">
-      <div className="relative w-full sm:max-w-lg max-h-[90vh] sm:max-h-[85vh] bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl flex flex-col overflow-hidden">
+    <div
+      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center"
+      style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}
+    >
+      <div
+        className="bg-white rounded-t-3xl sm:rounded-3xl w-full sm:max-w-md flex flex-col relative"
+        style={{
+          maxHeight: '85dvh',
+          height: '85dvh',
+        }}
+      >
         {/* Close button */}
         <button
           onClick={onClose}
@@ -163,18 +172,27 @@ export function CreateTripModal({
 
         {step === 'form' ? (
           <>
-            {/* Scrollable Content */}
-            <div className="flex-1 overflow-y-auto p-6 pb-4">
-            <div className="text-center mb-6">
-              <div className="inline-flex items-center justify-center w-16 h-16 bg-purple-100 rounded-full mb-4">
-                <Sparkles className="w-8 h-8 text-purple-600" />
+            {/* Header - never scrolls */}
+            <div className="shrink-0 p-6 pb-4">
+              <div className="text-center">
+                <div className="inline-flex items-center justify-center w-16 h-16 bg-purple-100 rounded-full mb-4">
+                  <Sparkles className="w-8 h-8 text-purple-600" />
+                </div>
+                <h2 className="text-2xl font-bold text-gray-900 mb-2">Plan Your Family Trip</h2>
+                <p className="text-gray-600">Tell us about your trip and we'll create a personalized packing list</p>
               </div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">Plan Your Family Trip</h2>
-              <p className="text-gray-600">Tell us about your trip and we'll create a personalized packing list</p>
             </div>
 
-            {/* Form */}
-            <div className="space-y-4">
+            {/* Scrollable content - works on iOS Safari + Android Chrome */}
+            <div
+              className="flex-1 p-6 pt-0"
+              style={{
+                overflowY: 'auto',
+                WebkitOverflowScrolling: 'touch',
+                overscrollBehavior: 'contain',
+              }}
+            >
+              <div className="space-y-4">
               {/* Destination */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Destination</label>
@@ -266,11 +284,11 @@ export function CreateTripModal({
                   )}
                 </div>
               )}
-            </div>
+              </div>
             </div>
 
-            {/* Sticky Button at Bottom */}
-            <div className="shrink-0 border-t bg-white p-4">
+            {/* Footer button - always pinned at bottom */}
+            <div className="shrink-0 p-4 border-t bg-white rounded-b-3xl">
               <button
                 onClick={handleGeneratePreview}
                 disabled={!destination || !startDate || !endDate || isLoading}
@@ -292,13 +310,24 @@ export function CreateTripModal({
           </>
         ) : (
           <>
-            {/* Scrollable Content */}
-            <div className="flex-1 overflow-y-auto p-6 pb-4">
-            <div className="text-center mb-6">
-              <div className="text-4xl mb-3">🎉</div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">Your Trip Preview</h2>
-              <p className="text-gray-600">{destination} is ready!</p>
+            {/* Header - never scrolls */}
+            <div className="shrink-0 p-6 pb-4">
+              <div className="text-center">
+                <div className="text-4xl mb-3">🎉</div>
+                <h2 className="text-2xl font-bold text-gray-900 mb-2">Your Trip Preview</h2>
+                <p className="text-gray-600">{destination} is ready!</p>
+              </div>
             </div>
+
+            {/* Scrollable content - works on iOS Safari + Android Chrome */}
+            <div
+              className="flex-1 p-6 pt-0"
+              style={{
+                overflowY: 'auto',
+                WebkitOverflowScrolling: 'touch',
+                overscrollBehavior: 'contain',
+              }}
+            >
 
             {/* Weather */}
             {weather && (
@@ -385,8 +414,8 @@ export function CreateTripModal({
             )}
             </div>
 
-            {/* Sticky Actions at Bottom */}
-            <div className="shrink-0 border-t bg-white p-4">
+            {/* Footer button - always pinned at bottom */}
+            <div className="shrink-0 p-4 border-t bg-white rounded-b-3xl">
               <div className="flex gap-3">
                 <button
                   onClick={() => setStep('form')}
