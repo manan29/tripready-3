@@ -23,6 +23,10 @@ export default function TripDetailPage() {
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState<'plan' | 'kids' | 'adult'>('plan')
 
+  // Lift packing list state to parent to persist across tab switches
+  const [kidsPackingList, setKidsPackingList] = useState<any[]>([])
+  const [adultPackingList, setAdultPackingList] = useState<any[]>([])
+
   useEffect(() => {
     fetchTripData()
   }, [tripId])
@@ -269,8 +273,21 @@ export default function TripDetailPage() {
       {/* Tab Content */}
       <div className="px-4">
         {activeTab === 'plan' && <PlanTab trip={trip} />}
-        {activeTab === 'kids' && <KidsTab trip={trip} />}
-        {activeTab === 'adult' && <AdultTab tripId={tripId} trip={trip} />}
+        {activeTab === 'kids' && (
+          <KidsTab
+            trip={trip}
+            packingList={kidsPackingList}
+            setPackingList={setKidsPackingList}
+          />
+        )}
+        {activeTab === 'adult' && (
+          <AdultTab
+            tripId={tripId}
+            trip={trip}
+            packingList={adultPackingList}
+            setPackingList={setAdultPackingList}
+          />
+        )}
       </div>
     </div>
   )

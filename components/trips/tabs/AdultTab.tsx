@@ -21,11 +21,12 @@ interface PackingCategory {
 interface AdultTabProps {
   tripId: string
   trip: any
+  packingList: PackingCategory[]
+  setPackingList: (list: PackingCategory[]) => void
 }
 
-export function AdultTab({ tripId, trip }: AdultTabProps) {
+export function AdultTab({ tripId, trip, packingList, setPackingList }: AdultTabProps) {
   const supabase = createClient()
-  const [packingList, setPackingList] = useState<PackingCategory[]>([])
   const [loading, setLoading] = useState(false)
   const [showAddModal, setShowAddModal] = useState(false)
   const [newItemName, setNewItemName] = useState('')

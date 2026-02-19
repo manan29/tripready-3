@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Plus, Check, X, RefreshCw, Sparkles } from 'lucide-react';
 
 interface PackingItem {
@@ -19,22 +19,18 @@ interface PackingCategory {
 
 interface KidsTabProps {
   trip: any;
+  packingList: PackingCategory[];
+  setPackingList: (list: PackingCategory[]) => void;
 }
 
-export function KidsTab({ trip }: KidsTabProps) {
-  const [packingList, setPackingList] = useState<PackingCategory[]>([]);
-  const [loading, setLoading] = useState(true); // Start with loading true
+export function KidsTab({ trip, packingList, setPackingList }: KidsTabProps) {
+  const [loading, setLoading] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
   const [newItemName, setNewItemName] = useState('');
   const [newItemCategory, setNewItemCategory] = useState('Essentials');
   const [newItemQuantity, setNewItemQuantity] = useState(1);
 
   const categories = ['Medicines', 'Clothes', 'Entertainment', 'Essentials', 'Baby Gear', 'Food & Snacks'];
-
-  // Set initial loading to false - only generate when user clicks button
-  useEffect(() => {
-    setLoading(false);
-  }, []);
 
   const generatePackingList = async () => {
     setLoading(true);
