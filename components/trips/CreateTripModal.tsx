@@ -152,7 +152,7 @@ export function CreateTripModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 backdrop-blur-sm">
-      <div className="relative w-full sm:max-w-lg h-[90vh] sm:h-auto sm:max-h-[85vh] bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl flex flex-col overflow-hidden">
+      <div className="relative w-full sm:max-w-lg max-h-[90vh] sm:max-h-[85vh] bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl flex flex-col overflow-hidden">
         {/* Close button */}
         <button
           onClick={onClose}
@@ -207,33 +207,6 @@ export function CreateTripModal({
                     className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-purple-300"
                   />
                 </div>
-              </div>
-
-              {/* Adults */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
-                  <Users className="w-4 h-4" />
-                  Number of Adults
-                </label>
-                <input
-                  type="text"
-                  inputMode="numeric"
-                  pattern="[0-9]*"
-                  value={numAdults === 0 ? '' : numAdults}
-                  onChange={(e) => {
-                    const val = e.target.value;
-                    if (val === '') {
-                      setNumAdults(1);
-                    } else {
-                      const num = parseInt(val);
-                      if (!isNaN(num) && num >= 1 && num <= 10) {
-                        setNumAdults(num);
-                      }
-                    }
-                  }}
-                  placeholder="1"
-                  className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-purple-300"
-                />
               </div>
 
               {/* Kids */}
@@ -297,7 +270,7 @@ export function CreateTripModal({
             </div>
 
             {/* Sticky Button at Bottom */}
-            <div className="border-t bg-white p-4">
+            <div className="shrink-0 border-t bg-white p-4">
               <button
                 onClick={handleGeneratePreview}
                 disabled={!destination || !startDate || !endDate || isLoading}
@@ -413,7 +386,7 @@ export function CreateTripModal({
             </div>
 
             {/* Sticky Actions at Bottom */}
-            <div className="border-t bg-white p-4">
+            <div className="shrink-0 border-t bg-white p-4">
               <div className="flex gap-3">
                 <button
                   onClick={() => setStep('form')}
