@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { GlassCard } from '@/components/ui/GlassCard'
 import { LANGUAGES, DEFAULT_LANGUAGE } from '@/lib/language'
+import { calculateTotalAirMiles, formatAirMiles } from '@/lib/air-miles'
+import { ProfileStatsCard } from '@/components/stats/ProfileStatsCard'
 import {
   User,
   Mail,
@@ -17,16 +19,21 @@ import {
   ChevronRight,
   Loader2,
   Globe,
+  Camera,
 } from 'lucide-react'
 
 export default function ProfilePage() {
   const router = useRouter()
   const supabase = createClient()
   const [user, setUser] = useState<any>(null)
+  const [trips, setTrips] = useState<any[]>([])
   const [stats, setStats] = useState({ totalTrips: 0, countries: 0, upcomingTrips: 0 })
   const [loading, setLoading] = useState(true)
   const [signingOut, setSigningOut] = useState(false)
   const [language, setLanguage] = useState(DEFAULT_LANGUAGE)
+  const [showStatsCard, setShowStatsCard] = useState(false)
+  const [statsType, setStatsType] = useState<'overall' | 'year'>('overall')
+  const [statsYear, setStatsYear] = useState(new Date().getFullYear())
 
   useEffect(() => {
     fetchUserData()
@@ -50,14 +57,15 @@ export default function ProfilePage() {
     setUser(authUser)
 
     // Fetch user stats
-    const { data: trips } = await supabase.from('trips').select('*').eq('user_id', authUser.id)
+    const { data: tripsData } = await supabase.from('trips').select('*').eq('user_id', authUser.id)
 
-    if (trips) {
-      const countries = new Set(trips.map((t) => t.country)).size
-      const upcoming = trips.filter((t) => new Date(t.start_date) > new Date()).length
+    if (tripsData) {
+      setTrips(tripsData)
+      const countries = new Set(tripsData.map((t) => t.country)).size
+      const upcoming = tripsData.filter((t) => new Date(t.start_date) > new Date()).length
 
       setStats({
-        totalTrips: trips.length,
+        totalTrips: tripsData.length,
         countries,
         upcomingTrips: upcoming,
       })
@@ -151,6 +159,52 @@ export default function ProfilePage() {
             </GlassCard>
           </div>
         </div>
+
+        {/* Shareable Stats Cards */}
+        {trips.length > 0 && (
+          <div className="px-4 sm:px-6 lg:px-8 mb-6">
+            <h3 className="text-sm md:text-base font-semibold text-gray-500 uppercase tracking-wide mb-3 max-w-2xl mx-auto flex items-center gap-2">
+              <Camera className="w-4 h-4 md:w-5 md:h-5" />
+              Share Your Journey
+            </h3>
+            <GlassCard className="max-w-2xl mx-auto">
+              <p className="text-sm md:text-base text-gray-600 mb-4">
+                Create beautiful shareable cards of your travel stats
+              </p>
+              <div className="grid grid-cols-2 gap-3">
+                <button
+                  onClick={() => {
+                    setStatsType('year')
+                    setStatsYear(new Date().getFullYear())
+                    setShowStatsCard(true)
+                  }}
+                  className="py-4 bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-500 text-white rounded-xl font-medium flex flex-col items-center justify-center gap-1 hover:from-indigo-700 hover:via-purple-700 hover:to-pink-600 transition-all shadow-md"
+                >
+                  <span className="text-xl md:text-2xl">🎊</span>
+                  <span className="text-sm md:text-base">{new Date().getFullYear()} Wrapped</span>
+                </button>
+                <button
+                  onClick={() => {
+                    setStatsType('overall')
+                    setShowStatsCard(true)
+                  }}
+                  className="py-4 bg-gradient-to-r from-purple-600 to-pink-500 text-white rounded-xl font-medium flex flex-col items-center justify-center gap-1 hover:from-purple-700 hover:to-pink-600 transition-all shadow-md"
+                >
+                  <span className="text-xl md:text-2xl">🌍</span>
+                  <span className="text-sm md:text-base">All Time Stats</span>
+                </button>
+              </div>
+              <div className="mt-4 pt-4 border-t border-gray-100">
+                <div className="flex items-center justify-between text-xs md:text-sm">
+                  <span className="text-gray-500">Total Air Miles:</span>
+                  <span className="font-bold text-purple-600 text-base md:text-lg">
+                    {formatAirMiles(calculateTotalAirMiles(trips))}
+                  </span>
+                </div>
+              </div>
+            </GlassCard>
+          </div>
+        )}
 
         {/* Account Details */}
         <div className="px-4 sm:px-6 lg:px-8 mb-6">
@@ -252,6 +306,17 @@ export default function ProfilePage() {
           <p className="text-xs md:text-sm text-gray-400">JourneyAI v1.0.0</p>
           <p className="text-xs md:text-sm text-gray-400 mt-1">Made with ❤️ for travelers</p>
         </div>
+
+        {/* Stats Card Modal */}
+        {showStatsCard && (
+          <ProfileStatsCard
+            trips={trips}
+            user={user}
+            type={statsType}
+            year={statsYear}
+            onClose={() => setShowStatsCard(false)}
+          />
+        )}
       </div>
     </div>
   )

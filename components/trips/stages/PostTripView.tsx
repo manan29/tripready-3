@@ -5,6 +5,7 @@ import { GlassCard } from '@/components/ui/GlassCard'
 import { Star, Share2, Download, Camera, TrendingUp, MapPin } from 'lucide-react'
 import { getTripDayInfo } from '@/lib/trip-stages'
 import { TOP_DESTINATIONS } from '@/lib/destinations'
+import { TripStatsCard } from '@/components/stats/TripStatsCard'
 
 interface PostTripViewProps {
   trip: any
@@ -16,6 +17,7 @@ export function PostTripView({ trip, stageData, onUpdateStageData }: PostTripVie
   const dayInfo = getTripDayInfo(trip.start_date, trip.end_date)
   const daysAgo = dayInfo.stage === 'post-trip' ? dayInfo.daysAgo : 0
   const [rating, setRating] = useState(stageData?.post_trip?.rating || 0)
+  const [showStatsCard, setShowStatsCard] = useState(false)
 
   const totalSpent = stageData?.post_trip?.total_spent || 0
   const expenses = stageData?.during_trip?.expenses || []
@@ -203,16 +205,22 @@ export function PostTripView({ trip, stageData, onUpdateStageData }: PostTripVie
       </GlassCard>
 
       {/* Share */}
-      <div className="grid grid-cols-2 gap-3">
-        <button className="py-4 bg-green-500 text-white rounded-xl font-medium flex items-center justify-center gap-2 hover:bg-green-600 transition-colors">
-          <Share2 className="w-5 h-5" />
-          Share Trip
-        </button>
-        <button className="py-4 bg-white border-2 border-purple-200 text-purple-600 rounded-xl font-medium flex items-center justify-center gap-2 hover:bg-purple-50 transition-colors">
-          <Download className="w-5 h-5" />
-          Create PDF
-        </button>
-      </div>
+      <GlassCard>
+        <h3 className="font-bold text-gray-800 mb-3">Share Your Journey</h3>
+        <div className="grid grid-cols-2 gap-3">
+          <button
+            onClick={() => setShowStatsCard(true)}
+            className="py-4 bg-gradient-to-r from-purple-600 to-pink-500 text-white rounded-xl font-medium flex items-center justify-center gap-2 hover:from-purple-700 hover:to-pink-600 transition-all shadow-md"
+          >
+            <Camera className="w-5 h-5" />
+            Stats Card
+          </button>
+          <button className="py-4 bg-white border-2 border-purple-200 text-purple-600 rounded-xl font-medium flex items-center justify-center gap-2 hover:bg-purple-50 transition-colors">
+            <Download className="w-5 h-5" />
+            Create PDF
+          </button>
+        </div>
+      </GlassCard>
 
       {/* Suggested Next Destinations */}
       <GlassCard>
@@ -233,6 +241,11 @@ export function PostTripView({ trip, stageData, onUpdateStageData }: PostTripVie
           ))}
         </div>
       </GlassCard>
+
+      {/* Stats Card Modal */}
+      {showStatsCard && (
+        <TripStatsCard trip={trip} stageData={stageData} onClose={() => setShowStatsCard(false)} />
+      )}
     </div>
   )
 }
