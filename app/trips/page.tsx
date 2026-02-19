@@ -3,17 +3,26 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import { Plus } from 'lucide-react'
+import { Plus, MoreVertical, Trash2 } from 'lucide-react'
 
 export default function TripsPage() {
   const router = useRouter()
   const supabase = createClient()
   const [trips, setTrips] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
+  const [showMenu, setShowMenu] = useState<string | null>(null)
 
   useEffect(() => {
     fetchTrips()
   }, [])
+
+  useEffect(() => {
+    const handleClickOutside = () => setShowMenu(null)
+    if (showMenu) {
+      document.addEventListener('click', handleClickOutside)
+      return () => document.removeEventListener('click', handleClickOutside)
+    }
+  }, [showMenu])
 
   const fetchTrips = async () => {
     const {
@@ -57,6 +66,23 @@ export default function TripsPage() {
     })
   }
 
+  const handleDeleteTrip = async (tripId: string) => {
+    const confirmed = window.confirm('Delete this trip? This cannot be undone.')
+    if (!confirmed) return
+
+    try {
+      const { error } = await supabase.from('trips').delete().eq('id', tripId)
+
+      if (error) throw error
+
+      // Remove from local state
+      setTrips(trips.filter((t) => t.id !== tripId))
+    } catch (error) {
+      console.error('Failed to delete trip:', error)
+      alert('Failed to delete trip. Please try again.')
+    }
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -78,17 +104,49 @@ export default function TripsPage() {
         {trips.length > 0 ? (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-5">
             {trips.map((trip) => (
-              <div
-                key={trip.id}
-                onClick={() => router.push(`/trips/${trip.id}`)}
-                className="bg-white rounded-2xl p-4 md:p-5 shadow-sm cursor-pointer hover:shadow-md transition-shadow"
-              >
-                <div className="text-4xl md:text-5xl mb-2">{getDestinationEmoji(trip.destination)}</div>
-                <h3 className="font-bold text-base md:text-lg line-clamp-1">{trip.destination}</h3>
-                <p className="text-gray-500 text-sm md:text-base line-clamp-1">{trip.country}</p>
-                <p className="text-gray-400 text-xs md:text-sm mt-2">
-                  {formatDate(trip.start_date)} - {formatDate(trip.end_date)}
-                </p>
+              <div key={trip.id} className="relative">
+                <div
+                  onClick={() => router.push(`/trips/${trip.id}`)}
+                  className="bg-white rounded-2xl p-4 md:p-5 shadow-sm cursor-pointer hover:shadow-md transition-shadow"
+                >
+                  <div className="text-4xl md:text-5xl mb-2">{getDestinationEmoji(trip.destination)}</div>
+                  <h3 className="font-bold text-base md:text-lg line-clamp-1">{trip.destination}</h3>
+                  <p className="text-gray-500 text-sm md:text-base line-clamp-1">{trip.country}</p>
+                  <p className="text-gray-400 text-xs md:text-sm mt-2">
+                    {formatDate(trip.start_date)} - {formatDate(trip.end_date)}
+                  </p>
+
+                  {/* 3-dot menu button */}
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      setShowMenu(showMenu === trip.id ? null : trip.id)
+                    }}
+                    className="absolute top-2 right-2 p-1.5 rounded-full hover:bg-gray-100 bg-white/80 shadow-sm z-10 transition-colors"
+                  >
+                    <MoreVertical className="w-4 h-4 text-gray-500" />
+                  </button>
+                </div>
+
+                {/* Dropdown menu */}
+                {showMenu === trip.id && (
+                  <div
+                    className="absolute top-10 right-2 bg-white shadow-lg rounded-xl py-1 z-20 border border-gray-100"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        handleDeleteTrip(trip.id)
+                        setShowMenu(null)
+                      }}
+                      className="px-4 py-2 text-red-600 hover:bg-red-50 w-full text-left text-sm flex items-center gap-2 whitespace-nowrap"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                      Delete Trip
+                    </button>
+                  </div>
+                )}
               </div>
             ))}
 
