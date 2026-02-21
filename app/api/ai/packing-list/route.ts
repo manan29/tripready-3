@@ -1,53 +1,117 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
-export const runtime = 'nodejs';
-export const dynamic = 'force-dynamic';
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
 
 export async function POST(request: NextRequest) {
   try {
-    const apiKey = process.env.GOOGLE_AI_API_KEY;
+    const body = await request.json();
+    const { destination, startDate, endDate, numKids, kidAges, numAdults } = body;
 
-    if (!apiKey) {
-      return NextResponse.json({ error: 'API key not configured' }, { status: 500 });
+    if (!destination || !startDate || !endDate) {
+      return NextResponse.json(
+        { error: 'Missing required fields' },
+        { status: 400 }
+      );
     }
 
-    const genAI = new GoogleGenerativeAI(apiKey);
-    const { destination, duration, numKids, kidAges, weather } = await request.json();
+    // Calculate trip duration
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    const days = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1;
 
-    console.log('Generating packing list:', { destination, duration, numKids, kidAges });
+    // Get month for seasonal items
+    const month = start.toLocaleString('en-US', { month: 'long' });
 
-    const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
+    const model = genAI.getGenerativeModel({ model: 'gemini-pro' });
 
-    const prompt = `Generate packing list for Indian family going to ${destination}.
-Duration: ${duration} days, Kids: ${numKids}, Ages: ${kidAges?.join(', ') || 'none'}, Weather: ${weather || 'check forecast'}
+    // Generate Kids Packing List
+    const kidsPrompt = `Generate a comprehensive packing list for ${numKids} kid(s) aged ${kidAges.join(', ')} years old traveling to ${destination} for ${days} days in ${month}.
 
-Return ONLY valid JSON:
-{
-  "kids_items": [
-    { "category": "Medicines", "items": ["Calpol", "Electral", "Band-aids"] },
-    { "category": "Clothes", "items": ["Cotton t-shirts", "Sun hat"] },
-    { "category": "Entertainment", "items": ["Coloring books", "Tablet"] },
-    { "category": "Essentials", "items": ["Sippy cup", "Snacks"] }
-  ],
-  "general_items": [
-    { "category": "Clothes", "items": ["T-shirts", "Shorts"] },
-    { "category": "Toiletries", "items": ["Sunscreen", "Toothbrush"] },
-    { "category": "Electronics", "items": ["Charger", "Power bank"] },
-    { "category": "Documents", "items": ["Passport", "Visa"] }
-  ]
-}`;
+Include:
+- Age-appropriate clothing
+- Essential items for kids (diapers, formula, etc. if applicable)
+- Entertainment (books, toys, tablets)
+- Safety items
+- Comfort items
 
-    const result = await model.generateContent(prompt);
-    const responseText = result.response.text();
+Return ONLY a JSON array of strings, each string being one packing item. No explanations or markdown.
+Example format: ["Item 1", "Item 2", "Item 3"]
 
-    let cleaned = responseText.trim().replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
-    const packingList = JSON.parse(cleaned);
+Keep it practical and concise (max 20 items).`;
 
-    return NextResponse.json(packingList);
+    const adultsPrompt = `Generate a comprehensive packing list for ${numAdults} adults traveling to ${destination} for ${days} days in ${month}.
 
+Include:
+- Clothing appropriate for the destination and weather
+- Toiletries and personal care
+- Travel documents and essentials
+- Electronics and chargers
+- Medications and first aid
+
+Return ONLY a JSON array of strings, each string being one packing item. No explanations or markdown.
+Example format: ["Item 1", "Item 2", "Item 3"]
+
+Keep it practical and concise (max 20 items).`;
+
+    // Generate both lists
+    const [kidsResult, adultsResult] = await Promise.all([
+      numKids > 0 ? model.generateContent(kidsPrompt) : Promise.resolve(null),
+      model.generateContent(adultsPrompt),
+    ]);
+
+    let kidsItems: string[] = [];
+    let adultsItems: string[] = [];
+
+    // Parse Kids response
+    if (kidsResult) {
+      const kidsText = kidsResult.response.text();
+      try {
+        // Extract JSON from potential markdown code blocks
+        const jsonMatch = kidsText.match(/\[[\s\S]*\]/);
+        if (jsonMatch) {
+          kidsItems = JSON.parse(jsonMatch[0]);
+        } else {
+          kidsItems = JSON.parse(kidsText);
+        }
+      } catch (e) {
+        console.error('Failed to parse kids items:', e);
+        // Fallback: split by newlines
+        kidsItems = kidsText
+          .split('\n')
+          .map(line => line.replace(/^[-*]\s*/, '').trim())
+          .filter(line => line && !line.startsWith('[') && !line.startsWith(']'));
+      }
+    }
+
+    // Parse Adults response
+    const adultsText = adultsResult.response.text();
+    try {
+      // Extract JSON from potential markdown code blocks
+      const jsonMatch = adultsText.match(/\[[\s\S]*\]/);
+      if (jsonMatch) {
+        adultsItems = JSON.parse(jsonMatch[0]);
+      } else {
+        adultsItems = JSON.parse(adultsText);
+      }
+    } catch (e) {
+      console.error('Failed to parse adults items:', e);
+      // Fallback: split by newlines
+      adultsItems = adultsText
+        .split('\n')
+        .map(line => line.replace(/^[-*]\s*/, '').trim())
+        .filter(line => line && !line.startsWith('[') && !line.startsWith(']'));
+    }
+
+    return NextResponse.json({
+      kids: kidsItems,
+      adults: adultsItems,
+    });
   } catch (error) {
-    console.error('Packing list error:', error);
-    return NextResponse.json({ error: error instanceof Error ? error.message : 'Unknown error' }, { status: 500 });
+    console.error('Error generating packing list:', error);
+    return NextResponse.json(
+      { error: 'Failed to generate packing list' },
+      { status: 500 }
+    );
   }
 }
