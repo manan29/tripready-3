@@ -23,7 +23,7 @@ export async function POST(request: NextRequest) {
     // Get month for seasonal items
     const month = start.toLocaleString('en-US', { month: 'long' });
 
-    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+    const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
 
     // Generate Kids Packing List
     const kidsPrompt = `Generate a comprehensive packing list for ${numKids} kid(s) aged ${kidAges.join(', ')} years old traveling to ${destination} for ${days} days in ${month}.
