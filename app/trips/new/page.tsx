@@ -1,475 +1,698 @@
-'use client'
+'use client';
 
-import { Suspense, useEffect, useState } from 'react'
-import { useSearchParams, useRouter } from 'next/navigation'
-import { MapPin, Calendar, Users, Sun, DollarSign, ArrowLeft, Loader2, Plus, Minus } from 'lucide-react'
-import Navbar from '@/components/Navbar'
-import SignupModal from '@/components/SignupModal'
-import { createClient } from '@/lib/supabase/client'
+import { useState, useEffect, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { ArrowLeft, Sparkles, Calendar, Users, Baby, Check, Loader2, MapPin } from 'lucide-react';
+import { getDestinationImage } from '@/lib/destination-images';
+import { createClient } from '@/lib/supabase/client';
 
-interface WeatherData {
-  temp: number
-  description: string
-  icon: string
+interface TripData {
+  destination: string;
+  country: string;
+  start_date: string;
+  end_date: string;
+  num_adults: number;
+  num_kids: number;
+  kid_ages: number[];
 }
 
-interface CurrencyData {
-  from: string
-  to: string
-  rate: number
+interface PackingItem {
+  id: string;
+  text: string;
+  checked: boolean;
+  category: 'kids' | 'adults';
 }
 
-function TripNewContent() {
-  const searchParams = useSearchParams()
-  const router = useRouter()
-  const supabase = createClient()
+function TripCreationContent() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const query = searchParams.get('query') || '';
 
-  // Parse URL params
-  const urlDestination = searchParams.get('destination') || 'Unknown'
-  const urlCountry = searchParams.get('country') || ''
-  const duration = parseInt(searchParams.get('duration') || '5')
-  const tripType = searchParams.get('tripType') || 'adventure'
+  const [step, setStep] = useState<'parsing' | 'manual-input' | 'kids-age' | 'preview' | 'packing' | 'login' | 'saving'>('parsing');
+  const [tripData, setTripData] = useState<TripData | null>(null);
+  const [kidAges, setKidAges] = useState<number[]>([]);
+  const [numKids, setNumKids] = useState(1);
+  const [packingList, setPackingList] = useState<PackingItem[]>([]);
+  const [user, setUser] = useState<any>(null);
+  const [error, setError] = useState<string | null>(null);
 
-  // Editable state
-  const [destination, setDestination] = useState(urlDestination)
-  const [country, setCountry] = useState(urlCountry)
-  const [numAdults, setNumAdults] = useState(parseInt(searchParams.get('numAdults') || '2'))
-  const [numKids, setNumKids] = useState(parseInt(searchParams.get('numKids') || '0'))
-  const [startDate, setStartDate] = useState('')
+  // Manual input state
+  const [manualDestination, setManualDestination] = useState('');
+  const [manualStartDate, setManualStartDate] = useState('');
+  const [manualEndDate, setManualEndDate] = useState('');
+  const [manualAdults, setManualAdults] = useState(2);
+  const [manualKids, setManualKids] = useState(0);
 
-  // Calculate end date based on start date + duration
-  const calculateEndDate = (start: string, days: number) => {
-    if (!start) return ''
-    const date = new Date(start)
-    date.setDate(date.getDate() + days)
-    return date.toISOString().split('T')[0]
-  }
-
-  const endDate = calculateEndDate(startDate, duration)
-
-  const [weather, setWeather] = useState<WeatherData | null>(null)
-  const [currency, setCurrency] = useState<CurrencyData | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
-  const [isSaving, setIsSaving] = useState(false)
-  const [showSignupModal, setShowSignupModal] = useState(false)
+  const supabase = createClient();
 
   useEffect(() => {
-    async function fetchData() {
-      try {
-        // Only fetch if we have a valid destination (not Unknown and at least 2 characters)
-        if (destination && destination !== 'Unknown' && destination.length > 2) {
-          // Fetch weather
-          console.log('Fetching weather for:', destination)
-          const weatherRes = await fetch(`/api/weather?city=${encodeURIComponent(destination)}`)
-          if (weatherRes.ok) {
-            const weatherData = await weatherRes.json()
-            console.log('Weather data received:', weatherData)
-            setWeather(weatherData)
-          } else {
-            const errorText = await weatherRes.text()
-            console.error('Weather API failed:', errorText)
-          }
+    checkUserAndParse();
+  }, []);
 
-          // Fetch currency (assuming USD to INR for now)
-          const currencyRes = await fetch('/api/currency?from=USD&to=INR')
-          if (currencyRes.ok) {
-            const currencyData = await currencyRes.json()
-            console.log('Currency data received:', currencyData)
-            setCurrency(currencyData)
-          } else {
-            const errorText = await currencyRes.text()
-            console.error('Currency API failed:', errorText)
-          }
-        } else {
-          console.log('Skipping weather/currency fetch - invalid destination:', destination)
-        }
-      } catch (error) {
-        console.error('Error fetching data:', error)
-      } finally {
-        setIsLoading(false)
+  const checkUserAndParse = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    setUser(user);
+
+    if (query) {
+      await parseQuery();
+    } else {
+      // No query, show manual input
+      setStep('manual-input');
+    }
+  };
+
+  const parseQuery = async () => {
+    setStep('parsing');
+    try {
+      const response = await fetch('/api/ai/parse-trip', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query }),
+      });
+
+      const data = await response.json();
+
+      if (data.error) {
+        // If parsing fails, go to manual input with query as destination
+        setManualDestination(query);
+        setStep('manual-input');
+        return;
       }
+
+      setTripData(data);
+
+      // If kids mentioned but no ages, ask for ages
+      if (data.num_kids > 0 && (!data.kid_ages || data.kid_ages.length === 0)) {
+        setNumKids(data.num_kids);
+        setKidAges(Array(data.num_kids).fill(3));
+        setStep('kids-age');
+      } else {
+        setStep('preview');
+      }
+    } catch (err) {
+      // On error, go to manual input
+      setManualDestination(query);
+      setStep('manual-input');
+    }
+  };
+
+  const handleManualSubmit = () => {
+    if (!manualDestination || !manualStartDate || !manualEndDate) {
+      setError('Please fill all required fields');
+      return;
     }
 
-    fetchData()
-  }, [destination])
+    const data: TripData = {
+      destination: manualDestination,
+      country: '',
+      start_date: manualStartDate,
+      end_date: manualEndDate,
+      num_adults: manualAdults,
+      num_kids: manualKids,
+      kid_ages: [],
+    };
 
-  const handleSaveTrip = async () => {
-    // Check if user is logged in
-    const {
-      data: { session },
-    } = await supabase.auth.getSession()
+    setTripData(data);
 
-    if (!session?.user) {
-      console.log('No user session found')
-      setShowSignupModal(true)
-      return
+    if (manualKids > 0) {
+      setNumKids(manualKids);
+      setKidAges(Array(manualKids).fill(3));
+      setStep('kids-age');
+    } else {
+      setStep('preview');
     }
+  };
 
-    // Validate required fields
-    if (!startDate) {
-      alert('Please select a start date')
-      return
+  const handleKidAgesSubmit = () => {
+    if (tripData) {
+      setTripData({ ...tripData, kid_ages: kidAges, num_kids: numKids });
     }
+    setStep('preview');
+  };
 
-    if (!destination || destination === 'Unknown' || destination.length < 2) {
-      alert('Please enter a valid destination (minimum 2 characters)')
-      return
+  const handlePreviewConfirm = async () => {
+    setStep('packing');
+    await generatePackingList();
+  };
+
+  const generatePackingList = async () => {
+    try {
+      const response = await fetch('/api/ai/packing-list', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          destination: tripData?.destination,
+          startDate: tripData?.start_date,
+          endDate: tripData?.end_date,
+          numKids: tripData?.num_kids || 0,
+          kidAges: tripData?.kid_ages || [],
+          numAdults: tripData?.num_adults || 2,
+        }),
+      });
+
+      const data = await response.json();
+
+      // Convert API response to PackingItem format
+      const kidsItems: PackingItem[] = (data.kids || []).map((text: string, index: number) => ({
+        id: `kid-${index}`,
+        text,
+        checked: false,
+        category: 'kids' as const,
+      }));
+
+      const adultsItems: PackingItem[] = (data.adults || []).map((text: string, index: number) => ({
+        id: `adult-${index}`,
+        text,
+        checked: false,
+        category: 'adults' as const,
+      }));
+
+      setPackingList([...kidsItems, ...adultsItems]);
+    } catch (err) {
+      console.error('Failed to generate packing list:', err);
+      // Set fallback list
+      setPackingList(getFallbackPackingList(tripData?.num_kids || 0));
     }
+  };
 
-    setIsSaving(true)
+  const getFallbackPackingList = (numKids: number): PackingItem[] => {
+    const kidItems = numKids > 0 ? [
+      { id: 'k1', text: 'Kids sunscreen SPF 50', checked: false, category: 'kids' as const },
+      { id: 'k2', text: 'Light cotton clothes', checked: false, category: 'kids' as const },
+      { id: 'k3', text: 'Favorite toys', checked: false, category: 'kids' as const },
+      { id: 'k4', text: 'Snacks from India', checked: false, category: 'kids' as const },
+      { id: 'k5', text: 'Kids medicines (Crocin, ORS)', checked: false, category: 'kids' as const },
+    ] : [];
+
+    return [
+      ...kidItems,
+      { id: 'a1', text: 'Passport & Visa copies', checked: false, category: 'adults' as const },
+      { id: 'a2', text: 'Phone charger & power bank', checked: false, category: 'adults' as const },
+      { id: 'a3', text: 'Universal adapter', checked: false, category: 'adults' as const },
+      { id: 'a4', text: 'Toiletries', checked: false, category: 'adults' as const },
+      { id: 'a5', text: 'Medications', checked: false, category: 'adults' as const },
+    ];
+  };
+
+  const handlePackingContinue = () => {
+    if (user) {
+      saveTrip();
+    } else {
+      setStep('login');
+    }
+  };
+
+  const handleLogin = () => {
+    localStorage.setItem('pendingTrip', JSON.stringify({ tripData, packingList }));
+    router.push('/login?redirect=/trips/new/save');
+  };
+
+  const saveTrip = async () => {
+    setStep('saving');
+
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      setStep('login');
+      return;
+    }
 
     try {
-      console.log('Saving trip with data:', {
-        user_id: session.user.id,
-        destination,
-        country,
-        start_date: startDate,
-        end_date: endDate,
-        adults: numAdults,
-        kids: numKids,
-      })
+      // Convert PackingItem[] to the format expected by database
+      const kidsPackingItems = packingList
+        .filter(item => item.category === 'kids')
+        .map(item => ({
+          id: item.id,
+          text: item.text,
+          packed: item.checked,
+        }));
 
-      // 1. Save trip
-      const { data: trip, error: tripError } = await supabase
+      const adultsPackingItems = packingList
+        .filter(item => item.category === 'adults')
+        .map(item => ({
+          id: item.id,
+          text: item.text,
+          packed: item.checked,
+        }));
+
+      const { data, error } = await supabase
         .from('trips')
         .insert({
-          user_id: session.user.id,
-          destination: destination,
-          country: country,
-          start_date: startDate,
-          end_date: endDate,
-          adults: numAdults,
-          kids: numKids,
-          destination_currency: 'INR',
+          user_id: user.id,
+          destination: tripData?.destination,
+          country: tripData?.country,
+          start_date: tripData?.start_date,
+          end_date: tripData?.end_date,
+          num_adults: tripData?.num_adults || 2,
+          num_kids: tripData?.num_kids || 0,
+          kid_ages: tripData?.kid_ages || [],
+          packing_list_kids: kidsPackingItems,
+          packing_list_adults: adultsPackingItems,
+          status: 'upcoming',
         })
         .select()
-        .single()
+        .single();
 
-      if (tripError) {
-        console.error('Supabase error:', tripError)
-        alert(`Failed to save trip: ${tripError.message}`)
-        setIsSaving(false)
-        return
-      }
+      if (error) throw error;
 
-      console.log('Trip saved successfully:', trip)
-
-      // 2. Generate packing list
-      try {
-        const packingResponse = await fetch('/api/ai/packing-list', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            destination,
-            duration,
-            numAdults,
-            numKids,
-            weather: weather?.description || 'unknown',
-          }),
-        })
-
-        if (packingResponse.ok) {
-          const packingData = await packingResponse.json()
-
-          // 3. Insert packing items
-          const packingItems = packingData.categories.flatMap((cat: any) =>
-            cat.items.map((item: string, index: number) => ({
-              trip_id: trip.id,
-              user_id: session.user.id,
-              category: cat.name,
-              title: item,
-              is_packed: false,
-              sort_order: index,
-            }))
-          )
-
-          if (packingItems.length > 0) {
-            const { error: packingError } = await supabase
-              .from('packing_items')
-              .insert(packingItems)
-
-            if (packingError) {
-              console.error('Error saving packing items:', packingError)
-            }
-          }
-        } else {
-          console.error('Failed to generate packing list:', await packingResponse.text())
-        }
-      } catch (packingError) {
-        console.error('Packing list error:', packingError)
-        // Continue even if packing list fails
-      }
-
-      // 4. Redirect to trip detail page
-      router.push(`/trips/${trip.id}`)
-    } catch (error: any) {
-      console.error('Save error:', error)
-      alert(`Error saving trip: ${error?.message || 'Unknown error'}`)
-      setIsSaving(false)
+      router.push(`/trips/${data.id}`);
+    } catch (err) {
+      console.error('Failed to save trip:', err);
+      setError('Failed to save trip. Please try again.');
+      setStep('preview');
     }
+  };
+
+  // Get default dates
+  const getDefaultDates = () => {
+    const today = new Date();
+    const start = new Date(today);
+    start.setDate(today.getDate() + 30);
+    const end = new Date(start);
+    end.setDate(start.getDate() + 6);
+    return {
+      start: start.toISOString().split('T')[0],
+      end: end.toISOString().split('T')[0],
+    };
+  };
+
+  // Initialize default dates
+  useEffect(() => {
+    const defaults = getDefaultDates();
+    setManualStartDate(defaults.start);
+    setManualEndDate(defaults.end);
+  }, []);
+
+  // Step 1: Parsing
+  if (step === 'parsing') {
+    return (
+      <div className="min-h-screen bg-white flex flex-col items-center justify-center p-5">
+        <Sparkles className="w-12 h-12 text-[#0A7A6E] animate-pulse mb-4" />
+        <h2 className="text-xl font-bold text-[#1A1A1A] mb-2">Planning your trip...</h2>
+        <p className="text-[#6B6B6B] text-center">"{query}"</p>
+      </div>
+    );
   }
 
-  return (
-    <div className="min-h-screen bg-gray-50">
-      <Navbar />
+  // Step: Manual Input
+  if (step === 'manual-input') {
+    return (
+      <div className="min-h-screen bg-white">
+        <header className="px-5 pt-12 pb-4 flex items-center gap-4">
+          <button onClick={() => router.push('/')} className="w-10 h-10 bg-[#F8F7F5] rounded-full flex items-center justify-center">
+            <ArrowLeft className="w-5 h-5 text-[#1A1A1A]" />
+          </button>
+          <h1 className="text-xl font-bold text-[#1A1A1A]">Plan Your Trip</h1>
+        </header>
 
-      <div className="container mx-auto px-4 py-8">
-        {/* Back Button */}
-        <button
-          onClick={() => router.push('/')}
-          className="flex items-center gap-2 text-[#1E293B] hover:text-gray-900 mb-6 transition-colors"
-        >
-          <ArrowLeft className="h-5 w-5" />
-          <span>Back to Home</span>
-        </button>
+        <div className="px-5 py-6 space-y-6">
+          {error && (
+            <div className="bg-red-50 text-red-600 p-3 rounded-xl text-sm">
+              {error}
+            </div>
+          )}
 
-        {/* Main Content */}
-        <div className="max-w-4xl mx-auto">
-          {/* Header */}
-          <div className="bg-white rounded-2xl shadow-sm p-8 mb-6">
-            <div className="mb-6">
-              <div className="mb-4">
-                {destination === 'Unknown' ? (
-                  <div className="space-y-3">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Destination City *
-                      </label>
-                      <input
-                        type="text"
-                        value={destination === 'Unknown' ? '' : destination}
-                        onChange={(e) => setDestination(e.target.value)}
-                        placeholder="e.g., Dubai, Singapore, Bangkok"
-                        className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary text-lg"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Country (Optional)
-                      </label>
-                      <input
-                        type="text"
-                        value={country}
-                        onChange={(e) => setCountry(e.target.value)}
-                        placeholder="e.g., UAE, Singapore, Thailand"
-                        className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary"
-                      />
-                    </div>
-                  </div>
-                ) : (
-                  <>
-                    <h1 className="text-4xl font-bold text-gray-900 mb-2">
-                      {destination}
-                      {country && <span className="text-[#64748B] text-2xl ml-2">{country}</span>}
-                    </h1>
-                    <button
-                      onClick={() => setDestination('Unknown')}
-                      className="text-sm text-primary hover:underline"
-                    >
-                      Edit destination
-                    </button>
-                  </>
-                )}
+          {/* Destination */}
+          <div>
+            <label className="block text-sm font-medium text-[#1A1A1A] mb-2">
+              Where are you going? *
+            </label>
+            <div className="relative">
+              <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[#9CA3AF]" />
+              <input
+                type="text"
+                value={manualDestination}
+                onChange={(e) => setManualDestination(e.target.value)}
+                placeholder="e.g., Dubai, Singapore, Thailand"
+                className="w-full pl-12 pr-4 py-4 bg-[#F8F7F5] rounded-xl border border-[#E5E5E5] text-[#1A1A1A] placeholder-[#9CA3AF] outline-none focus:border-[#0A7A6E]"
+              />
+            </div>
+          </div>
+
+          {/* Dates */}
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-[#1A1A1A] mb-2">
+                Start Date *
+              </label>
+              <input
+                type="date"
+                value={manualStartDate}
+                onChange={(e) => setManualStartDate(e.target.value)}
+                className="w-full px-4 py-4 bg-[#F8F7F5] rounded-xl border border-[#E5E5E5] text-[#1A1A1A] outline-none focus:border-[#0A7A6E]"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-[#1A1A1A] mb-2">
+                End Date *
+              </label>
+              <input
+                type="date"
+                value={manualEndDate}
+                onChange={(e) => setManualEndDate(e.target.value)}
+                className="w-full px-4 py-4 bg-[#F8F7F5] rounded-xl border border-[#E5E5E5] text-[#1A1A1A] outline-none focus:border-[#0A7A6E]"
+              />
+            </div>
+          </div>
+
+          {/* Travelers */}
+          <div>
+            <label className="block text-sm font-medium text-[#1A1A1A] mb-3">
+              Who's traveling?
+            </label>
+
+            <div className="space-y-4">
+              {/* Adults */}
+              <div className="flex items-center justify-between bg-[#F8F7F5] rounded-xl p-4">
+                <div className="flex items-center gap-3">
+                  <Users className="w-5 h-5 text-[#0A7A6E]" />
+                  <span className="font-medium text-[#1A1A1A]">Adults</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={() => setManualAdults(Math.max(1, manualAdults - 1))}
+                    className="w-8 h-8 bg-white rounded-full flex items-center justify-center text-[#1A1A1A] font-bold border border-[#E5E5E5]"
+                  >
+                    -
+                  </button>
+                  <span className="w-8 text-center font-bold text-[#1A1A1A]">{manualAdults}</span>
+                  <button
+                    onClick={() => setManualAdults(manualAdults + 1)}
+                    className="w-8 h-8 bg-white rounded-full flex items-center justify-center text-[#1A1A1A] font-bold border border-[#E5E5E5]"
+                  >
+                    +
+                  </button>
+                </div>
               </div>
-              <div className="inline-block px-3 py-1 bg-purple-100 text-primary rounded-full text-sm font-medium capitalize">
-                {tripType} Trip
+
+              {/* Kids */}
+              <div className="flex items-center justify-between bg-[#F8F7F5] rounded-xl p-4">
+                <div className="flex items-center gap-3">
+                  <Baby className="w-5 h-5 text-[#0A7A6E]" />
+                  <span className="font-medium text-[#1A1A1A]">Kids</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={() => setManualKids(Math.max(0, manualKids - 1))}
+                    className="w-8 h-8 bg-white rounded-full flex items-center justify-center text-[#1A1A1A] font-bold border border-[#E5E5E5]"
+                  >
+                    -
+                  </button>
+                  <span className="w-8 text-center font-bold text-[#1A1A1A]">{manualKids}</span>
+                  <button
+                    onClick={() => setManualKids(manualKids + 1)}
+                    className="w-8 h-8 bg-white rounded-full flex items-center justify-center text-[#1A1A1A] font-bold border border-[#E5E5E5]"
+                  >
+                    +
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <button
+            onClick={handleManualSubmit}
+            className="w-full bg-[#0A7A6E] text-white py-4 rounded-xl font-semibold mt-4"
+          >
+            Continue
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Step 2: Kids Age Input
+  if (step === 'kids-age') {
+    return (
+      <div className="min-h-screen bg-white">
+        <header className="px-5 pt-12 pb-4 flex items-center gap-4">
+          <button onClick={() => router.push('/')} className="w-10 h-10 bg-[#F8F7F5] rounded-full flex items-center justify-center">
+            <ArrowLeft className="w-5 h-5 text-[#1A1A1A]" />
+          </button>
+          <h1 className="text-xl font-bold text-[#1A1A1A]">Kids Details</h1>
+        </header>
+
+        <div className="px-5 py-6">
+          <div className="bg-[#F0FDFA] rounded-2xl p-4 mb-6">
+            <p className="text-[#0A7A6E] font-medium">
+              We'll customize packing lists based on your kids' ages!
+            </p>
+          </div>
+
+          {/* Kid Ages */}
+          <div className="space-y-4">
+            {Array(numKids).fill(0).map((_, index) => (
+              <div key={index}>
+                <label className="block text-sm font-medium text-[#1A1A1A] mb-2">
+                  Kid {index + 1} age
+                </label>
+                <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-2">
+                  {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map((age) => (
+                    <button
+                      key={age}
+                      onClick={() => {
+                        const newAges = [...kidAges];
+                        newAges[index] = age;
+                        setKidAges(newAges);
+                      }}
+                      className={`flex-shrink-0 w-12 h-12 rounded-xl font-semibold ${
+                        kidAges[index] === age ? 'bg-[#0A7A6E] text-white' : 'bg-[#F8F7F5] text-[#1A1A1A]'
+                      }`}
+                    >
+                      {age}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <button
+            onClick={handleKidAgesSubmit}
+            className="w-full bg-[#0A7A6E] text-white py-4 rounded-xl font-semibold mt-8"
+          >
+            Continue
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Step 3: Trip Preview
+  if (step === 'preview' && tripData) {
+    const duration = Math.ceil((new Date(tripData.end_date).getTime() - new Date(tripData.start_date).getTime()) / (1000 * 60 * 60 * 24)) + 1;
+
+    return (
+      <div className="min-h-screen bg-white">
+        {/* Hero Image */}
+        <div className="relative h-64">
+          <img src={getDestinationImage(tripData.destination)} alt={tripData.destination} className="w-full h-full object-cover" />
+          <div className="absolute inset-0 overlay-gradient" />
+          <button onClick={() => router.push('/')} className="absolute top-12 left-5 w-10 h-10 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center">
+            <ArrowLeft className="w-5 h-5 text-white" />
+          </button>
+          <div className="absolute bottom-4 left-5 right-5">
+            <h1 className="text-white font-bold text-3xl">{tripData.destination}</h1>
+            {tripData.country && <p className="text-white/80">{tripData.country}</p>}
+          </div>
+        </div>
+
+        <div className="px-5 py-6 space-y-4">
+          <h2 className="text-xl font-bold text-[#1A1A1A]">Trip Preview</h2>
+
+          {/* Trip Details */}
+          <div className="bg-white rounded-2xl border border-[#F0F0F0] overflow-hidden">
+            <div className="flex items-center gap-4 px-4 py-4 border-b border-[#F0F0F0]">
+              <Calendar className="w-5 h-5 text-[#0A7A6E]" />
+              <div>
+                <p className="font-medium text-[#1A1A1A]">
+                  {new Date(tripData.start_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - {new Date(tripData.end_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                </p>
+                <p className="text-sm text-[#6B6B6B]">{duration} days</p>
               </div>
             </div>
 
-            {/* Trip Details Grid */}
-            <div className="grid md:grid-cols-3 gap-6">
-              {/* Duration */}
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center">
-                  <Calendar className="h-6 w-6 text-primary" />
-                </div>
+            <div className="flex items-center gap-4 px-4 py-4 border-b border-[#F0F0F0]">
+              <Users className="w-5 h-5 text-[#0A7A6E]" />
+              <div>
+                <p className="font-medium text-[#1A1A1A]">{tripData.num_adults} Adults</p>
+              </div>
+            </div>
+
+            {tripData.num_kids > 0 && (
+              <div className="flex items-center gap-4 px-4 py-4">
+                <Baby className="w-5 h-5 text-[#0A7A6E]" />
                 <div>
-                  <p className="text-sm text-[#64748B]">Duration</p>
-                  <p className="text-lg font-semibold text-gray-900">{duration} days</p>
-                </div>
-              </div>
-
-              {/* Travelers - Editable */}
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center">
-                  <Users className="h-6 w-6 text-primary" />
-                </div>
-                <div className="flex-1">
-                  <p className="text-sm text-[#64748B] mb-2">Travelers</p>
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm text-[#1E293B] w-16">Adults:</span>
-                      <button
-                        onClick={() => setNumAdults(Math.max(1, numAdults - 1))}
-                        className="w-7 h-7 rounded-full border border-gray-300 flex items-center justify-center hover:bg-gray-50"
-                      >
-                        <Minus className="h-3 w-3" />
-                      </button>
-                      <span className="text-sm font-semibold w-6 text-center">{numAdults}</span>
-                      <button
-                        onClick={() => setNumAdults(Math.min(10, numAdults + 1))}
-                        className="w-7 h-7 rounded-full border border-gray-300 flex items-center justify-center hover:bg-gray-50"
-                      >
-                        <Plus className="h-3 w-3" />
-                      </button>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm text-[#1E293B] w-16">Kids:</span>
-                      <button
-                        onClick={() => setNumKids(Math.max(0, numKids - 1))}
-                        className="w-7 h-7 rounded-full border border-gray-300 flex items-center justify-center hover:bg-gray-50"
-                      >
-                        <Minus className="h-3 w-3" />
-                      </button>
-                      <span className="text-sm font-semibold w-6 text-center">{numKids}</span>
-                      <button
-                        onClick={() => setNumKids(Math.min(6, numKids + 1))}
-                        className="w-7 h-7 rounded-full border border-gray-300 flex items-center justify-center hover:bg-gray-50"
-                      >
-                        <Plus className="h-3 w-3" />
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Dates - Editable */}
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center">
-                  <MapPin className="h-6 w-6 text-primary" />
-                </div>
-                <div className="flex-1">
-                  <p className="text-sm text-[#64748B] mb-2">Start Date</p>
-                  <input
-                    type="date"
-                    value={startDate}
-                    onChange={(e) => setStartDate(e.target.value)}
-                    min={new Date().toISOString().split('T')[0]}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-sm"
-                  />
-                  {endDate && (
-                    <p className="text-xs text-[#64748B] mt-1">End: {endDate}</p>
+                  <p className="font-medium text-[#1A1A1A]">{tripData.num_kids} Kid{tripData.num_kids > 1 ? 's' : ''}</p>
+                  {tripData.kid_ages && tripData.kid_ages.length > 0 && (
+                    <p className="text-sm text-[#6B6B6B]">
+                      Ages: {tripData.kid_ages.join(', ')} years
+                    </p>
                   )}
                 </div>
               </div>
-            </div>
+            )}
           </div>
 
-          {/* Weather & Currency Info */}
-          <div className="grid md:grid-cols-2 gap-6 mb-6">
-            {/* Weather Card */}
-            <div className="bg-white rounded-2xl shadow-sm p-6">
-              <div className="flex items-center gap-2 mb-4">
-                <Sun className="h-5 w-5 text-primary" />
-                <h2 className="text-xl font-bold text-gray-900">Current Weather</h2>
-              </div>
-              {isLoading ? (
-                <div className="flex items-center justify-center py-8">
-                  <Loader2 className="h-8 w-8 text-primary animate-spin" />
-                </div>
-              ) : weather ? (
-                <div>
-                  <div className="flex items-center gap-4 mb-2">
-                    <div className="text-5xl font-bold text-gray-900">{weather.temp}°C</div>
-                    <img
-                      src={`https://openweathermap.org/img/wn/${weather.icon}@2x.png`}
-                      alt="Weather icon"
-                      className="w-16 h-16"
-                    />
-                  </div>
-                  <p className="text-[#1E293B] capitalize">{weather.description}</p>
-                </div>
-              ) : (
-                <div className="py-4">
-                  <p className="text-[#64748B] text-sm">Weather data unavailable</p>
-                  <p className="text-[#94A3B8] text-xs mt-1">
-                    Check weather closer to your trip date
-                  </p>
-                </div>
-              )}
-            </div>
-
-            {/* Currency Card */}
-            <div className="bg-white rounded-2xl shadow-sm p-6">
-              <div className="flex items-center gap-2 mb-4">
-                <DollarSign className="h-5 w-5 text-primary" />
-                <h2 className="text-xl font-bold text-gray-900">Currency Exchange</h2>
-              </div>
-              {isLoading ? (
-                <div className="flex items-center justify-center py-8">
-                  <Loader2 className="h-8 w-8 text-primary animate-spin" />
-                </div>
-              ) : currency ? (
-                <div>
-                  <div className="text-3xl font-bold text-gray-900 mb-2">
-                    ₹{currency.rate.toFixed(2)}
-                  </div>
-                  <p className="text-[#1E293B]">
-                    1 {currency.from} = {currency.rate.toFixed(2)} {currency.to}
-                  </p>
-                </div>
-              ) : (
-                <div className="py-4">
-                  <p className="text-[#64748B] text-sm">Currency rate unavailable</p>
-                  <p className="text-[#94A3B8] text-xs mt-1">
-                    You can add this later from your trip page
-                  </p>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Action Buttons */}
-          <div className="bg-white rounded-2xl shadow-sm p-6">
-            <div className="flex flex-col sm:flex-row gap-4">
-              <button
-                onClick={handleSaveTrip}
-                disabled={isSaving || !startDate}
-                className="flex-1 bg-gradient-to-r from-primary to-secondary text-white px-8 py-4 rounded-xl font-medium hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {isSaving ? (
-                  <span className="flex items-center justify-center gap-2">
-                    <Loader2 className="h-5 w-5 animate-spin" />
-                    Saving...
-                  </span>
-                ) : (
-                  'Save Trip & Continue'
-                )}
-              </button>
-              <button
-                onClick={() => router.push('/')}
-                className="px-8 py-4 rounded-xl font-medium border-2 border-gray-200 text-gray-700 hover:border-gray-300 transition-colors"
-              >
-                Start Over
-              </button>
-            </div>
-            <p className="text-sm text-[#64748B] mt-4 text-center">
-              We'll generate a smart packing list based on your destination and travelers
-            </p>
-          </div>
+          <button
+            onClick={handlePreviewConfirm}
+            className="w-full bg-[#0A7A6E] text-white py-4 rounded-xl font-semibold"
+          >
+            Generate Packing List
+          </button>
         </div>
       </div>
+    );
+  }
 
-      {/* Signup Modal */}
-      <SignupModal
-        isOpen={showSignupModal}
-        onClose={() => setShowSignupModal(false)}
-        redirectUrl={`/trips/new?${searchParams.toString()}`}
-      />
-    </div>
-  )
+  // Step 4: Packing List Preview
+  if (step === 'packing') {
+    const kidsItems = packingList.filter(i => i.category === 'kids');
+    const adultsItems = packingList.filter(i => i.category === 'adults');
+
+    if (packingList.length === 0) {
+      return (
+        <div className="min-h-screen bg-white flex flex-col items-center justify-center p-5">
+          <Loader2 className="w-12 h-12 text-[#0A7A6E] animate-spin mb-4" />
+          <h2 className="text-xl font-bold text-[#1A1A1A] mb-2">Generating Packing List...</h2>
+          <p className="text-[#6B6B6B]">Customizing for your family</p>
+        </div>
+      );
+    }
+
+    return (
+      <div className="min-h-screen bg-white pb-32">
+        <header className="px-5 pt-12 pb-4 flex items-center gap-4">
+          <button onClick={() => setStep('preview')} className="w-10 h-10 bg-[#F8F7F5] rounded-full flex items-center justify-center">
+            <ArrowLeft className="w-5 h-5 text-[#1A1A1A]" />
+          </button>
+          <div>
+            <h1 className="text-xl font-bold text-[#1A1A1A]">Packing List</h1>
+            <p className="text-sm text-[#6B6B6B]">AI-generated for your trip</p>
+          </div>
+        </header>
+
+        <div className="px-5">
+          {/* Kids Section */}
+          {kidsItems.length > 0 && (
+            <div className="mb-6">
+              <h3 className="font-bold text-[#1A1A1A] mb-3 flex items-center gap-2">
+                <Baby className="w-5 h-5 text-[#0A7A6E]" />
+                For Kids ({kidsItems.length} items)
+              </h3>
+              <div className="bg-white rounded-2xl border border-[#F0F0F0] overflow-hidden">
+                {kidsItems.slice(0, 5).map((item, i) => (
+                  <div key={item.id} className={`flex items-center gap-3 px-4 py-3 ${i < Math.min(kidsItems.length, 5) - 1 ? 'border-b border-[#F0F0F0]' : ''}`}>
+                    <div className="w-5 h-5 rounded-md border-2 border-[#0A7A6E] flex items-center justify-center">
+                      <Check className="w-3 h-3 text-[#0A7A6E]" />
+                    </div>
+                    <span className="text-[#1A1A1A]">{item.text}</span>
+                  </div>
+                ))}
+                {kidsItems.length > 5 && (
+                  <div className="px-4 py-3 bg-[#F8F7F5] text-center text-sm text-[#6B6B6B]">
+                    +{kidsItems.length - 5} more items
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Adults Section */}
+          <div className="mb-6">
+            <h3 className="font-bold text-[#1A1A1A] mb-3 flex items-center gap-2">
+              <Users className="w-5 h-5 text-[#0A7A6E]" />
+              For Adults ({adultsItems.length} items)
+            </h3>
+            <div className="bg-white rounded-2xl border border-[#F0F0F0] overflow-hidden">
+              {adultsItems.slice(0, 5).map((item, i) => (
+                <div key={item.id} className={`flex items-center gap-3 px-4 py-3 ${i < Math.min(adultsItems.length, 5) - 1 ? 'border-b border-[#F0F0F0]' : ''}`}>
+                  <div className="w-5 h-5 rounded-md border-2 border-[#0A7A6E] flex items-center justify-center">
+                    <Check className="w-3 h-3 text-[#0A7A6E]" />
+                  </div>
+                  <span className="text-[#1A1A1A]">{item.text}</span>
+                </div>
+              ))}
+              {adultsItems.length > 5 && (
+                <div className="px-4 py-3 bg-[#F8F7F5] text-center text-sm text-[#6B6B6B]">
+                  +{adultsItems.length - 5} more items
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Fixed Bottom Button */}
+        <div className="fixed bottom-0 left-0 right-0 p-5 bg-white border-t border-[#F0F0F0]">
+          <button
+            onClick={handlePackingContinue}
+            className="w-full bg-[#0A7A6E] text-white py-4 rounded-xl font-semibold"
+          >
+            {user ? 'Save Trip' : 'Sign Up to Save Trip'}
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Step 5: Login Prompt
+  if (step === 'login') {
+    return (
+      <div className="min-h-screen bg-white flex flex-col">
+        <header className="px-5 pt-12 pb-4 flex items-center gap-4">
+          <button onClick={() => setStep('packing')} className="w-10 h-10 bg-[#F8F7F5] rounded-full flex items-center justify-center">
+            <ArrowLeft className="w-5 h-5 text-[#1A1A1A]" />
+          </button>
+        </header>
+
+        <div className="flex-1 flex flex-col items-center justify-center px-5">
+          <div className="w-20 h-20 bg-[#F0FDFA] rounded-full flex items-center justify-center mb-6">
+            <Sparkles className="w-10 h-10 text-[#0A7A6E]" />
+          </div>
+
+          <h2 className="text-2xl font-bold text-[#1A1A1A] mb-2 text-center">Save Your Trip</h2>
+          <p className="text-[#6B6B6B] text-center mb-8">
+            Sign up to save your trip and access your packing list anytime
+          </p>
+
+          <button
+            onClick={handleLogin}
+            className="w-full bg-[#0A7A6E] text-white py-4 rounded-xl font-semibold mb-4"
+          >
+            Sign Up / Login
+          </button>
+
+          <button
+            onClick={() => router.push('/')}
+            className="text-[#6B6B6B] font-medium"
+          >
+            Maybe Later
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Step 6: Saving
+  if (step === 'saving') {
+    return (
+      <div className="min-h-screen bg-white flex flex-col items-center justify-center p-5">
+        <Loader2 className="w-12 h-12 text-[#0A7A6E] animate-spin mb-4" />
+        <h2 className="text-xl font-bold text-[#1A1A1A]">Saving your trip...</h2>
+      </div>
+    );
+  }
+
+  return null;
 }
 
-export default function NewTripPage() {
+export default function TripCreationPage() {
   return (
-    <Suspense
-      fallback={
-        <div className="flex items-center justify-center min-h-screen">
-          <Loader2 className="h-8 w-8 text-primary animate-spin" />
-        </div>
-      }
-    >
-      <TripNewContent />
+    <Suspense fallback={
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <Loader2 className="w-8 h-8 text-[#0A7A6E] animate-spin" />
+      </div>
+    }>
+      <TripCreationContent />
     </Suspense>
-  )
+  );
 }
