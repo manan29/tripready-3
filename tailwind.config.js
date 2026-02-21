@@ -1,6 +1,5 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
-  darkMode: ['class'],
   content: [
     './pages/**/*.{js,ts,jsx,tsx,mdx}',
     './components/**/*.{js,ts,jsx,tsx,mdx}',
@@ -9,59 +8,42 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        border: 'hsl(var(--border))',
-        input: 'hsl(var(--input))',
-        ring: 'hsl(var(--ring))',
-        background: 'hsl(var(--background))',
-        foreground: 'hsl(var(--foreground))',
         primary: {
-          DEFAULT: '#7C3AED',
-          foreground: '#ffffff',
-          50: '#faf5ff',
-          100: '#f3e8ff',
-          200: '#e9d5ff',
-          300: '#d8b4fe',
-          400: '#c084fc',
-          500: '#a855f7',
-          600: '#9333ea',
-          700: '#7e22ce',
-          800: '#6b21a8',
-          900: '#581c87',
-          950: '#3b0764',
+          DEFAULT: '#0A7A6E',
+          light: '#0D9488',
+          dark: '#065F56',
+          bg: '#F0FDFA',
         },
-        secondary: {
-          DEFAULT: '#EC4899',
-          50: '#fdf2f8',
-          100: '#fce7f3',
-          200: '#fbcfe8',
-          300: '#f9a8d4',
-          400: '#f472b6',
-          500: '#ec4899',
-          600: '#db2777',
-          700: '#be185d',
-          800: '#9d174d',
-          900: '#831843',
+        surface: {
+          DEFAULT: '#FFFFFF',
+          secondary: '#F8F7F5',
         },
-        muted: {
-          DEFAULT: 'hsl(var(--muted))',
-          foreground: 'hsl(var(--muted-foreground))',
+        txt: {
+          primary: '#1A1A1A',
+          secondary: '#6B6B6B',
+          tertiary: '#9CA3AF',
         },
-        lavender: '#B8A5D4',
-        plum: '#9B8ABF',
-        grape: '#7B6A9F',
-        'app-bg': '#F5F0FA',
+        border: {
+          light: '#E5E5E5',
+          divider: '#F0F0F0',
+        },
+        status: {
+          success: '#059669',
+          warning: '#D97706',
+          error: '#DC2626',
+        },
+      },
+      fontFamily: {
+        sans: ['var(--font-dm-sans)', 'system-ui', 'sans-serif'],
       },
       borderRadius: {
-        lg: 'var(--radius)',
-        md: 'calc(var(--radius) - 2px)',
-        sm: 'calc(var(--radius) - 4px)',
+        'card': '16px',
       },
       boxShadow: {
-        card: '0 4px 12px rgba(124, 58, 237, 0.1)',
-        elevated: '0 8px 24px rgba(124, 58, 237, 0.15)',
-        fab: '0 8px 16px rgba(155, 138, 191, 0.3)',
+        'card': '0 1px 2px rgba(0, 0, 0, 0.05)',
+        'card-hover': '0 4px 12px rgba(0, 0, 0, 0.08)',
       },
     },
   },
-  plugins: [require('tailwindcss-animate')],
-}
+  plugins: [],
+};

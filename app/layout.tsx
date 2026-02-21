@@ -1,10 +1,14 @@
 import type { Metadata } from 'next'
-import { Inter } from 'next/font/google'
+import { DM_Sans } from 'next/font/google'
 import './globals.css'
 import { BottomNav } from '@/components/navigation/BottomNav'
 import { PWAInstallPrompt } from '@/components/ui/PWAInstallPrompt'
 
-const inter = Inter({ subsets: ['latin'] })
+const dmSans = DM_Sans({
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700'],
+  variable: '--font-dm-sans',
+})
 
 export const metadata: Metadata = {
   title: {
@@ -47,7 +51,7 @@ export const metadata: Metadata = {
     maximumScale: 1,
     userScalable: false,
   },
-  themeColor: '#7C3AED',
+  themeColor: '#0A7A6E',
   icons: {
     icon: '/icons/icon-192.png',
     apple: '/icons/icon-192.png',
@@ -70,7 +74,7 @@ export default function RootLayout({
         <link rel="apple-touch-icon" href="/icons/icon-192.png" />
         <link rel="manifest" href="/manifest.json" />
       </head>
-      <body className={`${inter.className} app-bg`}>
+      <body className={`${dmSans.variable} font-sans bg-white text-[#1A1A1A] min-h-screen`}>
         <main className="min-h-screen pb-20 md:pb-24">
           {children}
         </main>

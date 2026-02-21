@@ -1,228 +1,53 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-@layer base {
-  :root {
-    --background: 0 0% 100%;
-    --foreground: 20 14.3% 4.1%;
-    --card: 0 0% 100%;
-    --card-foreground: 20 14.3% 4.1%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 20 14.3% 4.1%;
-    --primary: 27 96% 52%;
-    --primary-foreground: 60 9.1% 97.8%;
-    --secondary: 60 4.8% 95.9%;
-    --secondary-foreground: 24 9.8% 10%;
-    --muted: 60 4.8% 95.9%;
-    --muted-foreground: 25 5.3% 44.7%;
-    --accent: 60 4.8% 95.9%;
-    --accent-foreground: 24 9.8% 10%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 60 9.1% 97.8%;
-    --border: 20 5.9% 90%;
-    --input: 20 5.9% 90%;
-    --ring: 27 96% 52%;
-    --radius: 0.75rem;
+:root {
+  /* Primary */
+  --color-primary: #0A7A6E;
+  --color-primary-light: #0D9488;
+  --color-primary-dark: #065F56;
+  --color-primary-bg: #F0FDFA;
 
-    /* Bento-Timeline Design System */
-    /* Primary Colors */
-    --primary-purple: #9333EA;
-    --primary-purple-light: #A855F7;
-    --primary-purple-dark: #7C3AED;
-    --primary-purple-bg: #F3E8FF;
+  /* Backgrounds */
+  --bg-primary: #FFFFFF;
+  --bg-secondary: #F8F7F5;
 
-    /* Backgrounds */
-    --bg-app: #FBFBFE;
-    --bg-card: #FFFFFF;
+  /* Text */
+  --text-primary: #1A1A1A;
+  --text-secondary: #6B6B6B;
+  --text-tertiary: #9CA3AF;
 
-    /* Text */
-    --text-primary: #1E293B;
-    --text-secondary: #64748B;
-    --text-tertiary: #94A3B8;
-
-    /* Status */
-    --color-success: #10B981;
-    --color-warning: #F59E0B;
-    --color-error: #EF4444;
-
-    /* Borders & Shadows */
-    --border-light: #E2E8F0;
-    --shadow-card: 0 4px 20px rgba(0, 0, 0, 0.05);
-    --shadow-card-hover: 0 8px 30px rgba(0, 0, 0, 0.08);
-
-    /* Border Radius */
-    --radius-lg: 16px;
-    --radius-xl: 20px;
-    --radius-2xl: 24px;
-  }
+  /* Borders */
+  --border-light: #E5E5E5;
+  --border-divider: #F0F0F0;
 }
 
-@layer base {
-  * {
-    @apply border-border;
-  }
-  body {
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-    background-color: var(--bg-app);
-    color: var(--text-primary);
-  }
+body {
+  font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  background-color: #FFFFFF;
+  color: #1A1A1A;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-/* Bento Card Class */
-.bento-card {
-  background: white;
-  border-radius: 24px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+/* Hide scrollbar but keep functionality */
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
 }
-
-/* Custom scrollbar hide */
 .scrollbar-hide {
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
-.scrollbar-hide::-webkit-scrollbar {
-  display: none;
-}
 
-/* App background */
-.app-bg {
-  background-color: #FBFBFE;
-  min-height: 100vh;
-}
-
-/* Safe area padding - for devices with notches/rounded corners */
-.safe-top {
-  padding-top: env(safe-area-inset-top, 0);
-}
-
-.safe-bottom {
-  padding-bottom: env(safe-area-inset-bottom, 0);
-}
-
-.safe-left {
-  padding-left: env(safe-area-inset-left, 0);
-}
-
-.safe-right {
-  padding-right: env(safe-area-inset-right, 0);
-}
-
-/* Responsive container max-widths */
-.container-responsive {
-  max-width: 100%;
-  margin-left: auto;
-  margin-right: auto;
-}
-
-@media (min-width: 640px) {
-  .container-responsive {
-    max-width: 640px;
-  }
-}
-
-@media (min-width: 768px) {
-  .container-responsive {
-    max-width: 768px;
-  }
-}
-
-@media (min-width: 1024px) {
-  .container-responsive {
-    max-width: 1024px;
-  }
-}
-
-@media (min-width: 1280px) {
-  .container-responsive {
-    max-width: 1280px;
-  }
-}
-
-/* Glass effect fallback for older browsers */
-@supports not (backdrop-filter: blur(12px)) {
-  .backdrop-blur-xl {
-    background-color: rgba(255, 255, 255, 0.95);
-  }
-}
-
-/* Smooth transitions */
-.transition-smooth {
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-/* Button press effect */
-.btn-press {
-  transition: transform 0.1s ease;
-}
-.btn-press:active {
-  transform: scale(0.98);
-}
-
-/* Gradient text */
-.gradient-text {
-  background: linear-gradient(135deg, #7C3AED 0%, #EC4899 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-/* Card hover effect */
-.card-hover {
-  transition: all 0.3s ease;
-}
-.card-hover:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 16px rgba(124, 58, 237, 0.15);
-}
-
-/* Shimmer loading effect */
-@keyframes shimmer {
-  0% {
-    background-position: -1000px 0;
-  }
-  100% {
-    background-position: 1000px 0;
-  }
-}
-
-.shimmer {
-  animation: shimmer 2s infinite;
-  background: linear-gradient(to right, #f0f0f0 4%, #e0e0e0 25%, #f0f0f0 36%);
-  background-size: 1000px 100%;
-}
-
-/* Fade in animation */
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.fade-in {
-  animation: fadeIn 0.5s ease-out;
-}
-
-/* Marquee animation for scrolling chips */
-@keyframes marquee {
-  0% {
-    transform: translateX(0);
-  }
-  100% {
-    transform: translateX(-50%);
-  }
-}
-
-.animate-marquee {
-  animation: marquee 30s linear infinite;
-}
-
-.animate-marquee-paused {
-  animation: marquee 30s linear infinite;
-  animation-play-state: paused;
+/* Image overlay gradient */
+.overlay-gradient {
+  background: linear-gradient(
+    to bottom,
+    transparent 0%,
+    transparent 50%,
+    rgba(0, 0, 0, 0.7) 100%
+  );
 }
