@@ -1,86 +1,23 @@
-import type { Metadata } from 'next'
-import { DM_Sans } from 'next/font/google'
-import './globals.css'
-import { BottomNav } from '@/components/navigation/BottomNav'
-import { PWAInstallPrompt } from '@/components/ui/PWAInstallPrompt'
+import { DM_Sans } from 'next/font/google';
+import './globals.css';
 
 const dmSans = DM_Sans({
   subsets: ['latin'],
   weight: ['400', '500', '600', '700'],
   variable: '--font-dm-sans',
-})
+});
 
-export const metadata: Metadata = {
-  title: {
-    default: 'JourneyAI - Your AI Travel Concierge',
-    template: '%s | JourneyAI',
-  },
-  description:
-    'Your personal AI Concierge for international trips. Smart planning, budget management, packing lists, and complete travel organization.',
-  keywords: [
-    'travel planning',
-    'AI travel',
-    'trip planner',
-    'itinerary',
-    'travel budget',
-    'packing list',
-  ],
-  authors: [{ name: 'JourneyAI' }],
-  manifest: '/manifest.json',
-  appleWebApp: {
-    capable: true,
-    statusBarStyle: 'default',
-    title: 'JourneyAI',
-  },
-  openGraph: {
-    type: 'website',
-    locale: 'en_US',
-    url: 'https://journeyai.com',
-    title: 'JourneyAI - Your AI Travel Concierge',
-    description: 'Plan perfect trips with AI. Smart itineraries, budgets, and organization.',
-    siteName: 'JourneyAI',
-  },
-  twitter: {
-    card: 'summary_large_image',
-    title: 'JourneyAI - Your AI Travel Concierge',
-    description: 'Plan perfect trips with AI. Smart itineraries, budgets, and organization.',
-  },
-  viewport: {
-    width: 'device-width',
-    initialScale: 1,
-    maximumScale: 1,
-    userScalable: false,
-  },
-  themeColor: '#0A7A6E',
-  icons: {
-    icon: '/icons/icon-192.png',
-    apple: '/icons/icon-192.png',
-  },
-}
+export const metadata = {
+  title: 'JourneyAI - Travel Stress-Free with Kids',
+  description: 'AI-powered travel companion for Indian families',
+};
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
-      <head>
-        <meta name="application-name" content="JourneyAI" />
-        <meta name="mobile-web-app-capable" content="yes" />
-        <meta name="apple-mobile-web-app-capable" content="yes" />
-        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-        <meta name="apple-mobile-web-app-title" content="JourneyAI" />
-        <link rel="apple-touch-icon" href="/icons/icon-192.png" />
-        <link rel="manifest" href="/manifest.json" />
-      </head>
-      <body className={`${dmSans.variable} font-sans bg-white text-[#1A1A1A] min-h-screen`}>
-        <main className="min-h-screen pb-20 md:pb-24">
-          {children}
-        </main>
-        <PWAInstallPrompt />
-        <BottomNav />
+    <html lang="en" className={dmSans.variable}>
+      <body className="font-sans bg-white text-[#1A1A1A] min-h-screen">
+        {children}
       </body>
     </html>
-  )
+  );
 }

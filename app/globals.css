@@ -5,24 +5,7 @@
 @tailwind utilities;
 
 :root {
-  /* Primary */
   --color-primary: #0A7A6E;
-  --color-primary-light: #0D9488;
-  --color-primary-dark: #065F56;
-  --color-primary-bg: #F0FDFA;
-
-  /* Backgrounds */
-  --bg-primary: #FFFFFF;
-  --bg-secondary: #F8F7F5;
-
-  /* Text */
-  --text-primary: #1A1A1A;
-  --text-secondary: #6B6B6B;
-  --text-tertiary: #9CA3AF;
-
-  /* Borders */
-  --border-light: #E5E5E5;
-  --border-divider: #F0F0F0;
 }
 
 body {
@@ -30,24 +13,11 @@ body {
   background-color: #FFFFFF;
   color: #1A1A1A;
   -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
 }
 
-/* Hide scrollbar but keep functionality */
-.scrollbar-hide::-webkit-scrollbar {
-  display: none;
-}
-.scrollbar-hide {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
-}
+.scrollbar-hide::-webkit-scrollbar { display: none; }
+.scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
 
-/* Image overlay gradient */
 .overlay-gradient {
-  background: linear-gradient(
-    to bottom,
-    transparent 0%,
-    transparent 50%,
-    rgba(0, 0, 0, 0.7) 100%
-  );
+  background: linear-gradient(to bottom, transparent 0%, transparent 40%, rgba(0,0,0,0.7) 100%);
 }

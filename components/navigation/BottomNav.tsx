@@ -22,7 +22,7 @@ export function BottomNav({ showBookings = false }: BottomNavProps) {
     <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-[#F0F0F0] px-6 py-2 pb-[max(8px,env(safe-area-inset-bottom))] z-50">
       <div className="max-w-[430px] mx-auto flex justify-around items-center">
         {navItems.map((item) => {
-          const isActive = pathname === item.href;
+          const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
           return (
             <button
               key={item.href}
