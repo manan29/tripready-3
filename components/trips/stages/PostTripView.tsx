@@ -1,251 +1,146 @@
-'use client'
+'use client';
 
-import { useState } from 'react'
-import { GlassCard } from '@/components/ui/GlassCard'
-import { Star, Share2, Download, Camera, TrendingUp, MapPin } from 'lucide-react'
-import { getTripDayInfo } from '@/lib/trip-stages'
-import { TOP_DESTINATIONS } from '@/lib/destinations'
-import { TripStatsCard } from '@/components/stats/TripStatsCard'
+import { useState } from 'react';
+import { Star, Share2, Camera, Plane, MapPin, Clock } from 'lucide-react';
 
 interface PostTripViewProps {
-  trip: any
-  stageData: any
-  onUpdateStageData: (data: any) => void
+  trip: any;
+  stageData: any;
+  onUpdateStageData: (data: any) => void;
+}
+
+// Air miles calculator (simplified)
+function calculateAirMiles(destination: string): number {
+  const distances: Record<string, number> = {
+    'singapore': 2500,
+    'dubai': 1900,
+    'uae': 1900,
+    'thailand': 2100,
+    'bali': 3800,
+    'indonesia': 3800,
+    'malaysia': 2400,
+    'maldives': 1800,
+    'japan': 4500,
+    'default': 2000,
+  };
+  return distances[destination?.toLowerCase()] || distances['default'];
 }
 
 export function PostTripView({ trip, stageData, onUpdateStageData }: PostTripViewProps) {
-  const dayInfo = getTripDayInfo(trip.start_date, trip.end_date)
-  const daysAgo = dayInfo.stage === 'post-trip' ? dayInfo.daysAgo : 0
-  const [rating, setRating] = useState(stageData?.post_trip?.rating || 0)
-  const [showStatsCard, setShowStatsCard] = useState(false)
+  const [rating, setRating] = useState(stageData?.post_trip?.rating || 0);
 
-  const totalSpent = stageData?.post_trip?.total_spent || 0
-  const expenses = stageData?.during_trip?.expenses || []
-  const memories = stageData?.during_trip?.memories || []
+  // Calculate trip stats
+  const startDate = new Date(trip.start_date);
+  const endDate = new Date(trip.end_date);
+  const totalDays = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+  const airMiles = calculateAirMiles(trip.destination);
+  const distanceKm = Math.round(airMiles * 1.6);
 
-  // Calculate expense breakdown
-  const expenseBreakdown = {
-    flights: expenses.filter((e: any) => e.category === 'flights').reduce((sum: number, e: any) => sum + e.amount, 0),
-    hotels: expenses.filter((e: any) => e.category === 'hotels').reduce((sum: number, e: any) => sum + e.amount, 0),
-    other: expenses.filter((e: any) => !['flights', 'hotels'].includes(e.category)).reduce((sum: number, e: any) => sum + e.amount, 0),
-  }
-
-  const handleRating = (stars: number) => {
-    setRating(stars)
+  const handleRating = (value: number) => {
+    setRating(value);
     onUpdateStageData({
       ...stageData,
       post_trip: {
         ...stageData?.post_trip,
-        rating: stars,
+        rating: value,
       },
-    })
-  }
+    });
+  };
 
-  // Suggest destinations based on current trip
-  const getSuggestedDestinations = () => {
-    // Filter out current destination and pick 3 random
-    const filtered = TOP_DESTINATIONS.filter((d) => d.name !== trip.destination)
-    return filtered.slice(0, 3)
-  }
-
-  const suggestedDestinations = getSuggestedDestinations()
+  const handleShare = async () => {
+    // In production, use html2canvas to generate image
+    alert('Generating shareable stats card...');
+  };
 
   return (
-    <div className="space-y-4 pb-4">
-      {/* Completed Banner */}
-      <div className="bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-xl p-6">
-        <div className="text-center">
-          <div className="text-4xl mb-2">🎉</div>
-          <h2 className="text-2xl font-bold mb-1">{trip.destination}</h2>
-          <p className="text-white/90 text-sm">
-            {new Date(trip.start_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })} -{' '}
-            {new Date(trip.end_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
-          </p>
-          <p className="text-white/80 text-xs mt-2">
-            Completed {daysAgo} {daysAgo === 1 ? 'day' : 'days'} ago
-          </p>
+    <div className="space-y-4">
+
+      {/* Trip Complete Header */}
+      <div className="text-center py-4">
+        <span className="text-4xl mb-2 block">✨</span>
+        <h2 className="text-2xl font-bold text-[#1A1A1A]">Trip Complete!</h2>
+        <p className="text-[#6B6B6B]">
+          {trip.destination} • {startDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - {endDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+        </p>
+      </div>
+
+      {/* Stats Cards */}
+      <div className="bg-white rounded-2xl p-5 border border-[#F0F0F0]">
+        <div className="grid grid-cols-3 gap-4 text-center">
+          <div>
+            <div className="w-12 h-12 bg-[#F0FDFA] rounded-xl flex items-center justify-center mx-auto mb-2">
+              <Clock className="w-6 h-6 text-[#0A7A6E]" />
+            </div>
+            <p className="text-2xl font-bold text-[#1A1A1A]">{totalDays}</p>
+            <p className="text-xs text-[#6B6B6B]">Days</p>
+          </div>
+          <div>
+            <div className="w-12 h-12 bg-[#F0FDFA] rounded-xl flex items-center justify-center mx-auto mb-2">
+              <MapPin className="w-6 h-6 text-[#0A7A6E]" />
+            </div>
+            <p className="text-2xl font-bold text-[#1A1A1A]">{distanceKm.toLocaleString()}</p>
+            <p className="text-xs text-[#6B6B6B]">km Traveled</p>
+          </div>
+          <div>
+            <div className="w-12 h-12 bg-[#F0FDFA] rounded-xl flex items-center justify-center mx-auto mb-2">
+              <Plane className="w-6 h-6 text-[#0A7A6E]" />
+            </div>
+            <p className="text-2xl font-bold text-[#1A1A1A]">{airMiles.toLocaleString()}</p>
+            <p className="text-xs text-[#6B6B6B]">Air Miles</p>
+          </div>
         </div>
       </div>
 
-      {/* Rating */}
-      <GlassCard>
-        <h3 className="font-bold text-[#1E293B] mb-3 text-center">How was your trip?</h3>
-        <div className="flex items-center justify-center gap-2 mb-2">
-          {[1, 2, 3, 4, 5].map((star) => (
+      {/* Rate Your Trip */}
+      <div className="bg-white rounded-2xl p-5 border border-[#F0F0F0]">
+        <h3 className="font-semibold text-[#1A1A1A] mb-4 text-center">Rate Your Trip</h3>
+
+        <div className="flex justify-center gap-2 mb-3">
+          {[1, 2, 3, 4, 5].map((value) => (
             <button
-              key={star}
-              onClick={() => handleRating(star)}
-              className="transition-transform hover:scale-110"
+              key={value}
+              onClick={() => handleRating(value)}
+              className="p-1"
             >
               <Star
-                className={`w-10 h-10 ${
-                  star <= rating ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'
-                }`}
+                className={`w-10 h-10 ${value <= rating ? 'text-amber-400 fill-amber-400' : 'text-[#E5E5E5]'}`}
               />
             </button>
           ))}
         </div>
-        {rating > 0 && (
-          <p className="text-center text-sm text-[#64748B]">
-            {rating === 5
-              ? 'Amazing! 🤩'
-              : rating === 4
-              ? 'Great trip! 😊'
-              : rating === 3
-              ? 'Good experience 👍'
-              : rating === 2
-              ? 'Could be better 🤔'
-              : 'Not great 😕'}
-          </p>
-        )}
-      </GlassCard>
 
-      {/* Expense Summary */}
-      <GlassCard>
-        <div className="flex items-center gap-2 mb-4">
-          <TrendingUp className="w-5 h-5 text-purple-600" />
-          <h3 className="font-bold text-[#1E293B]">Expense Summary</h3>
-        </div>
+        <p className="text-sm text-[#6B6B6B] text-center">
+          How was your {trip.destination} trip?
+        </p>
+      </div>
 
-        {expenses.length > 0 ? (
-          <>
-            <div className="text-center mb-4">
-              <p className="text-[#64748B] text-sm">Total Spent</p>
-              <p className="text-3xl font-bold text-purple-600">
-                ₹{totalSpent > 0 ? totalSpent.toLocaleString() : expenseBreakdown.flights + expenseBreakdown.hotels + expenseBreakdown.other}
-              </p>
-            </div>
+      {/* Trip Highlights / Photos */}
+      <div className="bg-white rounded-2xl p-5 border border-[#F0F0F0]">
+        <h3 className="font-semibold text-[#1A1A1A] mb-4">Trip Highlights</h3>
 
-            <div className="space-y-3">
-              {expenseBreakdown.flights > 0 && (
-                <div>
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-sm text-[#1E293B]">✈️ Flights</span>
-                    <span className="text-sm font-semibold text-[#1E293B]">₹{expenseBreakdown.flights.toLocaleString()}</span>
-                  </div>
-                  <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
-                    <div
-                      className="h-full bg-purple-500"
-                      style={{ width: `${(expenseBreakdown.flights / (totalSpent || 1)) * 100}%` }}
-                    />
-                  </div>
-                </div>
-              )}
-
-              {expenseBreakdown.hotels > 0 && (
-                <div>
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-sm text-[#1E293B]">🏨 Hotels</span>
-                    <span className="text-sm font-semibold text-[#1E293B]">₹{expenseBreakdown.hotels.toLocaleString()}</span>
-                  </div>
-                  <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
-                    <div
-                      className="h-full bg-pink-500"
-                      style={{ width: `${(expenseBreakdown.hotels / (totalSpent || 1)) * 100}%` }}
-                    />
-                  </div>
-                </div>
-              )}
-
-              {expenseBreakdown.other > 0 && (
-                <div>
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-sm text-[#1E293B]">🍽️ Other</span>
-                    <span className="text-sm font-semibold text-[#1E293B]">₹{expenseBreakdown.other.toLocaleString()}</span>
-                  </div>
-                  <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
-                    <div
-                      className="h-full bg-emerald-500"
-                      style={{ width: `${(expenseBreakdown.other / (totalSpent || 1)) * 100}%` }}
-                    />
-                  </div>
-                </div>
-              )}
-            </div>
-
-            <button className="w-full mt-4 py-2 border-2 border-purple-200 text-purple-600 rounded-xl text-sm font-medium hover:bg-purple-50 transition-colors flex items-center justify-center gap-2">
-              <Download className="w-4 h-4" />
-              Download Report
-            </button>
-          </>
-        ) : (
-          <div className="text-center py-6">
-            <p className="text-[#94A3B8] text-sm">No expenses tracked</p>
+        <div className="flex gap-3">
+          {/* Placeholder photos */}
+          <div className="w-20 h-20 bg-[#F8F7F5] rounded-xl flex items-center justify-center">
+            <Camera className="w-6 h-6 text-[#9CA3AF]" />
           </div>
-        )}
-      </GlassCard>
-
-      {/* Memories */}
-      <GlassCard>
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center gap-2">
-            <Camera className="w-5 h-5 text-purple-600" />
-            <h3 className="font-bold text-[#1E293B]">Memories</h3>
+          <div className="w-20 h-20 bg-[#F8F7F5] rounded-xl flex items-center justify-center">
+            <Camera className="w-6 h-6 text-[#9CA3AF]" />
           </div>
-          <span className="text-sm text-[#64748B]">{memories.length} photos</span>
-        </div>
-
-        {memories.length > 0 ? (
-          <div className="grid grid-cols-3 gap-2">
-            {memories.slice(0, 9).map((memory: any, idx: number) => (
-              <div key={idx} className="aspect-square bg-gray-100 rounded-lg overflow-hidden">
-                {/* Photo thumbnail would go here */}
-                <div className="w-full h-full bg-gradient-to-br from-purple-200 to-pink-200 flex items-center justify-center">
-                  <Camera className="w-6 h-6 text-purple-400" />
-                </div>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="text-center py-6 border-2 border-dashed border-gray-200 rounded-xl">
-            <Camera className="w-8 h-8 text-gray-300 mx-auto mb-2" />
-            <p className="text-[#94A3B8] text-sm">No memories added</p>
-          </div>
-        )}
-      </GlassCard>
-
-      {/* Share */}
-      <GlassCard>
-        <h3 className="font-bold text-[#1E293B] mb-3">Share Your Journey</h3>
-        <div className="grid grid-cols-2 gap-3">
-          <button
-            onClick={() => setShowStatsCard(true)}
-            className="py-4 bg-gradient-to-r from-purple-600 to-pink-500 text-white rounded-xl font-medium flex items-center justify-center gap-2 hover:from-purple-700 hover:to-pink-600 transition-all shadow-md"
-          >
-            <Camera className="w-5 h-5" />
-            Stats Card
-          </button>
-          <button className="py-4 bg-white border-2 border-purple-200 text-purple-600 rounded-xl font-medium flex items-center justify-center gap-2 hover:bg-purple-50 transition-colors">
-            <Download className="w-5 h-5" />
-            Create PDF
+          <button className="w-20 h-20 bg-[#F0FDFA] rounded-xl flex flex-col items-center justify-center border-2 border-dashed border-[#0A7A6E]">
+            <span className="text-[#0A7A6E] text-2xl">+</span>
+            <span className="text-xs text-[#0A7A6E] font-medium">Add</span>
           </button>
         </div>
-      </GlassCard>
+      </div>
 
-      {/* Suggested Next Destinations */}
-      <GlassCard>
-        <h3 className="font-bold text-[#1E293B] mb-3">Plan Your Next Adventure</h3>
-        <div className="space-y-2">
-          {suggestedDestinations.map((dest) => (
-            <div
-              key={dest.id}
-              className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl hover:bg-gray-100 cursor-pointer transition-colors"
-            >
-              <span className="text-3xl">{dest.emoji}</span>
-              <div className="flex-1">
-                <p className="font-semibold text-[#1E293B] text-sm">{dest.name}</p>
-                <p className="text-xs text-[#64748B]">{dest.country}</p>
-              </div>
-              <MapPin className="w-4 h-4 text-purple-400" />
-            </div>
-          ))}
-        </div>
-      </GlassCard>
-
-      {/* Stats Card Modal */}
-      {showStatsCard && (
-        <TripStatsCard trip={trip} stageData={stageData} onClose={() => setShowStatsCard(false)} />
-      )}
+      {/* Share Stats Button */}
+      <button
+        onClick={handleShare}
+        className="w-full bg-[#0A7A6E] text-white py-4 rounded-xl font-semibold flex items-center justify-center gap-2"
+      >
+        <Share2 className="w-5 h-5" />
+        Share Trip Stats
+      </button>
     </div>
-  )
+  );
 }
