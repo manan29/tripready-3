@@ -26,6 +26,7 @@ export default function PlanTripPage() {
   ]);
   const [rememberPrefs, setRememberPrefs] = useState(true);
   const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     // Set default date 30 days from now
@@ -33,17 +34,33 @@ export default function PlanTripPage() {
     defaultDate.setDate(defaultDate.getDate() + 30);
     setStartDate(defaultDate.toISOString().split('T')[0]);
 
-    // Check auth
+    // Load stored trip plan from home page
+    const stored = sessionStorage.getItem('tripPlan');
+    if (stored) {
+      const data = JSON.parse(stored);
+      if (data.freeform_query) {
+        setFreeformQuery(data.freeform_query);
+      }
+    }
+
+    // Check auth (but don't redirect!)
     checkAuth();
   }, []);
 
   const checkAuth = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    setIsLoggedIn(!!user);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      setIsLoggedIn(!!user);
 
-    if (user) {
-      loadUserProfile();
+      // If logged in, try to load saved preferences
+      if (user) {
+        loadUserProfile();
+      }
+    } catch (error) {
+      console.error('Auth check failed:', error);
+      setIsLoggedIn(false);
     }
+    setIsLoading(false);
   };
 
   const loadUserProfile = async () => {
@@ -69,8 +86,7 @@ export default function PlanTripPage() {
   };
 
   const updateKidsCount = (newCount: number) => {
-    if (newCount < 0) return;
-    if (newCount > 4) return;
+    if (newCount < 0 || newCount > 4) return;
 
     setKids(newCount);
 
@@ -92,7 +108,7 @@ export default function PlanTripPage() {
   };
 
   const handleContinue = () => {
-    // Store in sessionStorage for next screen
+    // Store all data and go to preferences - NO LOGIN CHECK
     sessionStorage.setItem('tripPlan', JSON.stringify({
       freeform_query: freeformQuery,
       start_date: startDate,
@@ -107,6 +123,14 @@ export default function PlanTripPage() {
   };
 
   const isValid = startDate && duration > 0 && adults > 0;
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <Sparkles className="w-8 h-8 text-[#0A7A6E] animate-pulse" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-white">
@@ -250,16 +274,18 @@ export default function PlanTripPage() {
           </div>
         )}
 
-        {/* Remember Preferences */}
-        <label className="flex items-center gap-3 cursor-pointer">
-          <input
-            type="checkbox"
-            checked={rememberPrefs}
-            onChange={(e) => setRememberPrefs(e.target.checked)}
-            className="w-5 h-5 rounded border-[#E5E5E5] text-[#0A7A6E] focus:ring-[#0A7A6E]"
-          />
-          <span className="text-sm text-[#6B6B6B]">Remember for future trips</span>
-        </label>
+        {/* Remember Preferences - only show if logged in */}
+        {isLoggedIn && (
+          <label className="flex items-center gap-3 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={rememberPrefs}
+              onChange={(e) => setRememberPrefs(e.target.checked)}
+              className="w-5 h-5 rounded border-[#E5E5E5] text-[#0A7A6E] focus:ring-[#0A7A6E]"
+            />
+            <span className="text-sm text-[#6B6B6B]">Remember for future trips</span>
+          </label>
+        )}
       </div>
 
       {/* Fixed Bottom Button */}
