@@ -35,12 +35,14 @@ export async function middleware(request: NextRequest) {
   } = await supabase.auth.getUser()
 
   // Protected routes - redirect to login if not authenticated
-  // Allow public access to: /, /login, /auth, /explore
+  // Allow public access to: /, /login, /auth, /explore, /plan (guest trip planning), /splash
   if (
     !user &&
     !request.nextUrl.pathname.startsWith('/login') &&
     !request.nextUrl.pathname.startsWith('/auth') &&
     !request.nextUrl.pathname.startsWith('/explore') &&
+    !request.nextUrl.pathname.startsWith('/plan') &&
+    !request.nextUrl.pathname.startsWith('/splash') &&
     request.nextUrl.pathname !== '/'
   ) {
     const url = request.nextUrl.clone()
