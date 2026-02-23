@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { Sparkles } from 'lucide-react';
+import { Sparkles, Mic, MicOff, X } from 'lucide-react';
 import { BottomNav } from '@/components/navigation/BottomNav';
 import { getDestinationImage } from '@/lib/destination-images';
 import { createClient } from '@/lib/supabase/client';
@@ -31,17 +31,87 @@ export default function HomePage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [greeting, setGreeting] = useState('Good morning');
 
+  // Voice states
+  const [isListening, setIsListening] = useState(false);
+  const [isVoiceSupported, setIsVoiceSupported] = useState(false);
+  const [voiceError, setVoiceError] = useState<string | null>(null);
+  const recognitionRef = useRef<any>(null);
+
   useEffect(() => {
     const hour = new Date().getHours();
     if (hour < 12) setGreeting('Good morning');
     else if (hour < 17) setGreeting('Good afternoon');
     else setGreeting('Good evening');
+
     checkAuth();
+    initVoiceRecognition();
+
+    return () => {
+      if (recognitionRef.current) {
+        recognitionRef.current.stop();
+      }
+    };
   }, []);
 
   const checkAuth = async () => {
     const { data: { user } } = await supabase.auth.getUser();
     setUser(user);
+  };
+
+  const initVoiceRecognition = () => {
+    if (typeof window !== 'undefined') {
+      const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+
+      if (SpeechRecognition) {
+        setIsVoiceSupported(true);
+        const recognition = new SpeechRecognition();
+        recognition.continuous = false;
+        recognition.interimResults = true;
+        recognition.lang = 'en-IN'; // Indian English
+
+        recognition.onstart = () => {
+          setIsListening(true);
+          setVoiceError(null);
+        };
+
+        recognition.onresult = (event: any) => {
+          const transcript = Array.from(event.results)
+            .map((result: any) => result[0].transcript)
+            .join('');
+          setSearchQuery(transcript);
+        };
+
+        recognition.onerror = (event: any) => {
+          console.error('Voice error:', event.error);
+          setIsListening(false);
+          if (event.error === 'not-allowed') {
+            setVoiceError('Microphone access denied. Please enable it in settings.');
+          } else if (event.error === 'no-speech') {
+            setVoiceError('No speech detected. Try again.');
+          } else {
+            setVoiceError('Voice recognition error. Try again.');
+          }
+        };
+
+        recognition.onend = () => {
+          setIsListening(false);
+        };
+
+        recognitionRef.current = recognition;
+      }
+    }
+  };
+
+  const toggleVoice = () => {
+    if (!recognitionRef.current) return;
+
+    if (isListening) {
+      recognitionRef.current.stop();
+    } else {
+      setSearchQuery('');
+      setVoiceError(null);
+      recognitionRef.current.start();
+    }
   };
 
   const handleSearch = () => {
@@ -98,24 +168,70 @@ export default function HomePage() {
           Where would you like to go?
         </p>
 
-        {/* Search Bar */}
-        <div className="max-w-md mx-auto mb-6">
+        {/* Search Bar with Voice */}
+        <div className="max-w-md mx-auto mb-4">
           <div className="flex items-center gap-3 bg-[#F8F7F5] rounded-2xl px-4 py-4 border border-[#E5E5E5] shadow-sm">
-            <Sparkles className="w-5 h-5 text-[#0A7A6E]" />
+            <Sparkles className="w-5 h-5 text-[#0A7A6E] flex-shrink-0" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-              placeholder="Describe your dream trip..."
+              placeholder={isListening ? "Listening..." : "Describe your dream trip..."}
               className="flex-1 bg-transparent outline-none text-[#1A1A1A] placeholder-[#9CA3AF]"
             />
-            {searchQuery && (
+
+            {/* Voice Button */}
+            {isVoiceSupported && (
+              <button
+                onClick={toggleVoice}
+                className={`w-10 h-10 rounded-full flex items-center justify-center transition-all ${
+                  isListening
+                    ? 'bg-red-500 animate-pulse'
+                    : 'bg-[#0A7A6E]'
+                }`}
+              >
+                {isListening ? (
+                  <MicOff className="w-5 h-5 text-white" />
+                ) : (
+                  <Mic className="w-5 h-5 text-white" />
+                )}
+              </button>
+            )}
+
+            {searchQuery && !isListening && (
               <button onClick={handleSearch} className="bg-[#0A7A6E] text-white px-4 py-2 rounded-xl text-sm font-semibold">
                 Go
               </button>
             )}
           </div>
+
+          {/* Voice listening indicator */}
+          {isListening && (
+            <div className="mt-3 flex items-center justify-center gap-2">
+              <div className="flex gap-1">
+                <div className="w-2 h-2 bg-[#0A7A6E] rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                <div className="w-2 h-2 bg-[#0A7A6E] rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                <div className="w-2 h-2 bg-[#0A7A6E] rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+              </div>
+              <span className="text-sm text-[#0A7A6E] font-medium">Listening... speak now</span>
+            </div>
+          )}
+
+          {/* Voice error */}
+          {voiceError && (
+            <div className="mt-3 flex items-center justify-center gap-2 text-red-500 text-sm">
+              <X className="w-4 h-4" />
+              <span>{voiceError}</span>
+            </div>
+          )}
+
+          {/* Helper text */}
+          {!isListening && !voiceError && (
+            <p className="text-center text-[#9CA3AF] text-sm mt-3">
+              {isVoiceSupported ? 'Type or tap 🎤 to speak' : 'Describe your trip in plain English'}
+            </p>
+          )}
         </div>
 
         {/* Quick Chips */}
@@ -167,7 +283,7 @@ export default function HomePage() {
             <div className="w-10 h-10 bg-[#0A7A6E] rounded-full flex items-center justify-center text-white font-bold">1</div>
             <div>
               <h3 className="font-semibold text-[#1A1A1A]">Tell us your plans</h3>
-              <p className="text-sm text-[#6B6B6B]">Describe your trip in plain English</p>
+              <p className="text-sm text-[#6B6B6B]">Type or speak your trip idea</p>
             </div>
           </div>
           <div className="flex items-center gap-4 bg-[#F8F7F5] rounded-2xl p-4">
