@@ -1,323 +1,209 @@
-'use client'
+'use client';
 
-import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
-import { createClient } from '@/lib/supabase/client'
-import { GlassCard } from '@/components/ui/GlassCard'
-import { LANGUAGES, DEFAULT_LANGUAGE } from '@/lib/language'
-import { calculateTotalAirMiles, formatAirMiles } from '@/lib/air-miles'
-import { ProfileStatsCard } from '@/components/stats/ProfileStatsCard'
-import {
-  User,
-  Mail,
-  Calendar,
-  MapPin,
-  Settings,
-  HelpCircle,
-  Star,
-  LogOut,
-  ChevronRight,
-  Loader2,
-  Globe,
-  Camera,
-} from 'lucide-react'
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { ArrowLeft, User, Mail, LogOut, ChevronRight, Bell, Shield, HelpCircle, Sparkles, Moon, Briefcase } from 'lucide-react';
+import { Screen } from '@/components/layout/Screen';
+import { Card } from '@/components/ui/Card';
+import { Button } from '@/components/ui/Button';
+import { Badge } from '@/components/ui/Badge';
+import { BottomNav } from '@/components/navigation/BottomNav';
+import { createClient } from '@/lib/supabase/client';
+import { cn } from '@/lib/design-system/cn';
+
+interface UserProfile {
+  id: string;
+  email: string;
+  full_name?: string;
+  avatar_url?: string;
+}
 
 export default function ProfilePage() {
-  const router = useRouter()
-  const supabase = createClient()
-  const [user, setUser] = useState<any>(null)
-  const [trips, setTrips] = useState<any[]>([])
-  const [stats, setStats] = useState({ totalTrips: 0, countries: 0, upcomingTrips: 0 })
-  const [loading, setLoading] = useState(true)
-  const [signingOut, setSigningOut] = useState(false)
-  const [language, setLanguage] = useState(DEFAULT_LANGUAGE)
-  const [showStatsCard, setShowStatsCard] = useState(false)
-  const [statsType, setStatsType] = useState<'overall' | 'year'>('overall')
-  const [statsYear, setStatsYear] = useState(new Date().getFullYear())
+  const router = useRouter();
+  const supabase = createClient();
+
+  const [user, setUser] = useState<UserProfile | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [tripCount, setTripCount] = useState(0);
+  const [loggingOut, setLoggingOut] = useState(false);
 
   useEffect(() => {
-    fetchUserData()
-    // Load language preference from localStorage
-    const savedLanguage = localStorage.getItem('journeyai-language')
-    if (savedLanguage) {
-      setLanguage(savedLanguage)
+    loadProfile();
+  }, []);
+
+  const loadProfile = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    if (!user) {
+      router.push('/login');
+      return;
     }
-  }, [])
+    
+    setUser({
+      id: user.id,
+      email: user.email || '',
+      full_name: user.user_metadata?.full_name,
+      avatar_url: user.user_metadata?.avatar_url,
+    });
 
-  const fetchUserData = async () => {
-    const {
-      data: { user: authUser },
-    } = await supabase.auth.getUser()
+    // Get trip count
+    const { count } = await supabase
+      .from('trips')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', user.id);
+    
+    setTripCount(count || 0);
+    setLoading(false);
+  };
 
-    if (!authUser) {
-      router.push('/')
-      return
-    }
-
-    setUser(authUser)
-
-    // Fetch user stats
-    const { data: tripsData } = await supabase.from('trips').select('*').eq('user_id', authUser.id)
-
-    if (tripsData) {
-      setTrips(tripsData)
-      const countries = new Set(tripsData.map((t) => t.country)).size
-      const upcoming = tripsData.filter((t) => new Date(t.start_date) > new Date()).length
-
-      setStats({
-        totalTrips: tripsData.length,
-        countries,
-        upcomingTrips: upcoming,
-      })
-    }
-
-    setLoading(false)
-  }
-
-  const handleSignOut = async () => {
-    setSigningOut(true)
-    await supabase.auth.signOut()
-    router.push('/')
-  }
-
-  const handleLanguageChange = (code: string) => {
-    setLanguage(code)
-    localStorage.setItem('journeyai-language', code)
-  }
-
-  const menuItems = [
-    {
-      icon: <Settings className="w-5 h-5" />,
-      label: 'Settings',
-      onClick: () => {},
-      disabled: true,
-    },
-    {
-      icon: <HelpCircle className="w-5 h-5" />,
-      label: 'Help & Support',
-      onClick: () => {},
-      disabled: true,
-    },
-    {
-      icon: <Star className="w-5 h-5" />,
-      label: 'Rate JourneyAI',
-      onClick: () => {},
-      disabled: true,
-    },
-    {
-      icon: <LogOut className="w-5 h-5" />,
-      label: 'Sign Out',
-      onClick: handleSignOut,
-      danger: true,
-    },
-  ]
+  const handleLogout = async () => {
+    setLoggingOut(true);
+    await supabase.auth.signOut();
+    router.push('/');
+  };
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin w-8 h-8 border-2 border-purple-500 border-t-transparent rounded-full" />
-      </div>
-    )
+      <Screen className="flex items-center justify-center pb-24">
+        <div className="w-10 h-10 border-4 border-primary-400 border-t-transparent rounded-full animate-spin" />
+        <BottomNav />
+      </Screen>
+    );
   }
 
+  const menuItems = [
+    { icon: Briefcase, label: 'My Trips', value: `${tripCount} trips`, href: '/trips' },
+    { icon: Bell, label: 'Notifications', value: 'On', href: '#' },
+    { icon: Moon, label: 'Appearance', value: 'Dark', href: '#' },
+    { icon: Shield, label: 'Privacy', href: '#' },
+    { icon: HelpCircle, label: 'Help & Support', href: '#' },
+  ];
+
   return (
-    <div className="min-h-screen pb-32">
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="px-4 sm:px-6 lg:px-8 pt-6 pb-8">
-          <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-6">Profile</h1>
-
-          {/* User Info Card */}
-          <GlassCard className="text-center max-w-md mx-auto">
-            <div className="w-20 h-20 md:w-24 md:h-24 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-white text-3xl md:text-4xl font-bold mx-auto mb-3">
-              {user?.email?.[0]?.toUpperCase() || 'U'}
-            </div>
-            <h2 className="text-xl md:text-2xl font-semibold text-gray-900 mb-1">
-              {user?.user_metadata?.name || 'Traveler'}
-            </h2>
-            <p className="text-sm md:text-base text-[#64748B] flex items-center justify-center gap-1">
-              <Mail className="w-4 h-4 md:w-5 md:h-5" />
-              {user?.email}
-            </p>
-          </GlassCard>
+    <Screen className="pb-24">
+      {/* Header */}
+      <header className="px-5 pt-safe-top">
+        <div className="flex items-center justify-between py-4">
+          <button 
+            onClick={() => router.back()} 
+            className="w-11 h-11 rounded-2xl bg-dark-elevated flex items-center justify-center hover:bg-dark-tertiary transition-colors"
+          >
+            <ArrowLeft className="w-5 h-5 text-text-primary" />
+          </button>
+          <h1 className="text-lg font-bold text-text-primary">Profile</h1>
+          <div className="w-11" />
         </div>
+      </header>
 
-        {/* Stats */}
-        <div className="px-4 sm:px-6 lg:px-8 mb-6">
-          <div className="grid grid-cols-3 gap-3 md:gap-4 max-w-2xl mx-auto">
-            <GlassCard className="text-center" padding="sm">
-              <p className="text-2xl md:text-3xl font-bold text-purple-600">{stats.totalTrips}</p>
-              <p className="text-xs md:text-sm text-[#64748B] mt-1">Total Trips</p>
-            </GlassCard>
-            <GlassCard className="text-center" padding="sm">
-              <p className="text-2xl md:text-3xl font-bold text-purple-600">{stats.countries}</p>
-              <p className="text-xs md:text-sm text-[#64748B] mt-1">Countries</p>
-            </GlassCard>
-            <GlassCard className="text-center" padding="sm">
-              <p className="text-2xl md:text-3xl font-bold text-purple-600">{stats.upcomingTrips}</p>
-              <p className="text-xs md:text-sm text-[#64748B] mt-1">Upcoming</p>
-            </GlassCard>
-          </div>
-        </div>
-
-        {/* Shareable Stats Cards */}
-        {trips.length > 0 && (
-          <div className="px-4 sm:px-6 lg:px-8 mb-6">
-            <h3 className="text-sm md:text-base font-semibold text-[#64748B] uppercase tracking-wide mb-3 max-w-2xl mx-auto flex items-center gap-2">
-              <Camera className="w-4 h-4 md:w-5 md:h-5" />
-              Share Your Journey
-            </h3>
-            <GlassCard className="max-w-2xl mx-auto">
-              <p className="text-sm md:text-base text-[#1E293B] mb-4">
-                Create beautiful shareable cards of your travel stats
-              </p>
-              <div className="grid grid-cols-2 gap-3">
-                <button
-                  onClick={() => {
-                    setStatsType('year')
-                    setStatsYear(new Date().getFullYear())
-                    setShowStatsCard(true)
-                  }}
-                  className="py-4 bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-500 text-white rounded-xl font-medium flex flex-col items-center justify-center gap-1 hover:from-indigo-700 hover:via-purple-700 hover:to-pink-600 transition-all shadow-md"
-                >
-                  <span className="text-xl md:text-2xl">🎊</span>
-                  <span className="text-sm md:text-base">{new Date().getFullYear()} Wrapped</span>
-                </button>
-                <button
-                  onClick={() => {
-                    setStatsType('overall')
-                    setShowStatsCard(true)
-                  }}
-                  className="py-4 bg-gradient-to-r from-purple-600 to-pink-500 text-white rounded-xl font-medium flex flex-col items-center justify-center gap-1 hover:from-purple-700 hover:to-pink-600 transition-all shadow-md"
-                >
-                  <span className="text-xl md:text-2xl">🌍</span>
-                  <span className="text-sm md:text-base">All Time Stats</span>
-                </button>
-              </div>
-              <div className="mt-4 pt-4 border-t border-gray-100">
-                <div className="flex items-center justify-between text-xs md:text-sm">
-                  <span className="text-[#64748B]">Total Air Miles:</span>
-                  <span className="font-bold text-purple-600 text-base md:text-lg">
-                    {formatAirMiles(calculateTotalAirMiles(trips))}
-                  </span>
-                </div>
-              </div>
-            </GlassCard>
-          </div>
-        )}
-
-        {/* Account Details */}
-        <div className="px-4 sm:px-6 lg:px-8 mb-6">
-          <h3 className="text-sm md:text-base font-semibold text-[#64748B] uppercase tracking-wide mb-3 max-w-2xl mx-auto">
-            Account Details
-          </h3>
-          <GlassCard className="max-w-2xl mx-auto">
-            <div className="space-y-3">
-              <div className="flex items-center gap-3 text-sm md:text-base">
-                <User className="w-4 h-4 md:w-5 md:h-5 text-[#94A3B8]" />
-                <span className="text-[#64748B]">User ID:</span>
-                <span className="text-gray-900 font-mono text-xs md:text-sm">{user?.id.slice(0, 8)}...</span>
-              </div>
-              <div className="flex items-center gap-3 text-sm md:text-base">
-                <Calendar className="w-4 h-4 md:w-5 md:h-5 text-[#94A3B8]" />
-                <span className="text-[#64748B]">Member since:</span>
-                <span className="text-gray-900">
-                  {new Date(user?.created_at).toLocaleDateString('en-US', {
-                    month: 'long',
-                    year: 'numeric',
-                  })}
+      <div className="px-5 py-6 space-y-6">
+        {/* Profile Card */}
+        <Card variant="elevated" padding="lg" className="relative overflow-hidden">
+          {/* Glow effect */}
+          <div className="absolute top-0 right-0 w-32 h-32 bg-primary-400/20 rounded-full blur-3xl" />
+          
+          <div className="relative flex items-center gap-4">
+            {/* Avatar */}
+            <div className="w-16 h-16 rounded-2xl bg-primary-400 flex items-center justify-center shadow-glow">
+              {user?.avatar_url ? (
+                <img src={user.avatar_url} alt="" className="w-full h-full rounded-2xl object-cover" />
+              ) : (
+                <span className="text-2xl font-bold text-dark-primary">
+                  {user?.full_name?.[0] || user?.email?.[0]?.toUpperCase()}
                 </span>
-              </div>
+              )}
             </div>
-          </GlassCard>
-        </div>
-
-        {/* Language Settings */}
-        <div className="px-4 sm:px-6 lg:px-8 mb-6">
-          <h3 className="text-sm md:text-base font-semibold text-[#64748B] uppercase tracking-wide mb-3 flex items-center gap-2 max-w-2xl mx-auto">
-            <Globe className="w-4 h-4 md:w-5 md:h-5" />
-            Language
-          </h3>
-          <GlassCard className="max-w-2xl mx-auto">
-          <div className="space-y-2">
-            {LANGUAGES.map((lang) => (
-              <button
-                key={lang.code}
-                onClick={() => handleLanguageChange(lang.code)}
-                className={`w-full p-3 rounded-xl text-left flex items-center justify-between transition-colors ${
-                  language === lang.code
-                    ? 'bg-purple-100 border-2 border-purple-500'
-                    : 'bg-gray-50 border-2 border-transparent hover:bg-gray-100'
-                }`}
-              >
-                  <div>
-                    <span className="font-medium text-gray-900 text-sm md:text-base">{lang.nativeName}</span>
-                    <span className="text-xs md:text-sm text-[#64748B] ml-2">({lang.name})</span>
-                  </div>
-                  {language === lang.code && <span className="text-purple-600 text-xl md:text-2xl">✓</span>}
-                </button>
-              ))}
+            
+            <div className="flex-1">
+              <h2 className="text-xl font-bold text-text-primary">
+                {user?.full_name || 'Traveler'}
+              </h2>
+              <p className="text-text-secondary text-sm flex items-center gap-1">
+                <Mail className="w-4 h-4" />
+                {user?.email}
+              </p>
             </div>
-            <p className="text-xs md:text-sm text-[#94A3B8] mt-3 text-center">
-              🚀 Sarvam AI translation coming soon for Hindi & Kannada
-            </p>
-          </GlassCard>
-        </div>
-
-        {/* Menu Items */}
-        <div className="px-4 sm:px-6 lg:px-8">
-          <h3 className="text-sm md:text-base font-semibold text-[#64748B] uppercase tracking-wide mb-3 max-w-2xl mx-auto">Menu</h3>
-          <div className="space-y-2 max-w-2xl mx-auto">
-          {menuItems.map((item, idx) => (
-            <GlassCard
-              key={idx}
-              onClick={item.disabled ? undefined : item.onClick}
-              className={item.disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
-            >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className={item.danger ? 'text-red-500' : 'text-[#1E293B]'}>{item.icon}</div>
-                    <span className={`font-medium text-sm md:text-base ${item.danger ? 'text-red-500' : 'text-gray-900'}`}>
-                      {item.label}
-                    </span>
-                    {item.disabled && (
-                      <span className="text-xs md:text-sm text-[#94A3B8] bg-gray-100 px-2 py-0.5 rounded-full">
-                        Coming Soon
-                      </span>
-                    )}
-                  </div>
-                  {item.label === 'Sign Out' ? (
-                    signingOut ? (
-                      <Loader2 className="w-5 h-5 md:w-6 md:h-6 text-[#94A3B8] animate-spin" />
-                    ) : (
-                      <ChevronRight className="w-5 h-5 md:w-6 md:h-6 text-[#94A3B8]" />
-                    )
-                  ) : (
-                    <ChevronRight className="w-5 h-5 md:w-6 md:h-6 text-[#94A3B8]" />
-                  )}
-                </div>
-              </GlassCard>
-            ))}
           </div>
-        </div>
 
-        {/* App Version */}
-        <div className="px-4 sm:px-6 lg:px-8 mt-8 text-center">
-          <p className="text-xs md:text-sm text-[#94A3B8]">JourneyAI v1.0.0</p>
-          <p className="text-xs md:text-sm text-[#94A3B8] mt-1">Made with ❤️ for travelers</p>
-        </div>
+          {/* Stats */}
+          <div className="flex items-center gap-4 mt-6 pt-6 border-t border-border-subtle">
+            <div className="flex-1 text-center">
+              <p className="text-2xl font-bold text-primary-400">{tripCount}</p>
+              <p className="text-xs text-text-tertiary">Trips</p>
+            </div>
+            <div className="w-px h-10 bg-border-subtle" />
+            <div className="flex-1 text-center">
+              <p className="text-2xl font-bold text-gold-400">0</p>
+              <p className="text-xs text-text-tertiary">Countries</p>
+            </div>
+            <div className="w-px h-10 bg-border-subtle" />
+            <div className="flex-1 text-center">
+              <Badge variant="gold">Free</Badge>
+              <p className="text-xs text-text-tertiary mt-1">Plan</p>
+            </div>
+          </div>
+        </Card>
 
-        {/* Stats Card Modal */}
-        {showStatsCard && (
-          <ProfileStatsCard
-            trips={trips}
-            user={user}
-            type={statsType}
-            year={statsYear}
-            onClose={() => setShowStatsCard(false)}
-          />
-        )}
+        {/* Menu */}
+        <Card variant="default" padding="none">
+          {menuItems.map((item, index) => (
+            <button
+              key={item.label}
+              onClick={() => item.href !== '#' && router.push(item.href)}
+              className={cn(
+                'w-full flex items-center gap-4 px-4 py-4 hover:bg-dark-elevated transition-colors',
+                index !== menuItems.length - 1 && 'border-b border-border-subtle'
+              )}
+            >
+              <div className="w-10 h-10 rounded-xl bg-dark-elevated flex items-center justify-center">
+                <item.icon className="w-5 h-5 text-text-secondary" />
+              </div>
+              <div className="flex-1 text-left">
+                <p className="font-medium text-text-primary">{item.label}</p>
+              </div>
+              {item.value && (
+                <span className="text-sm text-text-tertiary">{item.value}</span>
+              )}
+              <ChevronRight className="w-5 h-5 text-text-tertiary" />
+            </button>
+          ))}
+        </Card>
+
+        {/* Upgrade Card */}
+        <Card variant="elevated" padding="lg" className="relative overflow-hidden border-gold-400/30">
+          <div className="absolute top-0 right-0 w-24 h-24 bg-gold-400/20 rounded-full blur-2xl" />
+          
+          <div className="relative flex items-center gap-4">
+            <div className="w-12 h-12 rounded-xl bg-gold-400/20 flex items-center justify-center">
+              <Sparkles className="w-6 h-6 text-gold-400" />
+            </div>
+            <div className="flex-1">
+              <h3 className="font-bold text-text-primary">Upgrade to Pro</h3>
+              <p className="text-sm text-text-secondary">Unlimited trips, priority support</p>
+            </div>
+            <Badge variant="gold">Coming Soon</Badge>
+          </div>
+        </Card>
+
+        {/* Logout */}
+        <Button 
+          variant="outline" 
+          size="lg" 
+          fullWidth 
+          onClick={handleLogout}
+          loading={loggingOut}
+          icon={<LogOut className="w-5 h-5" />}
+          className="border-red-500/30 text-red-400 hover:bg-red-500/10"
+        >
+          Sign Out
+        </Button>
+
+        {/* Version */}
+        <p className="text-center text-text-tertiary text-xs">
+          JourneyAI v1.0.0 • Made with ❤️ in India
+        </p>
       </div>
-    </div>
-  )
+
+      <BottomNav />
+    </Screen>
+  );
 }

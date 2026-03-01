@@ -74,13 +74,13 @@ export default function PreferencesPage() {
         <div className="flex items-center gap-4 py-4">
           <button 
             onClick={() => router.back()} 
-            className="w-11 h-11 rounded-2xl bg-neutral-100 flex items-center justify-center hover:bg-neutral-200 transition-colors"
+            className="w-11 h-11 rounded-2xl bg-dark-elevated flex items-center justify-center hover:bg-dark-tertiary transition-colors"
           >
-            <ArrowLeft className="w-5 h-5 text-neutral-700" />
+            <ArrowLeft className="w-5 h-5 text-text-secondary" />
           </button>
           <div className="flex-1">
-            <h1 className="text-xl font-bold text-neutral-900">Your Preferences</h1>
-            <p className="text-sm text-neutral-500">Help us personalize</p>
+            <h1 className="text-xl font-bold text-text-primary">Your Preferences</h1>
+            <p className="text-sm text-text-tertiary">Help us personalize</p>
           </div>
           <Badge variant="primary">Step 2/2</Badge>
         </div>
@@ -90,12 +90,12 @@ export default function PreferencesPage() {
         {/* Airline Preference */}
         <Card variant="elevated" padding="lg">
           <div className="flex items-center gap-3 mb-4">
-            <div className="w-10 h-10 rounded-xl bg-sky-100 flex items-center justify-center">
-              <Plane className="w-5 h-5 text-sky-600" />
+            <div className="w-10 h-10 rounded-xl bg-sky-500/20 flex items-center justify-center border border-sky-500/30">
+              <Plane className="w-5 h-5 text-sky-400" />
             </div>
             <div>
-              <h3 className="font-semibold text-neutral-900">Airline preference</h3>
-              <p className="text-sm text-neutral-500">For flight recommendations</p>
+              <h3 className="font-semibold text-text-primary">Airline preference</h3>
+              <p className="text-sm text-text-tertiary">For flight recommendations</p>
             </div>
           </div>
           
@@ -107,8 +107,8 @@ export default function PreferencesPage() {
                 className={cn(
                   'flex items-center gap-2 py-3 px-4 rounded-xl text-sm font-medium transition-all duration-200',
                   airline === a.id
-                    ? 'bg-sky-500 text-white shadow-lg shadow-sky-500/25'
-                    : 'bg-neutral-50 text-neutral-700 hover:bg-neutral-100'
+                    ? 'bg-sky-500 text-white shadow-glow-sm'
+                    : 'bg-dark-secondary text-text-secondary hover:bg-dark-tertiary border border-border-default'
                 )}
               >
                 <span>{a.emoji}</span>
@@ -121,12 +121,12 @@ export default function PreferencesPage() {
         {/* Hotel Rating */}
         <Card variant="elevated" padding="lg">
           <div className="flex items-center gap-3 mb-4">
-            <div className="w-10 h-10 rounded-xl bg-violet-100 flex items-center justify-center">
-              <Building2 className="w-5 h-5 text-violet-600" />
+            <div className="w-10 h-10 rounded-xl bg-violet-500/20 flex items-center justify-center border border-violet-500/30">
+              <Building2 className="w-5 h-5 text-violet-400" />
             </div>
             <div>
-              <h3 className="font-semibold text-neutral-900">Hotel rating</h3>
-              <p className="text-sm text-neutral-500">Minimum star rating</p>
+              <h3 className="font-semibold text-text-primary">Hotel rating</h3>
+              <p className="text-sm text-text-tertiary">Minimum star rating</p>
             </div>
           </div>
           
@@ -138,14 +138,14 @@ export default function PreferencesPage() {
                 className={cn(
                   'py-3 px-2 rounded-xl text-center transition-all duration-200',
                   hotelRating === r.id
-                    ? 'bg-violet-500 text-white shadow-lg shadow-violet-500/25'
-                    : 'bg-neutral-50 text-neutral-700 hover:bg-neutral-100'
+                    ? 'bg-violet-500 text-white shadow-glow-sm'
+                    : 'bg-dark-secondary text-text-secondary hover:bg-dark-tertiary border border-border-default'
                 )}
               >
                 <p className="font-bold text-sm">{r.label}</p>
                 <p className={cn(
                   'text-[10px] mt-0.5',
-                  hotelRating === r.id ? 'text-violet-100' : 'text-neutral-500'
+                  hotelRating === r.id ? 'text-violet-100' : 'text-text-tertiary'
                 )}>{r.desc}</p>
               </button>
             ))}
@@ -155,12 +155,12 @@ export default function PreferencesPage() {
         {/* Amenities */}
         <Card variant="elevated" padding="lg">
           <div className="flex items-center gap-3 mb-4">
-            <div className="w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center">
-              <Sparkles className="w-5 h-5 text-emerald-600" />
+            <div className="w-10 h-10 rounded-xl bg-emerald-500/20 flex items-center justify-center border border-emerald-500/30">
+              <Sparkles className="w-5 h-5 text-emerald-400" />
             </div>
             <div>
-              <h3 className="font-semibold text-neutral-900">Must-have amenities</h3>
-              <p className="text-sm text-neutral-500">Select all that apply</p>
+              <h3 className="font-semibold text-text-primary">Must-have amenities</h3>
+              <p className="text-sm text-text-tertiary">Select all that apply</p>
             </div>
           </div>
           
@@ -174,14 +174,14 @@ export default function PreferencesPage() {
                   className={cn(
                     'flex items-center gap-2 py-3 px-4 rounded-xl text-sm font-medium transition-all duration-200 relative',
                     selected
-                      ? 'bg-emerald-50 text-emerald-700 ring-2 ring-emerald-500'
-                      : 'bg-neutral-50 text-neutral-700 hover:bg-neutral-100'
+                      ? 'bg-emerald-500/20 text-emerald-400 ring-2 ring-emerald-500'
+                      : 'bg-dark-secondary text-text-secondary hover:bg-dark-tertiary border border-border-default'
                   )}
                 >
                   <span>{a.emoji}</span>
                   <span className="flex-1 text-left">{a.label}</span>
                   {selected && (
-                    <Check className="w-4 h-4 text-emerald-500" />
+                    <Check className="w-4 h-4 text-emerald-400" />
                   )}
                 </button>
               );
@@ -191,7 +191,7 @@ export default function PreferencesPage() {
       </div>
 
       {/* Bottom CTA */}
-      <div className="fixed bottom-0 left-0 right-0 p-5 bg-white/95 backdrop-blur-xl border-t border-neutral-100">
+      <div className="fixed bottom-0 left-0 right-0 p-5 bg-dark-secondary/95 backdrop-blur-xl border-t border-border-default">
         <Button
           size="xl"
           fullWidth
@@ -202,7 +202,7 @@ export default function PreferencesPage() {
         </Button>
         <button 
           onClick={handleContinue}
-          className="w-full mt-3 text-center text-sm text-neutral-500 font-medium"
+          className="w-full mt-3 text-center text-sm text-text-tertiary font-medium hover:text-text-secondary transition-colors"
         >
           Skip preferences
         </button>

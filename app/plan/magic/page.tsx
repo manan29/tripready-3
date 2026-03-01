@@ -150,32 +150,32 @@ export default function MagicPage() {
   // Loading
   if (step === 'loading') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-[#F0FDFA] to-white flex flex-col">
+      <div className="min-h-screen bg-gradient-to-br from-dark-primary via-dark-secondary to-dark-primary flex flex-col">
         {/* Back to Home */}
         <div className="px-5 pt-12">
-          <button onClick={goHome} className="flex items-center gap-2 text-[#6B6B6B]">
+          <button onClick={goHome} className="flex items-center gap-2 text-text-tertiary hover:text-text-secondary transition-colors">
             <Home className="w-5 h-5" />
             <span className="text-sm">Start over</span>
           </button>
         </div>
 
         <div className="flex-1 flex flex-col items-center justify-center p-5">
-          <div className="w-20 h-20 bg-gradient-to-br from-[#0A7A6E] to-[#0D9488] rounded-3xl flex items-center justify-center mb-6 shadow-lg shadow-[#0A7A6E]/30">
-            <Sparkles className="w-10 h-10 text-white animate-pulse" />
+          <div className="w-20 h-20 bg-gradient-to-br from-primary-400 to-primary-500 rounded-3xl flex items-center justify-center mb-6 shadow-glow">
+            <Sparkles className="w-10 h-10 text-dark-primary animate-pulse" />
           </div>
-          <h2 className="text-xl font-bold text-[#1A1A1A] mb-2">Planning your trip...</h2>
-          <p className="text-[#6B6B6B] mb-8">This takes just a moment</p>
+          <h2 className="text-xl font-bold text-text-primary mb-2">Planning your trip...</h2>
+          <p className="text-text-tertiary mb-8">This takes just a moment</p>
           <div className="w-full max-w-xs space-y-3">
             {LOADING_STEPS.map((s, i) => (
               <div key={i} className="flex items-center gap-3">
                 {i < currentLoadingStep ? (
-                  <div className="w-6 h-6 bg-[#0A7A6E] rounded-full flex items-center justify-center"><Check className="w-4 h-4 text-white" /></div>
+                  <div className="w-6 h-6 bg-primary-400 rounded-full flex items-center justify-center shadow-glow-sm"><Check className="w-4 h-4 text-dark-primary" /></div>
                 ) : i === currentLoadingStep ? (
-                  <Loader2 className="w-6 h-6 text-[#0A7A6E] animate-spin" />
+                  <Loader2 className="w-6 h-6 text-primary-400 animate-spin" />
                 ) : (
-                  <div className="w-6 h-6 border-2 border-[#E5E5E5] rounded-full" />
+                  <div className="w-6 h-6 border-2 border-border-default rounded-full" />
                 )}
-                <span className={`text-sm ${i <= currentLoadingStep ? 'text-[#1A1A1A]' : 'text-[#9CA3AF]'}`}>{s}</span>
+                <span className={`text-sm ${i <= currentLoadingStep ? 'text-text-primary' : 'text-text-tertiary'}`}>{s}</span>
               </div>
             ))}
           </div>
@@ -187,22 +187,22 @@ export default function MagicPage() {
   // Signup
   if (step === 'signup') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-[#F0FDFA] to-white flex flex-col">
+      <div className="min-h-screen bg-gradient-to-br from-dark-primary via-dark-secondary to-dark-primary flex flex-col">
         <div className="px-5 pt-12">
-          <button onClick={() => setStep('results')} className="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-lg">
-            <ArrowLeft className="w-5 h-5 text-[#1A1A1A]" />
+          <button onClick={() => setStep('results')} className="w-10 h-10 bg-dark-elevated rounded-xl flex items-center justify-center shadow-dark-lg hover:bg-dark-tertiary transition-colors">
+            <ArrowLeft className="w-5 h-5 text-text-primary" />
           </button>
         </div>
         <div className="flex-1 flex flex-col items-center justify-center px-5">
-          <div className="w-20 h-20 bg-gradient-to-br from-[#0A7A6E] to-[#0D9488] rounded-3xl flex items-center justify-center mb-6 shadow-lg">
-            <Sparkles className="w-10 h-10 text-white" />
+          <div className="w-20 h-20 bg-gradient-to-br from-primary-400 to-primary-500 rounded-3xl flex items-center justify-center mb-6 shadow-glow">
+            <Sparkles className="w-10 h-10 text-dark-primary" />
           </div>
-          <h2 className="text-xl font-bold text-[#1A1A1A] mb-2">Save Your Trip</h2>
-          <p className="text-[#6B6B6B] mb-8 text-center">Sign in to access your trip anytime</p>
-          <button onClick={handleLoginRedirect} className="w-full max-w-xs bg-[#0A7A6E] text-white py-4 rounded-2xl font-semibold shadow-lg shadow-[#0A7A6E]/30 mb-4">
+          <h2 className="text-xl font-bold text-text-primary mb-2">Save Your Trip</h2>
+          <p className="text-text-tertiary mb-8 text-center">Sign in to access your trip anytime</p>
+          <button onClick={handleLoginRedirect} className="w-full max-w-xs bg-primary-400 text-dark-primary py-4 rounded-2xl font-semibold shadow-glow mb-4 hover:bg-primary-500 transition-colors">
             Sign Up / Login
           </button>
-          <button onClick={goHome} className="text-[#6B6B6B]">Maybe Later</button>
+          <button onClick={goHome} className="text-text-tertiary hover:text-text-secondary transition-colors">Maybe Later</button>
         </div>
       </div>
     );
@@ -226,26 +226,26 @@ export default function MagicPage() {
   const minPrice = prices.length ? Math.min(...prices) : 0;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#F0FDFA] via-white to-[#F8F7F5] pb-28">
+    <div className="min-h-screen bg-gradient-to-br from-dark-primary via-dark-secondary to-dark-primary pb-28">
       {/* Floating Header */}
       <div className="fixed top-0 left-0 right-0 z-20 px-4 pt-12 pb-3">
         <div className="flex items-center justify-between">
-          <button onClick={goHome} className="w-11 h-11 bg-white/80 backdrop-blur-xl rounded-2xl flex items-center justify-center shadow-lg shadow-black/5">
-            <Home className="w-5 h-5 text-[#1A1A1A]" />
+          <button onClick={goHome} className="w-11 h-11 bg-dark-elevated/80 backdrop-blur-xl rounded-2xl flex items-center justify-center shadow-dark-lg hover:bg-dark-tertiary transition-colors">
+            <Home className="w-5 h-5 text-text-primary" />
           </button>
-          <span className="text-sm font-medium text-[#6B6B6B]">Trip Preview</span>
+          <span className="text-sm font-medium text-text-tertiary">Trip Preview</span>
           <div className="w-11" />
         </div>
       </div>
 
       {/* Hero */}
       <div className="px-4 pt-28 pb-4">
-        <div className="relative rounded-[2rem] overflow-hidden shadow-2xl shadow-[#0A7A6E]/20">
+        <div className="relative rounded-[2rem] overflow-hidden shadow-dark-lg border border-border-subtle">
           <img src={destinationImage || 'https://images.unsplash.com/photo-1512453979798-5ea266f8880c?w=800'} alt={destination} className="w-full h-44 object-cover" />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-dark-primary via-dark-primary/60 to-transparent" />
           <div className="absolute bottom-0 left-0 right-0 p-5">
             <h1 className="text-white font-bold text-2xl mb-1">{destination}</h1>
-            <p className="text-white/70 text-sm">
+            <p className="text-text-secondary text-sm">
               {new Date(tripData?.start_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} • {tripData?.duration} days • From {fromCity}
             </p>
           </div>
@@ -254,48 +254,48 @@ export default function MagicPage() {
 
       <div className="px-4 space-y-4">
         {/* Honest Take */}
-        <div className="bg-white/70 backdrop-blur-xl rounded-3xl p-5 shadow-lg shadow-black/5">
-          <h2 className="font-bold text-[#1A1A1A] mb-3">🌡️ Quick Take</h2>
-          <p className="text-sm text-[#6B6B6B]">
+        <div className="glass rounded-3xl p-5 shadow-dark-lg border border-border-subtle">
+          <h2 className="font-bold text-text-primary mb-3">🌡️ Quick Take</h2>
+          <p className="text-sm text-text-secondary">
             {weather?.current ? `${weather.current.temp}°C - ${weather.current.temp > 32 ? "Hot! Plan indoor time midday." : "Pleasant for sightseeing."}` : tripPlan?.honest_take?.weather_reality}
           </p>
-          <p className="text-sm text-[#6B6B6B] mt-2">
-            ✈️ Direct flights from {fromCity}: <span className="font-medium text-[#1A1A1A]">{flightTrends?.directFlightsFromCity || 'Multiple'} daily</span>
+          <p className="text-sm text-text-secondary mt-2">
+            ✈️ Direct flights from {fromCity}: <span className="font-medium text-text-primary">{flightTrends?.directFlightsFromCity || 'Multiple'} daily</span>
           </p>
         </div>
 
         {/* Flight Insight */}
         {hasTrends && (
-          <div className="bg-white/70 backdrop-blur-xl rounded-3xl p-5 shadow-lg shadow-black/5">
+          <div className="glass rounded-3xl p-5 shadow-dark-lg border border-border-subtle">
             <div className="flex items-center gap-2 mb-4">
-              <Plane className="w-5 h-5 text-[#0A7A6E]" />
-              <h2 className="font-bold text-[#1A1A1A]">Flight from {fromCity}</h2>
+              <Plane className="w-5 h-5 text-primary-400" />
+              <h2 className="font-bold text-text-primary">Flight from {fromCity}</h2>
             </div>
 
-            <div className="bg-[#F8F7F5] rounded-2xl p-3 mb-3">
+            <div className="bg-dark-elevated rounded-2xl p-3 mb-3">
               <div className="h-12 flex items-end gap-0.5">
                 {trends.slice(0, 20).map((t: FlightTrend, i: number) => {
                   const h = maxPrice > minPrice ? ((t.price - minPrice) / (maxPrice - minPrice)) * 100 : 50;
-                  return <div key={i} className={`flex-1 rounded-t ${t.price === lowestPrice ? 'bg-green-500' : i === 0 ? 'bg-[#0A7A6E]' : 'bg-[#CBD5E1]'}`} style={{ height: `${Math.max(h, 10)}%` }} />;
+                  return <div key={i} className={`flex-1 rounded-t ${t.price === lowestPrice ? 'bg-emerald-500' : i === 0 ? 'bg-primary-400' : 'bg-border-strong'}`} style={{ height: `${Math.max(h, 10)}%` }} />;
                 })}
               </div>
             </div>
 
             {savings > 500 && (
-              <div className="bg-green-50 rounded-2xl p-3 mb-3 flex items-center gap-2">
-                <TrendingDown className="w-5 h-5 text-green-600" />
-                <span className="text-sm text-green-700">Save ₹{savings.toLocaleString()} on {new Date(lowestDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
+              <div className="bg-emerald-500/20 rounded-2xl p-3 mb-3 flex items-center gap-2 border border-emerald-500/30">
+                <TrendingDown className="w-5 h-5 text-emerald-400" />
+                <span className="text-sm text-emerald-400">Save ₹{savings.toLocaleString()} on {new Date(lowestDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
               </div>
             )}
 
             {bestFlight.airline && (
-              <div className="border border-[#0A7A6E] rounded-2xl p-4">
+              <div className="border border-primary-400/50 rounded-2xl p-4 bg-primary-400/5">
                 <div className="flex justify-between items-start">
                   <div>
-                    <p className="font-semibold text-[#1A1A1A]">{bestFlight.airline}</p>
-                    <p className="text-xs text-[#6B6B6B]">{bestFlight.departure} → {bestFlight.arrival} • {bestFlight.duration}</p>
+                    <p className="font-semibold text-text-primary">{bestFlight.airline}</p>
+                    <p className="text-xs text-text-tertiary">{bestFlight.departure} → {bestFlight.arrival} • {bestFlight.duration}</p>
                   </div>
-                  <p className="text-lg font-bold text-[#0A7A6E]">₹{bestFlight.price?.toLocaleString()}</p>
+                  <p className="text-lg font-bold text-primary-400">₹{bestFlight.price?.toLocaleString()}</p>
                 </div>
               </div>
             )}
@@ -304,40 +304,40 @@ export default function MagicPage() {
 
         {/* Things to Know */}
         {thingsToKnow.length > 0 && (
-          <div className="bg-white/70 backdrop-blur-xl rounded-3xl p-5 shadow-lg shadow-black/5">
-            <h2 className="font-bold text-[#1A1A1A] mb-3">💡 Things to Know</h2>
+          <div className="glass rounded-3xl p-5 shadow-dark-lg border border-border-subtle">
+            <h2 className="font-bold text-text-primary mb-3">💡 Things to Know</h2>
             <div className="space-y-2">
               {thingsToKnow.slice(0, 4).map((tip: string, i: number) => (
-                <p key={i} className="text-sm text-[#6B6B6B]">{tip}</p>
+                <p key={i} className="text-sm text-text-secondary">{tip}</p>
               ))}
             </div>
           </div>
         )}
 
         {/* Packing Preview */}
-        <div className="bg-white/70 backdrop-blur-xl rounded-3xl p-5 shadow-lg shadow-black/5">
-          <h2 className="font-bold text-[#1A1A1A] mb-3">🎒 Packing List Preview</h2>
+        <div className="glass rounded-3xl p-5 shadow-dark-lg border border-border-subtle">
+          <h2 className="font-bold text-text-primary mb-3">🎒 Packing List Preview</h2>
           <div className="grid grid-cols-3 gap-2">
-            <div className="bg-[#FEF3C7] rounded-xl p-3 text-center">
+            <div className="bg-amber-500/20 rounded-xl p-3 text-center border border-amber-500/30">
               <p className="text-2xl mb-1">👶</p>
-              <p className="text-xs font-medium text-[#92400E]">{packingKids.length} items</p>
+              <p className="text-xs font-medium text-amber-400">{packingKids.length} items</p>
             </div>
-            <div className="bg-[#DBEAFE] rounded-xl p-3 text-center">
+            <div className="bg-sky-500/20 rounded-xl p-3 text-center border border-sky-500/30">
               <p className="text-2xl mb-1">👨‍👩</p>
-              <p className="text-xs font-medium text-[#1E40AF]">{packingAdults.length} items</p>
+              <p className="text-xs font-medium text-sky-400">{packingAdults.length} items</p>
             </div>
-            <div className="bg-[#FED7AA] rounded-xl p-3 text-center">
+            <div className="bg-emerald-500/20 rounded-xl p-3 text-center border border-emerald-500/30">
               <p className="text-2xl mb-1">🇮🇳</p>
-              <p className="text-xs font-medium text-[#9A3412]">{packingIndian.length} items</p>
+              <p className="text-xs font-medium text-emerald-400">{packingIndian.length} items</p>
             </div>
           </div>
-          <p className="text-xs text-[#9CA3AF] text-center mt-3">Save to see full list & check items</p>
+          <p className="text-xs text-text-tertiary text-center mt-3">Save to see full list & check items</p>
         </div>
       </div>
 
       {/* Save Button */}
-      <div className="fixed bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-white via-white to-transparent">
-        <button onClick={handleSaveTrip} disabled={saving} className="w-full py-4 bg-[#0A7A6E] rounded-2xl font-semibold text-white flex items-center justify-center gap-2 shadow-lg shadow-[#0A7A6E]/30">
+      <div className="fixed bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-dark-primary via-dark-secondary to-transparent">
+        <button onClick={handleSaveTrip} disabled={saving} className="w-full py-4 bg-primary-400 rounded-2xl font-semibold text-dark-primary flex items-center justify-center gap-2 shadow-glow hover:bg-primary-500 transition-colors disabled:opacity-50">
           {saving ? <Loader2 className="w-5 h-5 animate-spin" /> : <Sparkles className="w-5 h-5" />}
           {saving ? 'Saving...' : 'Save This Trip'}
         </button>
