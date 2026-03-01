@@ -2,36 +2,43 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { Sparkles, Mic, MicOff, X } from 'lucide-react';
+import { Sparkles, Mic, MicOff, X, ChevronRight } from 'lucide-react';
 import { BottomNav } from '@/components/navigation/BottomNav';
-import { getDestinationImage } from '@/lib/destination-images';
 import { createClient } from '@/lib/supabase/client';
 
 const QUICK_CHIPS = [
-  '🏖️ Beach trip with 2 year old',
-  '🏙️ Dubai with kids',
-  '🦁 Singapore family vacation',
-  '🏝️ Maldives luxury escape',
-  '🌴 Thailand in summer',
-  '🎢 Theme parks with toddler',
+  '🏖️ Beach with kids',
+  '🏙️ Dubai family trip',
+  '🦁 Singapore vacation',
+  '🏝️ Maldives getaway',
+  '🌴 Thailand adventure',
+  '🎢 Theme parks',
+  '⛰️ Hill station escape',
+  '🏰 Europe with family',
 ];
 
-const DESTINATIONS = [
-  { name: 'Dubai', tagline: 'Desert adventures & luxury' },
-  { name: 'Singapore', tagline: 'Clean, safe & kid-friendly' },
-  { name: 'Maldives', tagline: 'Crystal clear waters' },
-  { name: 'Thailand', tagline: 'Culture & beaches' },
-];
+interface SeasonalDestination {
+  name: string;
+  country: string;
+  flag: string;
+  temp: number;
+  weather: string;
+  isPeak: boolean;
+  discount?: number | null;
+}
 
 export default function HomePage() {
   const router = useRouter();
   const supabase = createClient();
+  const scrollRef = useRef<HTMLDivElement>(null);
 
   const [user, setUser] = useState<any>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [greeting, setGreeting] = useState('Good morning');
+  const [peakDestinations, setPeakDestinations] = useState<SeasonalDestination[]>([]);
+  const [shoulderDestinations, setShoulderDestinations] = useState<SeasonalDestination[]>([]);
+  const [loadingDestinations, setLoadingDestinations] = useState(true);
 
-  // Voice states
   const [isListening, setIsListening] = useState(false);
   const [isVoiceSupported, setIsVoiceSupported] = useState(false);
   const [voiceError, setVoiceError] = useState<string | null>(null);
@@ -45,11 +52,10 @@ export default function HomePage() {
 
     checkAuth();
     initVoiceRecognition();
+    fetchSeasonalDestinations();
 
     return () => {
-      if (recognitionRef.current) {
-        recognitionRef.current.stop();
-      }
+      if (recognitionRef.current) recognitionRef.current.stop();
     };
   }, []);
 
@@ -58,45 +64,39 @@ export default function HomePage() {
     setUser(user);
   };
 
+  const fetchSeasonalDestinations = async () => {
+    try {
+      const res = await fetch('/api/destinations/seasonal');
+      const data = await res.json();
+      if (data.peak) setPeakDestinations(data.peak);
+      if (data.shoulder) setShoulderDestinations(data.shoulder);
+    } catch (err) {
+      console.error('Failed to fetch destinations:', err);
+    }
+    setLoadingDestinations(false);
+  };
+
   const initVoiceRecognition = () => {
     if (typeof window !== 'undefined') {
       const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-
       if (SpeechRecognition) {
         setIsVoiceSupported(true);
         const recognition = new SpeechRecognition();
         recognition.continuous = false;
         recognition.interimResults = true;
-        recognition.lang = 'en-IN'; // Indian English
+        recognition.lang = 'en-IN';
 
-        recognition.onstart = () => {
-          setIsListening(true);
-          setVoiceError(null);
-        };
-
+        recognition.onstart = () => { setIsListening(true); setVoiceError(null); };
         recognition.onresult = (event: any) => {
-          const transcript = Array.from(event.results)
-            .map((result: any) => result[0].transcript)
-            .join('');
+          const transcript = Array.from(event.results).map((r: any) => r[0].transcript).join('');
           setSearchQuery(transcript);
         };
-
         recognition.onerror = (event: any) => {
-          console.error('Voice error:', event.error);
           setIsListening(false);
-          if (event.error === 'not-allowed') {
-            setVoiceError('Microphone access denied. Please enable it in settings.');
-          } else if (event.error === 'no-speech') {
-            setVoiceError('No speech detected. Try again.');
-          } else {
-            setVoiceError('Voice recognition error. Try again.');
-          }
+          if (event.error === 'not-allowed') setVoiceError('Microphone access denied');
+          else setVoiceError('Voice error. Try again.');
         };
-
-        recognition.onend = () => {
-          setIsListening(false);
-        };
-
+        recognition.onend = () => setIsListening(false);
         recognitionRef.current = recognition;
       }
     }
@@ -104,14 +104,8 @@ export default function HomePage() {
 
   const toggleVoice = () => {
     if (!recognitionRef.current) return;
-
-    if (isListening) {
-      recognitionRef.current.stop();
-    } else {
-      setSearchQuery('');
-      setVoiceError(null);
-      recognitionRef.current.start();
-    }
+    if (isListening) recognitionRef.current.stop();
+    else { setSearchQuery(''); setVoiceError(null); recognitionRef.current.start(); }
   };
 
   const handleSearch = () => {
@@ -131,14 +125,20 @@ export default function HomePage() {
     sessionStorage.setItem('tripPlan', JSON.stringify({
       freeform_query: `Family trip to ${destination}`,
       destination: destination,
-      suggest_destination: false
     }));
     router.push('/plan');
   };
 
+  const getWeatherIcon = (weather: string) => {
+    const w = weather.toLowerCase();
+    if (w.includes('rain')) return '🌧️';
+    if (w.includes('cloud')) return '🌤️';
+    if (w.includes('clear') || w.includes('sun')) return '☀️';
+    return '🌤️';
+  };
+
   return (
     <div className="min-h-screen bg-white pb-24">
-      {/* Header */}
       <header className="px-5 pt-12 pb-2 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <div className="w-8 h-8 bg-[#0A7A6E] rounded-lg flex items-center justify-center">
@@ -153,22 +153,14 @@ export default function HomePage() {
             </span>
           </div>
         ) : (
-          <button onClick={() => router.push('/login')} className="text-[#0A7A6E] font-semibold text-sm">
-            Sign In
-          </button>
+          <button onClick={() => router.push('/login')} className="text-[#0A7A6E] font-semibold text-sm">Sign In</button>
         )}
       </header>
 
-      {/* Hero Section */}
-      <div className="px-5 py-8">
-        <h1 className="text-3xl font-bold text-[#1A1A1A] text-center mb-2">
-          {greeting}! 👋
-        </h1>
-        <p className="text-[#6B6B6B] text-center mb-8">
-          Where would you like to go?
-        </p>
+      <div className="px-5 py-6">
+        <h1 className="text-2xl font-bold text-[#1A1A1A] text-center mb-1">{greeting}! 👋</h1>
+        <p className="text-[#6B6B6B] text-center mb-6">Where are you going?</p>
 
-        {/* Search Bar with Voice */}
         <div className="max-w-md mx-auto mb-4">
           <div className="flex items-center gap-3 bg-[#F8F7F5] rounded-2xl px-4 py-4 border border-[#E5E5E5] shadow-sm">
             <Sparkles className="w-5 h-5 text-[#0A7A6E] flex-shrink-0" />
@@ -177,36 +169,18 @@ export default function HomePage() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-              placeholder={isListening ? "Listening..." : "Describe your dream trip..."}
+              placeholder={isListening ? "Listening..." : "Search destination..."}
               className="flex-1 bg-transparent outline-none text-[#1A1A1A] placeholder-[#9CA3AF]"
             />
-
-            {/* Voice Button */}
             {isVoiceSupported && (
-              <button
-                onClick={toggleVoice}
-                className={`w-10 h-10 rounded-full flex items-center justify-center transition-all ${
-                  isListening
-                    ? 'bg-red-500 animate-pulse'
-                    : 'bg-[#0A7A6E]'
-                }`}
-              >
-                {isListening ? (
-                  <MicOff className="w-5 h-5 text-white" />
-                ) : (
-                  <Mic className="w-5 h-5 text-white" />
-                )}
+              <button onClick={toggleVoice} className={`w-10 h-10 rounded-full flex items-center justify-center ${isListening ? 'bg-red-500 animate-pulse' : 'bg-[#0A7A6E]'}`}>
+                {isListening ? <MicOff className="w-5 h-5 text-white" /> : <Mic className="w-5 h-5 text-white" />}
               </button>
             )}
-
             {searchQuery && !isListening && (
-              <button onClick={handleSearch} className="bg-[#0A7A6E] text-white px-4 py-2 rounded-xl text-sm font-semibold">
-                Go
-              </button>
+              <button onClick={handleSearch} className="bg-[#0A7A6E] text-white px-4 py-2 rounded-xl text-sm font-semibold">Go</button>
             )}
           </div>
-
-          {/* Voice listening indicator */}
           {isListening && (
             <div className="mt-3 flex items-center justify-center gap-2">
               <div className="flex gap-1">
@@ -214,90 +188,98 @@ export default function HomePage() {
                 <div className="w-2 h-2 bg-[#0A7A6E] rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
                 <div className="w-2 h-2 bg-[#0A7A6E] rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
               </div>
-              <span className="text-sm text-[#0A7A6E] font-medium">Listening... speak now</span>
+              <span className="text-sm text-[#0A7A6E] font-medium">Listening...</span>
             </div>
           )}
-
-          {/* Voice error */}
           {voiceError && (
             <div className="mt-3 flex items-center justify-center gap-2 text-red-500 text-sm">
-              <X className="w-4 h-4" />
-              <span>{voiceError}</span>
+              <X className="w-4 h-4" /><span>{voiceError}</span>
             </div>
-          )}
-
-          {/* Helper text */}
-          {!isListening && !voiceError && (
-            <p className="text-center text-[#9CA3AF] text-sm mt-3">
-              {isVoiceSupported ? 'Type or tap 🎤 to speak' : 'Describe your trip in plain English'}
-            </p>
           )}
         </div>
 
-        {/* Quick Chips */}
-        <div className="flex flex-wrap justify-center gap-2 max-w-md mx-auto">
+        <div ref={scrollRef} className="flex gap-2 overflow-x-auto scrollbar-hide -mx-5 px-5 pb-2">
           {QUICK_CHIPS.map((chip) => (
-            <button
-              key={chip}
-              onClick={() => handleChipClick(chip)}
-              className="px-4 py-2 bg-white border border-[#E5E5E5] rounded-full text-sm text-[#1A1A1A] hover:border-[#0A7A6E] hover:bg-[#F0FDFA] transition-colors"
-            >
+            <button key={chip} onClick={() => handleChipClick(chip)} className="flex-shrink-0 px-4 py-2 bg-white border border-[#E5E5E5] rounded-full text-sm text-[#1A1A1A] whitespace-nowrap hover:border-[#0A7A6E] hover:bg-[#F0FDFA] transition-colors">
               {chip}
             </button>
           ))}
         </div>
       </div>
 
-      {/* Popular Destinations */}
-      <div className="px-5 mt-4">
-        <h2 className="text-lg font-bold text-[#1A1A1A] mb-4">Popular Destinations</h2>
+      <div className="px-5 space-y-6">
+        <div>
+          <div className="flex items-center gap-2 mb-3">
+            <span className="text-lg">🔥</span>
+            <div>
+              <h2 className="font-bold text-[#1A1A1A]">Great Now</h2>
+              <p className="text-xs text-[#6B6B6B]">Peak season - perfect weather, expect crowds</p>
+            </div>
+          </div>
 
-        <div className="grid grid-cols-2 gap-3">
-          {DESTINATIONS.map((dest) => (
-            <button
-              key={dest.name}
-              onClick={() => handleDestinationClick(dest.name)}
-              className="relative h-32 rounded-2xl overflow-hidden group"
-            >
-              <img
-                src={getDestinationImage(dest.name)}
-                alt={dest.name}
-                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
-              <div className="absolute bottom-3 left-3 right-3">
-                <h3 className="text-white font-semibold">{dest.name}</h3>
-                <p className="text-white/70 text-xs">{dest.tagline}</p>
-              </div>
-            </button>
-          ))}
+          {loadingDestinations ? (
+            <div className="flex gap-3 overflow-x-auto">
+              {[1,2,3,4].map(i => (
+                <div key={i} className="flex-shrink-0 w-28 h-24 bg-[#F8F7F5] rounded-2xl animate-pulse" />
+              ))}
+            </div>
+          ) : (
+            <div className="flex gap-3 overflow-x-auto scrollbar-hide -mx-5 px-5">
+              {peakDestinations.map((dest) => (
+                <button key={dest.name} onClick={() => handleDestinationClick(dest.name)} className="flex-shrink-0 w-28 bg-white border border-[#E5E5E5] rounded-2xl p-3 text-left hover:border-[#0A7A6E] transition-colors">
+                  <span className="text-2xl">{dest.flag}</span>
+                  <p className="font-semibold text-[#1A1A1A] text-sm mt-1">{dest.name}</p>
+                  <p className="text-xs text-[#6B6B6B]">{dest.temp}°C {getWeatherIcon(dest.weather)}</p>
+                  <span className="text-xs text-orange-600 font-medium">Peak</span>
+                </button>
+              ))}
+            </div>
+          )}
         </div>
-      </div>
 
-      {/* How it Works */}
-      <div className="px-5 mt-8">
-        <h2 className="text-lg font-bold text-[#1A1A1A] mb-4">How it works</h2>
-
-        <div className="space-y-3">
-          <div className="flex items-center gap-4 bg-[#F8F7F5] rounded-2xl p-4">
-            <div className="w-10 h-10 bg-[#0A7A6E] rounded-full flex items-center justify-center text-white font-bold">1</div>
+        <div>
+          <div className="flex items-center gap-2 mb-3">
+            <span className="text-lg">💎</span>
             <div>
-              <h3 className="font-semibold text-[#1A1A1A]">Tell us your plans</h3>
-              <p className="text-sm text-[#6B6B6B]">Type or speak your trip idea</p>
+              <h2 className="font-bold text-[#1A1A1A]">Hidden Gems</h2>
+              <p className="text-xs text-[#6B6B6B]">Shoulder season - great value, fewer tourists</p>
             </div>
           </div>
-          <div className="flex items-center gap-4 bg-[#F8F7F5] rounded-2xl p-4">
-            <div className="w-10 h-10 bg-[#0A7A6E] rounded-full flex items-center justify-center text-white font-bold">2</div>
-            <div>
-              <h3 className="font-semibold text-[#1A1A1A]">AI creates your trip</h3>
-              <p className="text-sm text-[#6B6B6B]">Personalized for your family's needs</p>
+
+          {loadingDestinations ? (
+            <div className="flex gap-3 overflow-x-auto">
+              {[1,2,3,4].map(i => (
+                <div key={i} className="flex-shrink-0 w-28 h-24 bg-[#F8F7F5] rounded-2xl animate-pulse" />
+              ))}
             </div>
-          </div>
-          <div className="flex items-center gap-4 bg-[#F8F7F5] rounded-2xl p-4">
-            <div className="w-10 h-10 bg-[#0A7A6E] rounded-full flex items-center justify-center text-white font-bold">3</div>
-            <div>
-              <h3 className="font-semibold text-[#1A1A1A]">Save & manage</h3>
-              <p className="text-sm text-[#6B6B6B]">Packing lists, bookings & more</p>
+          ) : (
+            <div className="flex gap-3 overflow-x-auto scrollbar-hide -mx-5 px-5">
+              {shoulderDestinations.map((dest) => (
+                <button key={dest.name} onClick={() => handleDestinationClick(dest.name)} className="flex-shrink-0 w-28 bg-white border border-[#E5E5E5] rounded-2xl p-3 text-left hover:border-[#0A7A6E] transition-colors">
+                  <span className="text-2xl">{dest.flag}</span>
+                  <p className="font-semibold text-[#1A1A1A] text-sm mt-1">{dest.name}</p>
+                  <p className="text-xs text-[#6B6B6B]">{dest.temp}°C {getWeatherIcon(dest.weather)}</p>
+                  {dest.discount && <span className="text-xs text-green-600 font-medium">-{dest.discount}%</span>}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div>
+          <h2 className="font-bold text-[#1A1A1A] mb-3">How it works</h2>
+          <div className="flex gap-4">
+            <div className="flex-1 text-center">
+              <div className="w-10 h-10 bg-[#0A7A6E] rounded-full flex items-center justify-center text-white font-bold mx-auto mb-2">1</div>
+              <p className="text-xs text-[#6B6B6B]">Tell us where</p>
+            </div>
+            <div className="flex-1 text-center">
+              <div className="w-10 h-10 bg-[#0A7A6E] rounded-full flex items-center justify-center text-white font-bold mx-auto mb-2">2</div>
+              <p className="text-xs text-[#6B6B6B]">AI plans</p>
+            </div>
+            <div className="flex-1 text-center">
+              <div className="w-10 h-10 bg-[#0A7A6E] rounded-full flex items-center justify-center text-white font-bold mx-auto mb-2">3</div>
+              <p className="text-xs text-[#6B6B6B]">Save & pack</p>
             </div>
           </div>
         </div>
