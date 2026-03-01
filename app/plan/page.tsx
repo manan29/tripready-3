@@ -2,14 +2,22 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Plus, Minus, Sparkles } from 'lucide-react';
-import { createClient } from '@/lib/supabase/client';
+import { ArrowLeft, Plus, Minus, Sparkles, MapPin } from 'lucide-react';
+
+const CITIES = [
+  { id: 'Mumbai', label: 'Mumbai' },
+  { id: 'Delhi', label: 'Delhi' },
+  { id: 'Bangalore', label: 'Bangalore' },
+  { id: 'Chennai', label: 'Chennai' },
+  { id: 'Hyderabad', label: 'Hyderabad' },
+  { id: 'Kolkata', label: 'Kolkata' },
+];
 
 export default function PlanTripPage() {
   const router = useRouter();
-  const supabase = createClient();
 
   const [destination, setDestination] = useState('');
+  const [fromCity, setFromCity] = useState('Mumbai');
   const [startDate, setStartDate] = useState('');
   const [duration, setDuration] = useState(7);
   const [kids, setKids] = useState(1);
@@ -29,7 +37,7 @@ export default function PlanTripPage() {
       else if (data.freeform_query) {
         const match = data.freeform_query.match(/to\s+(\w+)/i);
         if (match) setDestination(match[1]);
-        else setDestination(data.freeform_query);
+        else setDestination(data.freeform_query.replace(/[^\w\s]/g, '').trim());
       }
     }
     setIsLoading(false);
@@ -55,6 +63,7 @@ export default function PlanTripPage() {
   const handleContinue = () => {
     sessionStorage.setItem('tripPlan', JSON.stringify({
       destination,
+      from_city: fromCity,
       start_date: startDate,
       duration,
       adults: 2,
@@ -88,11 +97,40 @@ export default function PlanTripPage() {
       </header>
 
       <div className="px-5 py-4 space-y-6 pb-32">
+        {/* Departure City */}
+        <div>
+          <label className="block text-sm font-medium text-[#1A1A1A] mb-3">
+            <MapPin className="w-4 h-4 inline mr-1" />
+            Flying from
+          </label>
+          <div className="flex flex-wrap gap-2">
+            {CITIES.map((city) => (
+              <button
+                key={city.id}
+                onClick={() => setFromCity(city.id)}
+                className={`px-4 py-2 rounded-xl text-sm font-medium ${
+                  fromCity === city.id
+                    ? 'bg-[#0A7A6E] text-white'
+                    : 'bg-[#F8F7F5] text-[#1A1A1A] border border-[#E5E5E5]'
+                }`}
+              >
+                {city.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* When */}
         <div>
           <label className="block text-sm font-medium text-[#1A1A1A] mb-3">📅 When are you traveling?</label>
           <div className="flex gap-3">
             <div className="flex-1">
-              <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="w-full px-4 py-3 bg-[#F8F7F5] rounded-xl border border-[#E5E5E5] outline-none focus:border-[#0A7A6E]" />
+              <input
+                type="date"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+                className="w-full px-4 py-3 bg-[#F8F7F5] rounded-xl border border-[#E5E5E5] outline-none focus:border-[#0A7A6E]"
+              />
               <p className="text-xs text-[#6B6B6B] mt-1">Start date</p>
             </div>
             <div className="flex-1">
@@ -110,6 +148,7 @@ export default function PlanTripPage() {
           </div>
         </div>
 
+        {/* Kids */}
         <div>
           <label className="block text-sm font-medium text-[#1A1A1A] mb-3">👶 Traveling with kids?</label>
           <div className="bg-[#F8F7F5] rounded-xl border border-[#E5E5E5] p-4">
@@ -130,7 +169,12 @@ export default function PlanTripPage() {
               <div className="flex items-center gap-3 flex-wrap">
                 <span className="text-sm text-[#6B6B6B]">Ages:</span>
                 {kidAges.map((age, index) => (
-                  <select key={index} value={age} onChange={(e) => updateKidAge(index, parseInt(e.target.value))} className="px-3 py-2 bg-white rounded-lg border border-[#E5E5E5] text-sm outline-none focus:border-[#0A7A6E]">
+                  <select
+                    key={index}
+                    value={age}
+                    onChange={(e) => updateKidAge(index, parseInt(e.target.value))}
+                    className="px-3 py-2 bg-white rounded-lg border border-[#E5E5E5] text-sm outline-none focus:border-[#0A7A6E]"
+                  >
                     {[0,1,2,3,4,5,6,7,8,9,10,11,12].map(a => (
                       <option key={a} value={a}>{a} yr</option>
                     ))}
@@ -141,14 +185,27 @@ export default function PlanTripPage() {
           </div>
         </div>
 
+        {/* Health Conditions */}
         <div>
-          <label className="block text-sm font-medium text-[#1A1A1A] mb-2">⚕️ Any health conditions? <span className="text-[#9CA3AF]">(optional)</span></label>
-          <input type="text" value={healthConditions} onChange={(e) => setHealthConditions(e.target.value)} placeholder="E.g., dust allergy, asthma, lactose intolerant..." className="w-full px-4 py-3 bg-[#F8F7F5] rounded-xl border border-[#E5E5E5] outline-none focus:border-[#0A7A6E] text-sm" />
+          <label className="block text-sm font-medium text-[#1A1A1A] mb-2">
+            ⚕️ Any health conditions? <span className="text-[#9CA3AF]">(optional)</span>
+          </label>
+          <input
+            type="text"
+            value={healthConditions}
+            onChange={(e) => setHealthConditions(e.target.value)}
+            placeholder="E.g., dust allergy, asthma, lactose intolerant..."
+            className="w-full px-4 py-3 bg-[#F8F7F5] rounded-xl border border-[#E5E5E5] outline-none focus:border-[#0A7A6E] text-sm"
+          />
         </div>
       </div>
 
       <div className="fixed bottom-0 left-0 right-0 p-5 bg-white border-t border-[#F0F0F0]">
-        <button onClick={handleContinue} disabled={!isValid} className={`w-full py-4 rounded-xl font-semibold ${isValid ? 'bg-[#0A7A6E] text-white' : 'bg-[#E5E5E5] text-[#9CA3AF]'}`}>
+        <button
+          onClick={handleContinue}
+          disabled={!isValid}
+          className={`w-full py-4 rounded-xl font-semibold ${isValid ? 'bg-[#0A7A6E] text-white' : 'bg-[#E5E5E5] text-[#9CA3AF]'}`}
+        >
           Continue
         </button>
       </div>

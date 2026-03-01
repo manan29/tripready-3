@@ -2,8 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Sparkles, Check, Loader2, ArrowLeft, TrendingDown, TrendingUp, Minus, Plane } from 'lucide-react';
-import { getDestinationImage } from '@/lib/destination-images';
+import { Sparkles, Check, Loader2, ArrowLeft, TrendingDown, Plane } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 
 const LOADING_STEPS = [
@@ -19,6 +18,7 @@ const LOADING_STEPS = [
 interface FlightTrend {
   date: string;
   price: number;
+  day: string;
 }
 
 export default function MagicPage() {
@@ -31,6 +31,7 @@ export default function MagicPage() {
   const [tripPlan, setTripPlan] = useState<any>(null);
   const [flightTrends, setFlightTrends] = useState<any>(null);
   const [weather, setWeather] = useState<any>(null);
+  const [destinationImage, setDestinationImage] = useState<string>('');
   const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null);
   const [saving, setSaving] = useState(false);
 
@@ -58,9 +59,10 @@ export default function MagicPage() {
     }, 600);
 
     try {
-      const [flightRes, weatherRes, aiRes] = await Promise.all([
-        fetch(`/api/flights/trends?destination=${encodeURIComponent(data.destination)}&startDate=${data.start_date}`),
+      const [flightRes, weatherRes, imageRes, aiRes] = await Promise.all([
+        fetch(`/api/flights/trends?destination=${encodeURIComponent(data.destination)}&startDate=${data.start_date}&fromCity=${encodeURIComponent(data.from_city || 'Mumbai')}`),
         fetch(`/api/weather?city=${encodeURIComponent(data.destination)}`),
+        fetch(`/api/images/destination?destination=${encodeURIComponent(data.destination)}`),
         fetch('/api/ai/plan-trip', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -79,14 +81,16 @@ export default function MagicPage() {
         }),
       ]);
 
-      const [flightData, weatherData, aiData] = await Promise.all([
+      const [flightData, weatherData, imageData, aiData] = await Promise.all([
         flightRes.json(),
         weatherRes.json(),
+        imageRes.json(),
         aiRes.json(),
       ]);
 
       setFlightTrends(flightData);
       setWeather(weatherData);
+      setDestinationImage(imageData.url || '');
       setTripPlan(aiData);
 
       clearInterval(stepInterval);
@@ -104,51 +108,55 @@ export default function MagicPage() {
 
   const getFallbackPlan = (data: any) => ({
     honest_take: {
-      weather: `${data.destination} will be warm and pleasant during your visit.`,
+      weather_reality: `${data.destination} will be warm during your visit. Plan outdoor activities for mornings and evenings.`,
+      best_time_of_day: "Before 10 AM and after 4 PM for outdoor activities",
       kid_friendliness: 5,
-      highlights: ['Great for families', 'Excellent food options', 'Safe destination'],
+      highlights: ['Family-friendly attractions', 'Great food options', 'Safe destination'],
+      warnings: ['Book popular attractions in advance', 'Carry light jacket for AC']
     },
     things_to_know: [
-      'Visa required - apply 5-7 days before',
-      'Currency exchange available at airport',
-      'Uber/local taxis widely available',
+      '🛂 Visa: Check requirements for Indians - most destinations offer e-visa',
+      '💱 Currency: Carry forex card + some local currency',
+      '🚕 Transport: Uber/local apps work well',
+      '📱 Get local SIM at airport for data',
+      '🏥 Keep travel insurance details handy'
     ],
     packing_list: {
       kids: [
         'Light cotton clothes (5-6 sets)',
         'Comfortable walking shoes',
-        'Swimwear + floaties',
-        'Sun hat & UV sunglasses',
+        'Swimwear (2 sets) + floaties',
+        'Sun hat + UV sunglasses',
         'Sunscreen SPF 50+',
         'Light jacket for AC',
-        'Favorite snacks',
-        'Comfort toy',
-        'Kids headphones',
+        'Favorite snacks from home',
+        'Comfort toy for flights',
+        'Kids headphones + tablet',
         'Water bottle',
-        'Basic meds: Calpol, ORS, band-aids',
-        'Wet wipes & sanitizer',
+        'Medicines: Calpol, ORS, band-aids',
+        'Wet wipes & sanitizer'
       ],
       adults: [
         'Passport (6+ months validity) + copies',
         'Visa printout',
-        'Travel insurance documents',
-        'Forex card / local currency',
+        'Travel insurance docs',
+        'Forex card + local currency',
         'Power adapter',
         'Modest clothing',
         'Sunglasses + sunscreen',
-        'Comfortable shoes',
-        'Light layers for AC',
-        'Prescription meds + doctor note',
+        'Comfortable walking shoes',
+        'Light cardigan for AC',
+        'Prescription meds + doctor note'
       ],
       indian_essentials: [
         'Hing (asafoetida)',
         'MTR/Haldiram ready meals',
-        'Maggi/instant noodles',
-        'Pickle (achaar)',
+        'Maggi for kids',
+        'Pickle/Achaar',
         'Chai powder',
-        'Namkeen snacks',
-      ],
-    },
+        'Namkeen snacks'
+      ]
+    }
   });
 
   const handleSaveTrip = async () => {
@@ -195,12 +203,14 @@ export default function MagicPage() {
           health_notes: tripData.health_conditions || '',
           packing_list: packingList,
           trip_preferences: {
+            from_city: tripData.from_city,
             airline: tripData.airline,
             hotel_rating: tripData.hotel_rating,
             amenities: tripData.amenities,
             flight_trends: flightTrends,
             honest_take: tripPlan.honest_take,
             things_to_know: tripPlan.things_to_know,
+            destination_image: destinationImage,
           },
         })
         .select()
@@ -223,6 +233,7 @@ export default function MagicPage() {
     router.push('/login?redirect=/plan/save');
   };
 
+  // Loading State
   if (step === 'loading') {
     return (
       <div className="min-h-screen bg-white flex flex-col items-center justify-center p-5">
@@ -250,7 +261,11 @@ export default function MagicPage() {
     );
   }
 
+  // Signup State
   if (step === 'signup') {
+    const totalItems = (tripPlan?.packing_list?.kids?.length || 0) +
+                       (tripPlan?.packing_list?.adults?.length || 0) +
+                       (tripPlan?.packing_list?.indian_essentials?.length || 0);
     return (
       <div className="min-h-screen bg-white flex flex-col">
         <header className="px-5 pt-12 pb-4">
@@ -264,7 +279,7 @@ export default function MagicPage() {
           <p className="text-[#6B6B6B] text-center mb-6">Sign up to access your packing list anytime</p>
 
           <div className="w-full max-w-sm bg-[#F8F7F5] rounded-2xl p-4 mb-8 space-y-3">
-            <div className="flex items-center gap-3"><Check className="w-5 h-5 text-[#0A7A6E]" /><span>Full packing list ({(tripPlan?.packing_list?.kids?.length || 0) + (tripPlan?.packing_list?.adults?.length || 0) + (tripPlan?.packing_list?.indian_essentials?.length || 0)} items)</span></div>
+            <div className="flex items-center gap-3"><Check className="w-5 h-5 text-[#0A7A6E]" /><span>Full packing list ({totalItems} items)</span></div>
             <div className="flex items-center gap-3"><Check className="w-5 h-5 text-[#0A7A6E]" /><span>Flight price alerts</span></div>
             <div className="flex items-center gap-3"><Check className="w-5 h-5 text-[#0A7A6E]" /><span>Trip reminders</span></div>
           </div>
@@ -276,26 +291,38 @@ export default function MagicPage() {
     );
   }
 
+  // Results State
   const destination = tripData?.destination || 'Destination';
+  const fromCity = tripData?.from_city || 'Mumbai';
   const trends = flightTrends?.trends || [];
+  const hasTrends = flightTrends?.hasTrends && trends.length > 0;
   const lowestPrice = flightTrends?.lowestPrice || 0;
   const lowestDate = flightTrends?.lowestDate;
   const savings = flightTrends?.savings || 0;
   const directFlights = flightTrends?.directFlights || {};
   const bestFlight = flightTrends?.bestFlight || {};
+  const recommendation = flightTrends?.recommendation || '';
   const honestTake = tripPlan?.honest_take || {};
   const thingsToKnow = tripPlan?.things_to_know || [];
   const packingKids = tripPlan?.packing_list?.kids || [];
   const packingAdults = tripPlan?.packing_list?.adults || [];
   const packingIndian = tripPlan?.packing_list?.indian_essentials || [];
 
-  const maxPrice = Math.max(...trends.map((t: FlightTrend) => t.price), 1);
-  const minPrice = Math.min(...trends.map((t: FlightTrend) => t.price), 1);
+  // Calculate price chart dimensions
+  const prices = trends.map((t: FlightTrend) => t.price);
+  const maxPrice = prices.length > 0 ? Math.max(...prices) : 20000;
+  const minPrice = prices.length > 0 ? Math.min(...prices) : 10000;
+  const priceRange = maxPrice - minPrice || 1;
 
   return (
     <div className="min-h-screen bg-[#F8F7F5] pb-32">
+      {/* Hero with real destination image */}
       <div className="relative h-48">
-        <img src={getDestinationImage(destination)} alt={destination} className="w-full h-full object-cover" />
+        <img
+          src={destinationImage || `https://images.unsplash.com/photo-1512453979798-5ea266f8880c?w=800&q=80`}
+          alt={destination}
+          className="w-full h-full object-cover"
+        />
         <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
         <button onClick={() => router.push('/plan/preferences')} className="absolute top-12 left-5 w-10 h-10 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center">
           <ArrowLeft className="w-5 h-5 text-white" />
@@ -303,84 +330,144 @@ export default function MagicPage() {
         <div className="absolute bottom-4 left-5 right-5">
           <h1 className="text-white font-bold text-2xl">{destination}</h1>
           <p className="text-white/80 text-sm">
-            {tripData?.start_date && new Date(tripData.start_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} • {tripData?.duration} days • 2 adults, {tripData?.kids} kid{tripData?.kids > 1 ? 's' : ''} ({tripData?.kid_ages?.join(', ')} yr)
+            {tripData?.start_date && new Date(tripData.start_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} • {tripData?.duration} days • From {fromCity}
+          </p>
+          <p className="text-white/60 text-xs mt-1">
+            2 adults, {tripData?.kids} kid{tripData?.kids > 1 ? 's' : ''} ({tripData?.kid_ages?.join(', ')} yr)
           </p>
         </div>
       </div>
 
       <div className="px-5 py-4 space-y-4">
+        {/* Honest Take */}
         <div className="bg-white rounded-2xl p-4">
           <h2 className="font-bold text-[#1A1A1A] mb-3">🌡️ The Honest Take</h2>
           <div className="space-y-3 text-sm text-[#6B6B6B]">
             {weather?.current && (
-              <p>📍 {destination} in {new Date(tripData.start_date).toLocaleDateString('en-US', { month: 'long' })}: <span className="font-medium text-[#1A1A1A]">{weather.current.temp}°C</span> - {weather.current.temp > 35 ? "Hot! Plan indoor activities for midday." : weather.current.temp > 30 ? "Warm but manageable. Mornings and evenings are best outdoors." : "Pleasant weather for sightseeing."}</p>
+              <p>
+                📍 {destination} in {new Date(tripData.start_date).toLocaleDateString('en-US', { month: 'long' })}:
+                <span className="font-medium text-[#1A1A1A]"> {weather.current.temp}°C</span> -
+                {weather.current.temp > 35 ? " Hot! Plan indoor activities for midday." :
+                 weather.current.temp > 30 ? " Warm but manageable. Mornings & evenings best for outdoors." :
+                 " Pleasant weather for sightseeing."}
+              </p>
+            )}
+            {honestTake.weather_reality && (
+              <p>{honestTake.weather_reality}</p>
             )}
             <div>
-              <p className="font-medium text-[#1A1A1A] mb-1">✈️ Direct Flights Available:</p>
+              <p className="font-medium text-[#1A1A1A] mb-1">✈️ Direct Flights from India:</p>
               <div className="grid grid-cols-2 gap-1 text-xs">
                 {Object.entries(directFlights).map(([city, count]) => (
-                  <span key={city}>• {city}: {count as number} daily</span>
+                  <span key={city} className={city === fromCity ? 'font-semibold text-[#0A7A6E]' : ''}>
+                    • {city}: {count as number} daily {city === fromCity && '(your city)'}
+                  </span>
                 ))}
               </div>
             </div>
-            <p>👶 Kid-friendliness: {'⭐'.repeat(honestTake.kid_friendliness || 4)}</p>
+            <p>👶 Kid-friendliness: {'\u2b50'.repeat(honestTake.kid_friendliness || 4)}</p>
           </div>
         </div>
 
-        <div className="bg-white rounded-2xl p-4">
-          <div className="flex items-center gap-2 mb-3">
-            <Plane className="w-5 h-5 text-[#0A7A6E]" />
-            <h2 className="font-bold text-[#1A1A1A]">Flight Price Trends</h2>
-            <span className="text-xs text-[#6B6B6B]">(Direct only)</span>
-          </div>
-
-          <p className="text-sm text-[#6B6B6B] mb-3">📍 From: Mumbai (most connections)</p>
-          <p className="text-sm text-[#6B6B6B] mb-4">🌅 Best time to fly: <span className="font-medium text-[#1A1A1A]">Morning 6-9 AM</span> (arrive by noon, full day ahead)</p>
-
-          <div className="bg-[#F8F7F5] rounded-xl p-3 mb-4">
-            <p className="text-xs text-[#6B6B6B] mb-2">₹ Price trend next 20 days</p>
-            <div className="h-24 flex items-end gap-1">
-              {trends.slice(0, 20).map((t: FlightTrend, i: number) => {
-                const height = ((t.price - minPrice) / (maxPrice - minPrice)) * 100;
-                const isLowest = t.price === lowestPrice;
-                const isSelected = i === 0;
-                return (
-                  <div key={i} className="flex-1 flex flex-col items-center">
-                    <div
-                      className={`w-full rounded-t ${isLowest ? 'bg-green-500' : isSelected ? 'bg-[#0A7A6E]' : 'bg-[#D1D5DB]'}`}
-                      style={{ height: `${Math.max(height, 10)}%` }}
-                    />
-                  </div>
-                );
-              })}
+        {/* Flight Price Trends */}
+        {hasTrends && (
+          <div className="bg-white rounded-2xl p-4">
+            <div className="flex items-center gap-2 mb-3">
+              <Plane className="w-5 h-5 text-[#0A7A6E]" />
+              <h2 className="font-bold text-[#1A1A1A]">Flight Price Trends</h2>
+              <span className="text-xs bg-[#F0FDFA] text-[#0A7A6E] px-2 py-0.5 rounded-full">Direct only</span>
             </div>
-            <div className="flex justify-between mt-2 text-xs text-[#9CA3AF]">
-              <span>{new Date(tripData.start_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
-              <span>+20 days</span>
-            </div>
-          </div>
 
-          {savings > 1000 && (
-            <div className="bg-green-50 rounded-xl p-3 mb-4 flex items-center gap-2">
-              <TrendingDown className="w-5 h-5 text-green-600" />
-              <span className="text-sm text-green-700">💡 Save ₹{savings.toLocaleString()} if you shift to {new Date(lowestDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
-            </div>
-          )}
+            <p className="text-sm text-[#6B6B6B] mb-2">📍 From: <span className="font-medium text-[#1A1A1A]">{fromCity}</span></p>
+            <p className="text-sm text-[#6B6B6B] mb-4">🌅 Best time to fly: <span className="font-medium text-[#1A1A1A]">Morning 6-9 AM</span> (arrive by noon, full day ahead)</p>
 
-          {bestFlight.airline && (
-            <div className="border border-[#0A7A6E] rounded-xl p-4 relative">
-              <span className="absolute -top-2.5 right-3 bg-[#0A7A6E] text-white text-xs px-2 py-0.5 rounded-full">Best Flight</span>
-              <p className="font-semibold text-[#1A1A1A]">{bestFlight.airline} {bestFlight.flightNumber}</p>
-              <p className="text-sm text-[#6B6B6B]">Depart: {bestFlight.departure} → Arrive: {bestFlight.arrival}</p>
-              <p className="text-sm text-[#0A7A6E] font-semibold mt-1">₹{bestFlight.price?.toLocaleString()}/person • Direct • {bestFlight.duration}</p>
-              <div className="mt-2 text-xs text-[#6B6B6B]">
-                <p>✓ Morning arrival = full first day</p>
-                {bestFlight.aircraft === 'A380' && <p>✓ A380 aircraft (more space for kids)</p>}
+            {/* Price Chart */}
+            <div className="bg-[#F8F7F5] rounded-xl p-3 mb-4">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs text-[#6B6B6B]">💹 Price trend (next 20 days)</span>
+                <span className="text-xs text-[#0A7A6E] font-medium">
+                  Lowest: ₹{lowestPrice.toLocaleString()}
+                </span>
+              </div>
+
+              <div className="h-24 flex items-end gap-0.5">
+                {trends.slice(0, 20).map((t: FlightTrend, i: number) => {
+                  const heightPercent = ((t.price - minPrice) / priceRange) * 100;
+                  const isLowest = t.price === lowestPrice;
+                  const isSelected = i === 0;
+
+                  return (
+                    <div key={i} className="flex-1 flex flex-col items-center group relative">
+                      <div
+                        className={`w-full rounded-t transition-all ${
+                          isLowest ? 'bg-green-500' :
+                          isSelected ? 'bg-[#0A7A6E]' :
+                          'bg-[#CBD5E1] hover:bg-[#94A3B8]'
+                        }`}
+                        style={{ height: `${Math.max(heightPercent, 8)}%` }}
+                      />
+                      {/* Tooltip on hover */}
+                      <div className="absolute bottom-full mb-1 hidden group-hover:block bg-[#1A1A1A] text-white text-xs px-2 py-1 rounded whitespace-nowrap z-10">
+                        {t.day} - ₹{t.price.toLocaleString()}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              <div className="flex justify-between mt-2 text-xs text-[#9CA3AF]">
+                <span>{new Date(tripData.start_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
+                <span>+20 days</span>
+              </div>
+
+              {/* Legend */}
+              <div className="flex items-center gap-4 mt-3 text-xs">
+                <div className="flex items-center gap-1">
+                  <div className="w-3 h-3 bg-[#0A7A6E] rounded" />
+                  <span className="text-[#6B6B6B]">Selected</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <div className="w-3 h-3 bg-green-500 rounded" />
+                  <span className="text-[#6B6B6B]">Lowest</span>
+                </div>
               </div>
             </div>
-          )}
-        </div>
 
+            {/* Savings recommendation */}
+            {savings > 500 && (
+              <div className="bg-green-50 rounded-xl p-3 mb-4 flex items-start gap-2">
+                <TrendingDown className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
+                <div>
+                  <span className="text-sm font-medium text-green-700">{recommendation}</span>
+                  <p className="text-xs text-green-600 mt-1">
+                    Your date: ₹{flightTrends.selectedDatePrice?.toLocaleString()} → Best date: ₹{lowestPrice.toLocaleString()}
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* Best Flight Card */}
+            {bestFlight.airline && (
+              <div className="border border-[#0A7A6E] rounded-xl p-4 relative">
+                <span className="absolute -top-2.5 right-3 bg-[#0A7A6E] text-white text-xs px-2 py-0.5 rounded-full">Best Flight</span>
+                <p className="font-semibold text-[#1A1A1A]">{bestFlight.airline} {bestFlight.flightNumber}</p>
+                <p className="text-sm text-[#6B6B6B]">
+                  {fromCity} → {destination} • Depart: {bestFlight.departure} → Arrive: {bestFlight.arrival}
+                </p>
+                <p className="text-sm text-[#0A7A6E] font-semibold mt-1">
+                  ₹{bestFlight.price?.toLocaleString()}/person • Direct • {bestFlight.duration}
+                </p>
+                <div className="mt-2 text-xs text-[#6B6B6B] space-y-1">
+                  <p>✓ Morning arrival = full first day</p>
+                  {bestFlight.aircraft === 'A380' && <p>✓ A380 aircraft (more space for kids)</p>}
+                  {bestFlight.aircraft === 'A350' && <p>✓ A350 aircraft (quieter cabin)</p>}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Things to Know */}
         {thingsToKnow.length > 0 && (
           <div className="bg-white rounded-2xl p-4">
             <h2 className="font-bold text-[#1A1A1A] mb-3">⚠️ Things to Know Right Now</h2>
@@ -392,6 +479,7 @@ export default function MagicPage() {
           </div>
         )}
 
+        {/* Packing List */}
         <div className="bg-white rounded-2xl p-4">
           <div className="flex items-center justify-between mb-4">
             <h2 className="font-bold text-[#1A1A1A]">🎒 Packing List</h2>
@@ -399,39 +487,68 @@ export default function MagicPage() {
           </div>
 
           <div className="space-y-4">
-            <div>
-              <p className="text-sm font-semibold text-[#0A7A6E] mb-2">👶 FOR YOUR {tripData?.kid_ages?.join(' & ')} YEAR OLD{tripData?.kids > 1 ? 'S' : ''}</p>
-              <div className="space-y-1">
-                {packingKids.map((item: string, i: number) => (
-                  <p key={i} className="text-sm text-[#1A1A1A]">□ {item}</p>
-                ))}
+            {/* Kids */}
+            {packingKids.length > 0 && (
+              <div>
+                <p className="text-sm font-semibold text-[#0A7A6E] mb-2">
+                  👶 FOR YOUR {tripData?.kid_ages?.join(' & ')} YEAR OLD{tripData?.kids > 1 ? 'S' : ''}
+                </p>
+                <div className="space-y-1.5">
+                  {packingKids.map((item: string, i: number) => (
+                    <p key={i} className="text-sm text-[#1A1A1A] flex items-start gap-2">
+                      <span className="text-[#9CA3AF]">☐</span>
+                      <span>{item}</span>
+                    </p>
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
 
-            <div>
-              <p className="text-sm font-semibold text-[#0A7A6E] mb-2">👨‍👩 FOR ADULTS</p>
-              <div className="space-y-1">
-                {packingAdults.map((item: string, i: number) => (
-                  <p key={i} className="text-sm text-[#1A1A1A]">□ {item}</p>
-                ))}
+            {/* Adults */}
+            {packingAdults.length > 0 && (
+              <div>
+                <p className="text-sm font-semibold text-[#0A7A6E] mb-2">👨‍👩‍👧 FOR ADULTS</p>
+                <div className="space-y-1.5">
+                  {packingAdults.map((item: string, i: number) => (
+                    <p key={i} className="text-sm text-[#1A1A1A] flex items-start gap-2">
+                      <span className="text-[#9CA3AF]">☐</span>
+                      <span>{item}</span>
+                    </p>
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
 
-            <div>
-              <p className="text-sm font-semibold text-[#0A7A6E] mb-2">🇮🇳 INDIAN ESSENTIALS</p>
-              <div className="space-y-1">
-                {packingIndian.map((item: string, i: number) => (
-                  <p key={i} className="text-sm text-[#1A1A1A]">□ {item}</p>
-                ))}
+            {/* Indian Essentials */}
+            {packingIndian.length > 0 && (
+              <div>
+                <p className="text-sm font-semibold text-[#0A7A6E] mb-2">🇮🇳 INDIAN ESSENTIALS</p>
+                <div className="space-y-1.5">
+                  {packingIndian.map((item: string, i: number) => (
+                    <p key={i} className="text-sm text-[#1A1A1A] flex items-start gap-2">
+                      <span className="text-[#9CA3AF]">☐</span>
+                      <span>{item}</span>
+                    </p>
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
           </div>
         </div>
       </div>
 
+      {/* Save Button */}
       <div className="fixed bottom-0 left-0 right-0 p-5 bg-white border-t border-[#F0F0F0]">
-        <button onClick={handleSaveTrip} disabled={saving} className="w-full py-4 rounded-xl font-semibold bg-[#0A7A6E] text-white flex items-center justify-center gap-2">
-          {saving ? <><Loader2 className="w-5 h-5 animate-spin" /> Saving...</> : <><Sparkles className="w-5 h-5" /> Save This Trip</>}
+        <button
+          onClick={handleSaveTrip}
+          disabled={saving}
+          className="w-full py-4 rounded-xl font-semibold bg-[#0A7A6E] text-white flex items-center justify-center gap-2"
+        >
+          {saving ? (
+            <><Loader2 className="w-5 h-5 animate-spin" /> Saving...</>
+          ) : (
+            <><Sparkles className="w-5 h-5" /> Save This Trip</>
+          )}
         </button>
       </div>
     </div>
