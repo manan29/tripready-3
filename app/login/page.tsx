@@ -1,15 +1,15 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { ArrowLeft, Mail, Lock, Eye, EyeOff, Sparkles, Loader2 } from 'lucide-react';
 import { Screen } from '@/components/layout/Screen';
-import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { createClient } from '@/lib/supabase/client';
 import { cn } from '@/lib/design-system/cn';
 
-export default function LoginPage() {
+// Separate component that uses useSearchParams
+function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirectTo = searchParams.get('redirect') || '/trips';
@@ -38,7 +38,7 @@ export default function LoginPage() {
           },
         });
         if (error) throw error;
-        
+
         // Check if there's a pending trip to save
         const pendingTrip = localStorage.getItem('pendingTrip');
         if (pendingTrip) {
@@ -52,7 +52,7 @@ export default function LoginPage() {
           password,
         });
         if (error) throw error;
-        
+
         // Check if there's a pending trip to save
         const pendingTrip = localStorage.getItem('pendingTrip');
         if (pendingTrip) {
@@ -88,8 +88,8 @@ export default function LoginPage() {
       {/* Header */}
       <header className="px-5 pt-safe-top">
         <div className="py-4">
-          <button 
-            onClick={() => router.back()} 
+          <button
+            onClick={() => router.back()}
             className="w-11 h-11 rounded-2xl bg-dark-elevated flex items-center justify-center hover:bg-dark-tertiary transition-colors"
           >
             <ArrowLeft className="w-5 h-5 text-text-primary" />
@@ -186,10 +186,10 @@ export default function LoginPage() {
         </div>
 
         {/* Google Login */}
-        <Button 
-          variant="secondary" 
-          size="xl" 
-          fullWidth 
+        <Button
+          variant="secondary"
+          size="xl"
+          fullWidth
           onClick={handleGoogleLogin}
           disabled={loading}
         >
@@ -215,5 +215,23 @@ export default function LoginPage() {
         </p>
       </div>
     </Screen>
+  );
+}
+
+// Loading fallback
+function LoginLoading() {
+  return (
+    <Screen className="flex items-center justify-center">
+      <div className="w-10 h-10 border-4 border-primary-400 border-t-transparent rounded-full animate-spin" />
+    </Screen>
+  );
+}
+
+// Main component with Suspense
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<LoginLoading />}>
+      <LoginForm />
+    </Suspense>
   );
 }
