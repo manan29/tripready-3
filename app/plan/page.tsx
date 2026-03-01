@@ -2,20 +2,25 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Plus, Minus, Sparkles, MapPin } from 'lucide-react';
+import { ArrowLeft, MapPin, Calendar, Users, Plus, Minus, Heart, ChevronRight } from 'lucide-react';
+import { Screen } from '@/components/layout/Screen';
+import { Card } from '@/components/ui/Card';
+import { Button } from '@/components/ui/Button';
+import { Badge } from '@/components/ui/Badge';
+import { cn } from '@/lib/design-system/cn';
 
 const CITIES = [
-  { id: 'Mumbai', label: 'Mumbai' },
-  { id: 'Delhi', label: 'Delhi' },
-  { id: 'Bangalore', label: 'Bangalore' },
-  { id: 'Chennai', label: 'Chennai' },
-  { id: 'Hyderabad', label: 'Hyderabad' },
-  { id: 'Kolkata', label: 'Kolkata' },
+  { id: 'Mumbai', label: 'Mumbai', emoji: '🌊' },
+  { id: 'Delhi', label: 'Delhi', emoji: '🏛️' },
+  { id: 'Bangalore', label: 'Bangalore', emoji: '💻' },
+  { id: 'Chennai', label: 'Chennai', emoji: '🛕' },
+  { id: 'Hyderabad', label: 'Hyderabad', emoji: '🍗' },
+  { id: 'Kolkata', label: 'Kolkata', emoji: '🎭' },
 ];
 
-export default function PlanTripPage() {
+export default function PlanPage() {
   const router = useRouter();
-
+  
   const [destination, setDestination] = useState('');
   const [fromCity, setFromCity] = useState('Mumbai');
   const [startDate, setStartDate] = useState('');
@@ -26,10 +31,12 @@ export default function PlanTripPage() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    // Set default date to 30 days from now
     const defaultDate = new Date();
     defaultDate.setDate(defaultDate.getDate() + 30);
     setStartDate(defaultDate.toISOString().split('T')[0]);
-
+    
+    // Get destination from session
     const stored = sessionStorage.getItem('tripPlan');
     if (stored) {
       const data = JSON.parse(stored);
@@ -46,7 +53,6 @@ export default function PlanTripPage() {
   const updateKidsCount = (newCount: number) => {
     if (newCount < 0 || newCount > 4) return;
     setKids(newCount);
-
     if (newCount > kidAges.length) {
       setKidAges([...kidAges, ...Array(newCount - kidAges.length).fill(5)]);
     } else {
@@ -78,137 +84,193 @@ export default function PlanTripPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
-        <Sparkles className="w-8 h-8 text-[#0A7A6E] animate-pulse" />
-      </div>
+      <Screen className="flex items-center justify-center">
+        <div className="w-10 h-10 border-4 border-primary-500 border-t-transparent rounded-full animate-spin" />
+      </Screen>
     );
   }
 
   return (
-    <div className="min-h-screen bg-white">
-      <header className="px-5 pt-12 pb-4 flex items-center gap-4">
-        <button onClick={() => router.push('/')} className="w-10 h-10 bg-[#F8F7F5] rounded-full flex items-center justify-center">
-          <ArrowLeft className="w-5 h-5 text-[#1A1A1A]" />
-        </button>
-        <div>
-          <h1 className="text-xl font-bold text-[#1A1A1A]">Plan your trip to {destination}</h1>
-          <p className="text-sm text-[#6B6B6B]">Step 1 of 2</p>
+    <Screen className="pb-32">
+      {/* Header */}
+      <header className="px-5 pt-safe-top">
+        <div className="flex items-center gap-4 py-4">
+          <button 
+            onClick={() => router.push('/')} 
+            className="w-11 h-11 rounded-2xl bg-neutral-100 flex items-center justify-center hover:bg-neutral-200 transition-colors"
+          >
+            <ArrowLeft className="w-5 h-5 text-neutral-700" />
+          </button>
+          <div className="flex-1">
+            <h1 className="text-xl font-bold text-neutral-900">Plan Your Trip</h1>
+            <p className="text-sm text-neutral-500">to {destination || 'your destination'}</p>
+          </div>
+          <Badge variant="primary">Step 1/2</Badge>
         </div>
       </header>
 
-      <div className="px-5 py-4 space-y-6 pb-32">
-        {/* Departure City */}
-        <div>
-          <label className="block text-sm font-medium text-[#1A1A1A] mb-3">
-            <MapPin className="w-4 h-4 inline mr-1" />
-            Flying from
-          </label>
-          <div className="flex flex-wrap gap-2">
+      <div className="px-5 py-6 space-y-6">
+        {/* From City */}
+        <Card variant="elevated" padding="lg">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-10 h-10 rounded-xl bg-primary-100 flex items-center justify-center">
+              <MapPin className="w-5 h-5 text-primary-600" />
+            </div>
+            <div>
+              <h3 className="font-semibold text-neutral-900">Flying from</h3>
+              <p className="text-sm text-neutral-500">Select your departure city</p>
+            </div>
+          </div>
+          
+          <div className="grid grid-cols-3 gap-2">
             {CITIES.map((city) => (
               <button
                 key={city.id}
                 onClick={() => setFromCity(city.id)}
-                className={`px-4 py-2 rounded-xl text-sm font-medium ${
+                className={cn(
+                  'py-3 px-2 rounded-xl text-sm font-medium transition-all duration-200',
                   fromCity === city.id
-                    ? 'bg-[#0A7A6E] text-white'
-                    : 'bg-[#F8F7F5] text-[#1A1A1A] border border-[#E5E5E5]'
-                }`}
+                    ? 'bg-primary-500 text-white shadow-lg shadow-primary-500/25'
+                    : 'bg-neutral-50 text-neutral-700 hover:bg-neutral-100'
+                )}
               >
+                <span className="text-lg block mb-0.5">{city.emoji}</span>
                 {city.label}
               </button>
             ))}
           </div>
-        </div>
+        </Card>
 
-        {/* When */}
-        <div>
-          <label className="block text-sm font-medium text-[#1A1A1A] mb-3">📅 When are you traveling?</label>
-          <div className="flex gap-3">
-            <div className="flex-1">
+        {/* Dates */}
+        <Card variant="elevated" padding="lg">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-10 h-10 rounded-xl bg-violet-100 flex items-center justify-center">
+              <Calendar className="w-5 h-5 text-violet-600" />
+            </div>
+            <div>
+              <h3 className="font-semibold text-neutral-900">When</h3>
+              <p className="text-sm text-neutral-500">Travel dates</p>
+            </div>
+          </div>
+          
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs font-medium text-neutral-500 mb-1.5">Start Date</label>
               <input
                 type="date"
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
-                className="w-full px-4 py-3 bg-[#F8F7F5] rounded-xl border border-[#E5E5E5] outline-none focus:border-[#0A7A6E]"
+                className="w-full px-4 py-3 bg-neutral-50 rounded-xl border-2 border-transparent focus:border-primary-500 focus:bg-white outline-none transition-all text-neutral-900"
               />
-              <p className="text-xs text-[#6B6B6B] mt-1">Start date</p>
             </div>
-            <div className="flex-1">
-              <div className="flex items-center justify-between bg-[#F8F7F5] rounded-xl border border-[#E5E5E5] px-4 py-3">
-                <button onClick={() => setDuration(Math.max(1, duration - 1))} className="w-8 h-8 flex items-center justify-center">
-                  <Minus className="w-4 h-4 text-[#6B6B6B]" />
+            <div>
+              <label className="block text-xs font-medium text-neutral-500 mb-1.5">Duration</label>
+              <div className="flex items-center justify-between bg-neutral-50 rounded-xl px-3 py-2">
+                <button
+                  onClick={() => setDuration(Math.max(1, duration - 1))}
+                  className="w-9 h-9 rounded-lg bg-white shadow-sm flex items-center justify-center hover:bg-neutral-100 transition-colors"
+                >
+                  <Minus className="w-4 h-4 text-neutral-600" />
                 </button>
-                <span className="font-semibold text-[#1A1A1A]">{duration} days</span>
-                <button onClick={() => setDuration(duration + 1)} className="w-8 h-8 flex items-center justify-center">
-                  <Plus className="w-4 h-4 text-[#6B6B6B]" />
+                <span className="font-bold text-neutral-900">{duration} days</span>
+                <button
+                  onClick={() => setDuration(duration + 1)}
+                  className="w-9 h-9 rounded-lg bg-white shadow-sm flex items-center justify-center hover:bg-neutral-100 transition-colors"
+                >
+                  <Plus className="w-4 h-4 text-neutral-600" />
                 </button>
               </div>
-              <p className="text-xs text-[#6B6B6B] mt-1">Duration</p>
             </div>
           </div>
-        </div>
+        </Card>
 
         {/* Kids */}
-        <div>
-          <label className="block text-sm font-medium text-[#1A1A1A] mb-3">👶 Traveling with kids?</label>
-          <div className="bg-[#F8F7F5] rounded-xl border border-[#E5E5E5] p-4">
-            <div className="flex items-center justify-between mb-4">
-              <span className="font-medium text-[#1A1A1A]">Number of kids</span>
-              <div className="flex items-center gap-4">
-                <button onClick={() => updateKidsCount(kids - 1)} className="w-8 h-8 bg-white rounded-full flex items-center justify-center border border-[#E5E5E5]">
-                  <Minus className="w-4 h-4" />
-                </button>
-                <span className="w-6 text-center font-bold">{kids}</span>
-                <button onClick={() => updateKidsCount(kids + 1)} className="w-8 h-8 bg-white rounded-full flex items-center justify-center border border-[#E5E5E5]">
-                  <Plus className="w-4 h-4" />
-                </button>
-              </div>
+        <Card variant="elevated" padding="lg">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center">
+              <Users className="w-5 h-5 text-amber-600" />
             </div>
+            <div>
+              <h3 className="font-semibold text-neutral-900">Traveling with kids?</h3>
+              <p className="text-sm text-neutral-500">2 adults + kids</p>
+            </div>
+          </div>
 
-            {kids > 0 && (
-              <div className="flex items-center gap-3 flex-wrap">
-                <span className="text-sm text-[#6B6B6B]">Ages:</span>
+          <div className="flex items-center justify-between mb-4 pb-4 border-b border-neutral-100">
+            <span className="font-medium text-neutral-700">Number of kids</span>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => updateKidsCount(kids - 1)}
+                className="w-9 h-9 rounded-lg bg-neutral-100 flex items-center justify-center hover:bg-neutral-200 transition-colors"
+              >
+                <Minus className="w-4 h-4 text-neutral-600" />
+              </button>
+              <span className="w-8 text-center font-bold text-lg text-neutral-900">{kids}</span>
+              <button
+                onClick={() => updateKidsCount(kids + 1)}
+                className="w-9 h-9 rounded-lg bg-neutral-100 flex items-center justify-center hover:bg-neutral-200 transition-colors"
+              >
+                <Plus className="w-4 h-4 text-neutral-600" />
+              </button>
+            </div>
+          </div>
+
+          {kids > 0 && (
+            <div>
+              <label className="block text-xs font-medium text-neutral-500 mb-2">Ages</label>
+              <div className="flex flex-wrap gap-2">
                 {kidAges.map((age, index) => (
                   <select
                     key={index}
                     value={age}
                     onChange={(e) => updateKidAge(index, parseInt(e.target.value))}
-                    className="px-3 py-2 bg-white rounded-lg border border-[#E5E5E5] text-sm outline-none focus:border-[#0A7A6E]"
+                    className="px-4 py-2.5 bg-amber-50 border-2 border-amber-100 rounded-xl text-amber-900 font-medium outline-none focus:border-amber-300 transition-colors"
                   >
                     {[0,1,2,3,4,5,6,7,8,9,10,11,12].map(a => (
-                      <option key={a} value={a}>{a} yr</option>
+                      <option key={a} value={a}>{a} year{a !== 1 ? 's' : ''}</option>
                     ))}
                   </select>
                 ))}
               </div>
-            )}
-          </div>
-        </div>
+            </div>
+          )}
+        </Card>
 
         {/* Health Conditions */}
-        <div>
-          <label className="block text-sm font-medium text-[#1A1A1A] mb-2">
-            ⚕️ Any health conditions? <span className="text-[#9CA3AF]">(optional)</span>
-          </label>
+        <Card variant="elevated" padding="lg">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-10 h-10 rounded-xl bg-red-100 flex items-center justify-center">
+              <Heart className="w-5 h-5 text-red-500" />
+            </div>
+            <div>
+              <h3 className="font-semibold text-neutral-900">Health considerations</h3>
+              <p className="text-sm text-neutral-500">Optional but helpful</p>
+            </div>
+          </div>
+          
           <input
             type="text"
             value={healthConditions}
             onChange={(e) => setHealthConditions(e.target.value)}
             placeholder="E.g., dust allergy, asthma, lactose intolerant..."
-            className="w-full px-4 py-3 bg-[#F8F7F5] rounded-xl border border-[#E5E5E5] outline-none focus:border-[#0A7A6E] text-sm"
+            className="w-full px-4 py-3 bg-neutral-50 rounded-xl border-2 border-transparent focus:border-primary-500 focus:bg-white outline-none transition-all placeholder-neutral-400"
           />
-        </div>
+        </Card>
       </div>
 
-      <div className="fixed bottom-0 left-0 right-0 p-5 bg-white border-t border-[#F0F0F0]">
-        <button
+      {/* Bottom CTA */}
+      <div className="fixed bottom-0 left-0 right-0 p-5 bg-white/95 backdrop-blur-xl border-t border-neutral-100">
+        <Button
+          size="xl"
+          fullWidth
           onClick={handleContinue}
           disabled={!isValid}
-          className={`w-full py-4 rounded-xl font-semibold ${isValid ? 'bg-[#0A7A6E] text-white' : 'bg-[#E5E5E5] text-[#9CA3AF]'}`}
+          icon={<ChevronRight className="w-5 h-5" />}
+          iconPosition="right"
         >
-          Continue
-        </button>
+          Continue to Preferences
+        </Button>
       </div>
-    </div>
+    </Screen>
   );
 }

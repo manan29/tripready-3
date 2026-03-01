@@ -2,115 +2,211 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Check, Sparkles } from 'lucide-react';
+import { ArrowLeft, Plane, Building2, Sparkles, Check } from 'lucide-react';
+import { Screen } from '@/components/layout/Screen';
+import { Card } from '@/components/ui/Card';
+import { Button } from '@/components/ui/Button';
+import { Badge } from '@/components/ui/Badge';
+import { cn } from '@/lib/design-system/cn';
 
 const AIRLINES = [
-  { id: 'emirates', label: 'Emirates' },
-  { id: 'indigo', label: 'IndiGo' },
-  { id: 'air_india', label: 'Air India' },
-  { id: 'vistara', label: 'Vistara' },
-  { id: 'no_pref', label: 'No preference' },
+  { id: 'any', label: 'No Preference', emoji: '✈️' },
+  { id: 'Emirates', label: 'Emirates', emoji: '🇦🇪' },
+  { id: 'IndiGo', label: 'IndiGo', emoji: '🔵' },
+  { id: 'Air India', label: 'Air India', emoji: '🇮🇳' },
+  { id: 'Vistara', label: 'Vistara', emoji: '⭐' },
+];
+
+const HOTEL_RATINGS = [
+  { id: 3, label: '3 Star', desc: 'Budget friendly' },
+  { id: 4, label: '4 Star', desc: 'Best value' },
+  { id: 5, label: '5 Star', desc: 'Luxury' },
+  { id: 0, label: 'Any', desc: 'Show all' },
 ];
 
 const AMENITIES = [
-  { id: 'metro', label: 'Near Metro', icon: '🚇' },
-  { id: 'central', label: 'Central Location', icon: '🏙️' },
-  { id: 'indian_food', label: 'Indian Restaurants Nearby', icon: '🍛' },
-  { id: 'pool', label: 'Pool', icon: '🏊' },
-  { id: 'kids_friendly', label: 'Kids Friendly', icon: '👶' },
-  { id: 'beach', label: 'Beach Access', icon: '🏖️' },
+  { id: 'metro', label: 'Near Metro', emoji: '🚇' },
+  { id: 'central', label: 'Central Location', emoji: '🏙️' },
+  { id: 'indian_food', label: 'Indian Food Nearby', emoji: '🍛' },
+  { id: 'pool', label: 'Pool', emoji: '🏊' },
+  { id: 'kids_friendly', label: 'Kids Friendly', emoji: '👶' },
+  { id: 'beach', label: 'Beach Access', emoji: '🏖️' },
 ];
 
 export default function PreferencesPage() {
   const router = useRouter();
-
-  const [airline, setAirline] = useState('no_pref');
+  
+  const [airline, setAirline] = useState('any');
   const [hotelRating, setHotelRating] = useState(4);
-  const [amenities, setAmenities] = useState<string[]>(['indian_food']);
+  const [amenities, setAmenities] = useState<string[]>(['central', 'indian_food']);
   const [tripData, setTripData] = useState<any>(null);
 
   useEffect(() => {
     const stored = sessionStorage.getItem('tripPlan');
-    if (stored) setTripData(JSON.parse(stored));
-    else router.push('/plan');
+    if (!stored) {
+      router.push('/plan');
+      return;
+    }
+    setTripData(JSON.parse(stored));
   }, []);
 
   const toggleAmenity = (id: string) => {
-    setAmenities(prev => prev.includes(id) ? prev.filter(a => a !== id) : [...prev, id]);
+    setAmenities(prev => 
+      prev.includes(id) ? prev.filter(a => a !== id) : [...prev, id]
+    );
   };
 
-  const handlePlanTrip = () => {
-    const fullData = {
+  const handleContinue = () => {
+    const updated = {
       ...tripData,
-      airline,
-      hotel_rating: hotelRating,
+      airline: airline === 'any' ? null : airline,
+      hotel_rating: hotelRating === 0 ? null : hotelRating,
       amenities,
     };
-    sessionStorage.setItem('tripPlan', JSON.stringify(fullData));
+    sessionStorage.setItem('tripPlan', JSON.stringify(updated));
     router.push('/plan/magic');
   };
 
   return (
-    <div className="min-h-screen bg-white">
-      <header className="px-5 pt-12 pb-4 flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <button onClick={() => router.back()} className="w-10 h-10 bg-[#F8F7F5] rounded-full flex items-center justify-center">
-            <ArrowLeft className="w-5 h-5 text-[#1A1A1A]" />
+    <Screen className="pb-32">
+      {/* Header */}
+      <header className="px-5 pt-safe-top">
+        <div className="flex items-center gap-4 py-4">
+          <button 
+            onClick={() => router.back()} 
+            className="w-11 h-11 rounded-2xl bg-neutral-100 flex items-center justify-center hover:bg-neutral-200 transition-colors"
+          >
+            <ArrowLeft className="w-5 h-5 text-neutral-700" />
           </button>
-          <div>
-            <h1 className="text-xl font-bold text-[#1A1A1A]">Your preferences</h1>
-            <p className="text-sm text-[#6B6B6B]">Step 2 of 2</p>
+          <div className="flex-1">
+            <h1 className="text-xl font-bold text-neutral-900">Your Preferences</h1>
+            <p className="text-sm text-neutral-500">Help us personalize</p>
           </div>
+          <Badge variant="primary">Step 2/2</Badge>
         </div>
-        <button onClick={handlePlanTrip} className="text-[#0A7A6E] font-medium">Skip</button>
       </header>
 
-      <div className="px-5 py-4 space-y-6 pb-32">
-        <div>
-          <label className="block text-sm font-medium text-[#1A1A1A] mb-3">✈️ Preferred airline</label>
-          <div className="flex flex-wrap gap-2">
-            {AIRLINES.map((a) => (
-              <button key={a.id} onClick={() => setAirline(a.id)} className={`px-4 py-2 rounded-xl text-sm font-medium ${airline === a.id ? 'bg-[#0A7A6E] text-white' : 'bg-[#F8F7F5] text-[#1A1A1A] border border-[#E5E5E5]'}`}>
-                {a.label}
-              </button>
-            ))}
+      <div className="px-5 py-6 space-y-6">
+        {/* Airline Preference */}
+        <Card variant="elevated" padding="lg">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-10 h-10 rounded-xl bg-sky-100 flex items-center justify-center">
+              <Plane className="w-5 h-5 text-sky-600" />
+            </div>
+            <div>
+              <h3 className="font-semibold text-neutral-900">Airline preference</h3>
+              <p className="text-sm text-neutral-500">For flight recommendations</p>
+            </div>
           </div>
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-[#1A1A1A] mb-3">🏨 Hotel preference</label>
-          <div className="flex gap-2">
-            {[3, 4, 5].map((rating) => (
-              <button key={rating} onClick={() => setHotelRating(rating)} className={`flex-1 py-3 rounded-xl font-medium ${hotelRating === rating ? 'bg-[#0A7A6E] text-white' : 'bg-[#F8F7F5] text-[#1A1A1A] border border-[#E5E5E5]'}`}>
-                {rating}⭐
-              </button>
-            ))}
-            <button onClick={() => setHotelRating(0)} className={`flex-1 py-3 rounded-xl font-medium ${hotelRating === 0 ? 'bg-[#0A7A6E] text-white' : 'bg-[#F8F7F5] text-[#1A1A1A] border border-[#E5E5E5]'}`}>
-              Any
-            </button>
-          </div>
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-[#1A1A1A] mb-3">📍 Must have (select any)</label>
+          
           <div className="grid grid-cols-2 gap-2">
-            {AMENITIES.map((amenity) => (
-              <button key={amenity.id} onClick={() => toggleAmenity(amenity.id)} className={`py-3 px-3 rounded-xl text-sm font-medium flex items-center gap-2 ${amenities.includes(amenity.id) ? 'bg-[#F0FDFA] text-[#0A7A6E] border-2 border-[#0A7A6E]' : 'bg-[#F8F7F5] text-[#1A1A1A] border border-[#E5E5E5]'}`}>
-                <span>{amenity.icon}</span>
-                <span className="flex-1 text-left">{amenity.label}</span>
-                {amenities.includes(amenity.id) && <Check className="w-4 h-4" />}
+            {AIRLINES.map((a) => (
+              <button
+                key={a.id}
+                onClick={() => setAirline(a.id)}
+                className={cn(
+                  'flex items-center gap-2 py-3 px-4 rounded-xl text-sm font-medium transition-all duration-200',
+                  airline === a.id
+                    ? 'bg-sky-500 text-white shadow-lg shadow-sky-500/25'
+                    : 'bg-neutral-50 text-neutral-700 hover:bg-neutral-100'
+                )}
+              >
+                <span>{a.emoji}</span>
+                <span>{a.label}</span>
               </button>
             ))}
           </div>
-        </div>
+        </Card>
+
+        {/* Hotel Rating */}
+        <Card variant="elevated" padding="lg">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-10 h-10 rounded-xl bg-violet-100 flex items-center justify-center">
+              <Building2 className="w-5 h-5 text-violet-600" />
+            </div>
+            <div>
+              <h3 className="font-semibold text-neutral-900">Hotel rating</h3>
+              <p className="text-sm text-neutral-500">Minimum star rating</p>
+            </div>
+          </div>
+          
+          <div className="grid grid-cols-4 gap-2">
+            {HOTEL_RATINGS.map((r) => (
+              <button
+                key={r.id}
+                onClick={() => setHotelRating(r.id)}
+                className={cn(
+                  'py-3 px-2 rounded-xl text-center transition-all duration-200',
+                  hotelRating === r.id
+                    ? 'bg-violet-500 text-white shadow-lg shadow-violet-500/25'
+                    : 'bg-neutral-50 text-neutral-700 hover:bg-neutral-100'
+                )}
+              >
+                <p className="font-bold text-sm">{r.label}</p>
+                <p className={cn(
+                  'text-[10px] mt-0.5',
+                  hotelRating === r.id ? 'text-violet-100' : 'text-neutral-500'
+                )}>{r.desc}</p>
+              </button>
+            ))}
+          </div>
+        </Card>
+
+        {/* Amenities */}
+        <Card variant="elevated" padding="lg">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center">
+              <Sparkles className="w-5 h-5 text-emerald-600" />
+            </div>
+            <div>
+              <h3 className="font-semibold text-neutral-900">Must-have amenities</h3>
+              <p className="text-sm text-neutral-500">Select all that apply</p>
+            </div>
+          </div>
+          
+          <div className="grid grid-cols-2 gap-2">
+            {AMENITIES.map((a) => {
+              const selected = amenities.includes(a.id);
+              return (
+                <button
+                  key={a.id}
+                  onClick={() => toggleAmenity(a.id)}
+                  className={cn(
+                    'flex items-center gap-2 py-3 px-4 rounded-xl text-sm font-medium transition-all duration-200 relative',
+                    selected
+                      ? 'bg-emerald-50 text-emerald-700 ring-2 ring-emerald-500'
+                      : 'bg-neutral-50 text-neutral-700 hover:bg-neutral-100'
+                  )}
+                >
+                  <span>{a.emoji}</span>
+                  <span className="flex-1 text-left">{a.label}</span>
+                  {selected && (
+                    <Check className="w-4 h-4 text-emerald-500" />
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        </Card>
       </div>
 
-      <div className="fixed bottom-0 left-0 right-0 p-5 bg-white border-t border-[#F0F0F0]">
-        <button onClick={handlePlanTrip} className="w-full py-4 rounded-xl font-semibold bg-[#0A7A6E] text-white flex items-center justify-center gap-2">
-          <Sparkles className="w-5 h-5" />
-          Plan My Trip
+      {/* Bottom CTA */}
+      <div className="fixed bottom-0 left-0 right-0 p-5 bg-white/95 backdrop-blur-xl border-t border-neutral-100">
+        <Button
+          size="xl"
+          fullWidth
+          onClick={handleContinue}
+          icon={<Sparkles className="w-5 h-5" />}
+        >
+          Generate My Trip Plan
+        </Button>
+        <button 
+          onClick={handleContinue}
+          className="w-full mt-3 text-center text-sm text-neutral-500 font-medium"
+        >
+          Skip preferences
         </button>
       </div>
-    </div>
+    </Screen>
   );
 }

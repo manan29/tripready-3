@@ -2,244 +2,273 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { MoreVertical, ChevronDown, ChevronRight, Plus } from 'lucide-react';
+import { Plus, Calendar, MapPin, ChevronRight, Sparkles } from 'lucide-react';
+import { Screen } from '@/components/layout/Screen';
+import { Card } from '@/components/ui/Card';
+import { Button } from '@/components/ui/Button';
+import { Badge } from '@/components/ui/Badge';
+import { Progress } from '@/components/ui/Progress';
 import { BottomNav } from '@/components/navigation/BottomNav';
-import { getDestinationImage } from '@/lib/destination-images';
 import { createClient } from '@/lib/supabase/client';
+import { getDestinationImage } from '@/lib/destination-images';
+import { cn } from '@/lib/design-system/cn';
 
 interface Trip {
   id: string;
   destination: string;
   start_date: string;
   end_date: string;
-  status: 'upcoming' | 'ongoing' | 'completed';
-  photos?: string[];
+  num_adults: number;
+  num_kids: number;
+  packing_list: any[];
+  trip_preferences?: {
+    destination_image?: string;
+    from_city?: string;
+  };
 }
 
-export default function MyTripsPage() {
-  const [trips, setTrips] = useState<Trip[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [expandedYears, setExpandedYears] = useState<Set<number>>(new Set([new Date().getFullYear()]));
-  const [menuOpen, setMenuOpen] = useState<string | null>(null);
+export default function TripsPage() {
   const router = useRouter();
   const supabase = createClient();
+  
+  const [trips, setTrips] = useState<Trip[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   useEffect(() => {
-    loadTrips();
+    checkAuthAndLoadTrips();
   }, []);
 
-  const loadTrips = async () => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        router.push('/login');
-        return;
-      }
-
-      const { data, error } = await supabase
-        .from('trips')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('start_date', { ascending: false });
-
-      if (error) throw error;
-      setTrips(data || []);
-    } catch (error) {
-      console.error('Error loading trips:', error);
-    } finally {
+  const checkAuthAndLoadTrips = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    if (!user) {
+      setIsLoggedIn(false);
       setLoading(false);
+      return;
     }
+    
+    setIsLoggedIn(true);
+    
+    const { data, error } = await supabase
+      .from('trips')
+      .select('*')
+      .eq('user_id', user.id)
+      .order('start_date', { ascending: true });
+    
+    if (data) setTrips(data);
+    setLoading(false);
   };
 
-  const deleteTrip = async (tripId: string) => {
-    if (!confirm('Are you sure you want to delete this trip?')) return;
-
-    try {
-      const { error } = await supabase
-        .from('trips')
-        .delete()
-        .eq('id', tripId);
-
-      if (error) throw error;
-      setTrips(trips.filter(t => t.id !== tripId));
-      setMenuOpen(null);
-    } catch (error) {
-      console.error('Error deleting trip:', error);
-      alert('Failed to delete trip');
-    }
+  const getPackingProgress = (packingList: any[]) => {
+    if (!packingList || packingList.length === 0) return 0;
+    const checked = packingList.filter(i => i.checked).length;
+    return Math.round((checked / packingList.length) * 100);
   };
 
-  const toggleYear = (year: number) => {
-    const newExpanded = new Set(expandedYears);
-    if (newExpanded.has(year)) {
-      newExpanded.delete(year);
-    } else {
-      newExpanded.add(year);
-    }
-    setExpandedYears(newExpanded);
+  const getDaysToGo = (startDate: string) => {
+    const days = Math.ceil((new Date(startDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+    return Math.max(0, days);
   };
 
-  const tripsByYear = trips.reduce((acc, trip) => {
-    const year = new Date(trip.start_date).getFullYear();
-    if (!acc[year]) acc[year] = [];
-    acc[year].push(trip);
-    return acc;
-  }, {} as Record<number, Trip[]>);
-
-  const years = Object.keys(tripsByYear).map(Number).sort((a, b) => b - a);
-
-  const formatDateRange = (start: string, end: string) => {
-    const startDate = new Date(start);
-    const endDate = new Date(end);
-    const sameMonth = startDate.getMonth() === endDate.getMonth();
-
-    if (sameMonth) {
-      return `${startDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${endDate.getDate()}, ${startDate.getFullYear()}`;
-    }
-    return `${startDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${endDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}, ${startDate.getFullYear()}`;
+  const getTripStatus = (startDate: string, endDate: string) => {
+    const now = new Date();
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    
+    if (now < start) return 'upcoming';
+    if (now >= start && now <= end) return 'ongoing';
+    return 'completed';
   };
 
-  if (loading) {
+  // Not Logged In State
+  if (!loading && !isLoggedIn) {
     return (
-      <div className="min-h-screen bg-white pb-24 flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-12 h-12 border-4 border-[#0A7A6E] border-t-transparent rounded-full animate-spin mx-auto"></div>
-          <p className="text-[#6B6B6B] mt-4">Loading trips...</p>
+      <Screen className="pb-24">
+        <header className="px-5 pt-safe-top">
+          <div className="py-4">
+            <h1 className="text-2xl font-bold text-neutral-900">Your Trips</h1>
+          </div>
+        </header>
+        
+        <div className="flex-1 flex flex-col items-center justify-center px-5 py-20">
+          <div className="w-20 h-20 rounded-3xl bg-neutral-100 flex items-center justify-center mb-6">
+            <MapPin className="w-10 h-10 text-neutral-400" />
+          </div>
+          <h2 className="text-xl font-bold text-neutral-900 mb-2">Sign in to see your trips</h2>
+          <p className="text-neutral-500 text-center mb-8">
+            Save trips and access them from anywhere
+          </p>
+          <Button size="lg" onClick={() => router.push('/login')}>
+            Sign In
+          </Button>
         </div>
-      </div>
+        
+        <BottomNav />
+      </Screen>
     );
   }
 
-  return (
-    <div className="min-h-screen bg-white pb-24">
-      {/* Header */}
-      <header className="px-5 pt-14 pb-6 border-b border-[#F0F0F0]">
-        <div className="flex items-center justify-between mb-2">
-          <h1 className="text-2xl font-bold text-[#1A1A1A]">My Trips</h1>
-          <button
-            onClick={() => router.push('/')}
-            className="w-10 h-10 bg-[#0A7A6E] rounded-full flex items-center justify-center"
-          >
-            <Plus className="w-5 h-5 text-white" strokeWidth={2.5} />
-          </button>
-        </div>
-        <p className="text-sm text-[#6B6B6B]">{trips.length} {trips.length === 1 ? 'trip' : 'trips'} planned</p>
-      </header>
+  // Loading State
+  if (loading) {
+    return (
+      <Screen className="flex items-center justify-center pb-24">
+        <div className="w-10 h-10 border-4 border-primary-500 border-t-transparent rounded-full animate-spin" />
+        <BottomNav />
+      </Screen>
+    );
+  }
 
-      {/* Content */}
-      {trips.length === 0 ? (
-        <div className="px-5 pt-20 text-center">
-          <div className="w-20 h-20 bg-[#F0FDFA] rounded-full flex items-center justify-center mx-auto mb-4">
-            <Plus className="w-10 h-10 text-[#0A7A6E]" />
+  // Empty State
+  if (trips.length === 0) {
+    return (
+      <Screen className="pb-24">
+        <header className="px-5 pt-safe-top">
+          <div className="py-4">
+            <h1 className="text-2xl font-bold text-neutral-900">Your Trips</h1>
           </div>
-          <h2 className="text-xl font-bold text-[#1A1A1A] mb-2">No trips yet</h2>
-          <p className="text-[#6B6B6B] mb-6">Start planning your first family adventure</p>
-          <button
+        </header>
+        
+        <div className="flex-1 flex flex-col items-center justify-center px-5 py-20">
+          <div className="w-20 h-20 rounded-3xl bg-primary-100 flex items-center justify-center mb-6">
+            <Sparkles className="w-10 h-10 text-primary-500" />
+          </div>
+          <h2 className="text-xl font-bold text-neutral-900 mb-2">No trips yet</h2>
+          <p className="text-neutral-500 text-center mb-8">
+            Plan your first adventure with AI-powered insights
+          </p>
+          <Button 
+            size="lg" 
             onClick={() => router.push('/')}
-            className="bg-[#0A7A6E] text-white px-6 py-3 rounded-xl font-semibold"
+            icon={<Plus className="w-5 h-5" />}
           >
             Plan a Trip
-          </button>
+          </Button>
         </div>
-      ) : (
-        <div className="px-5 pt-4">
-          {years.map((year) => {
-            const isExpanded = expandedYears.has(year);
-            const yearTrips = tripsByYear[year];
+        
+        <BottomNav />
+      </Screen>
+    );
+  }
 
-            return (
-              <div key={year} className="mb-6">
-                {/* Year Header */}
-                <button
-                  onClick={() => toggleYear(year)}
-                  className="flex items-center justify-between w-full mb-3"
-                >
-                  <div className="flex items-center gap-2">
-                    {isExpanded ? (
-                      <ChevronDown className="w-5 h-5 text-[#6B6B6B]" />
-                    ) : (
-                      <ChevronRight className="w-5 h-5 text-[#6B6B6B]" />
-                    )}
-                    <h2 className="text-lg font-bold text-[#1A1A1A]">{year}</h2>
-                    <span className="text-sm text-[#9CA3AF]">({yearTrips.length})</span>
-                  </div>
-                </button>
+  // Trips List
+  const upcomingTrips = trips.filter(t => getTripStatus(t.start_date, t.end_date) === 'upcoming');
+  const ongoingTrips = trips.filter(t => getTripStatus(t.start_date, t.end_date) === 'ongoing');
+  const completedTrips = trips.filter(t => getTripStatus(t.start_date, t.end_date) === 'completed');
 
-                {/* Trips */}
-                {isExpanded && (
-                  <div className="space-y-3">
-                    {yearTrips.map((trip) => (
-                      <div
-                        key={trip.id}
-                        className="relative rounded-2xl overflow-hidden border border-[#F0F0F0] bg-white"
-                      >
-                        {/* Trip Card */}
-                        <button
-                          onClick={() => router.push(`/trips/${trip.id}`)}
-                          className="w-full text-left"
-                        >
-                          <div className="relative h-40">
-                            <img
-                              src={trip.photos?.[0] || getDestinationImage(trip.destination)}
-                              alt={trip.destination}
-                              className="w-full h-full object-cover"
-                            />
-                            <div className="absolute inset-0 overlay-gradient"></div>
-                            <div className="absolute bottom-3 left-4 right-12">
-                              <h3 className="text-white font-bold text-lg mb-1">{trip.destination}</h3>
-                              <p className="text-white/90 text-sm">{formatDateRange(trip.start_date, trip.end_date)}</p>
-                            </div>
-                          </div>
-                        </button>
-
-                        {/* Menu Button */}
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setMenuOpen(menuOpen === trip.id ? null : trip.id);
-                          }}
-                          className="absolute top-3 right-3 w-8 h-8 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center z-10"
-                        >
-                          <MoreVertical className="w-4 h-4 text-[#1A1A1A]" />
-                        </button>
-
-                        {/* Dropdown Menu */}
-                        {menuOpen === trip.id && (
-                          <>
-                            <div
-                              className="fixed inset-0 z-20"
-                              onClick={() => setMenuOpen(null)}
-                            ></div>
-                            <div className="absolute top-12 right-3 bg-white rounded-xl shadow-lg border border-[#F0F0F0] py-2 z-30 min-w-[140px]">
-                              <button
-                                onClick={() => {
-                                  router.push(`/trips/${trip.id}`);
-                                  setMenuOpen(null);
-                                }}
-                                className="w-full px-4 py-2.5 text-left text-sm text-[#1A1A1A] hover:bg-[#F8F7F5]"
-                              >
-                                View Details
-                              </button>
-                              <button
-                                onClick={() => deleteTrip(trip.id)}
-                                className="w-full px-4 py-2.5 text-left text-sm text-red-600 hover:bg-red-50"
-                              >
-                                Delete Trip
-                              </button>
-                            </div>
-                          </>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            );
-          })}
+  return (
+    <Screen className="pb-24">
+      {/* Header */}
+      <header className="px-5 pt-safe-top">
+        <div className="flex items-center justify-between py-4">
+          <h1 className="text-2xl font-bold text-neutral-900">Your Trips</h1>
+          <Button 
+            size="sm" 
+            onClick={() => router.push('/')}
+            icon={<Plus className="w-4 h-4" />}
+          >
+            New
+          </Button>
         </div>
-      )}
+      </header>
+
+      <div className="px-5 pb-8 space-y-6">
+        {/* Ongoing Trips */}
+        {ongoingTrips.length > 0 && (
+          <section>
+            <div className="flex items-center gap-2 mb-3">
+              <Badge variant="success">Active Now</Badge>
+            </div>
+            <div className="space-y-3">
+              {ongoingTrips.map((trip) => (
+                <TripCard key={trip.id} trip={trip} onClick={() => router.push(`/trips/${trip.id}`)} />
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* Upcoming Trips */}
+        {upcomingTrips.length > 0 && (
+          <section>
+            <h2 className="font-semibold text-neutral-700 mb-3">Upcoming</h2>
+            <div className="space-y-3">
+              {upcomingTrips.map((trip) => (
+                <TripCard key={trip.id} trip={trip} onClick={() => router.push(`/trips/${trip.id}`)} />
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* Completed Trips */}
+        {completedTrips.length > 0 && (
+          <section>
+            <h2 className="font-semibold text-neutral-700 mb-3">Past Trips</h2>
+            <div className="space-y-3">
+              {completedTrips.map((trip) => (
+                <TripCard key={trip.id} trip={trip} onClick={() => router.push(`/trips/${trip.id}`)} isPast />
+              ))}
+            </div>
+          </section>
+        )}
+      </div>
 
       <BottomNav />
-    </div>
+    </Screen>
+  );
+}
+
+// Trip Card Component
+function TripCard({ trip, onClick, isPast }: { trip: Trip; onClick: () => void; isPast?: boolean }) {
+  const daysToGo = Math.ceil((new Date(trip.start_date).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+  const packingProgress = trip.packing_list?.length 
+    ? Math.round((trip.packing_list.filter((i: any) => i.checked).length / trip.packing_list.length) * 100)
+    : 0;
+  const image = trip.trip_preferences?.destination_image || getDestinationImage(trip.destination);
+
+  return (
+    <Card 
+      variant="elevated" 
+      padding="none" 
+      interactive 
+      onClick={onClick}
+      className={cn('overflow-hidden', isPast && 'opacity-70')}
+    >
+      <div className="flex">
+        {/* Image */}
+        <div className="w-28 h-28 flex-shrink-0 relative">
+          <img src={image} alt={trip.destination} className="w-full h-full object-cover" />
+          {!isPast && daysToGo >= 0 && daysToGo <= 30 && (
+            <div className="absolute top-2 left-2 bg-white/95 backdrop-blur px-2 py-1 rounded-lg">
+              <p className="text-xs font-bold text-neutral-900">{daysToGo}d</p>
+            </div>
+          )}
+        </div>
+        
+        {/* Content */}
+        <div className="flex-1 p-4 flex flex-col justify-between">
+          <div>
+            <h3 className="font-bold text-neutral-900">{trip.destination}</h3>
+            <div className="flex items-center gap-1 text-sm text-neutral-500 mt-0.5">
+              <Calendar className="w-3.5 h-3.5" />
+              <span>
+                {new Date(trip.start_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                {' - '}
+                {new Date(trip.end_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+              </span>
+            </div>
+          </div>
+          
+          {!isPast && (
+            <div className="flex items-center justify-between mt-2">
+              <div className="flex items-center gap-2 flex-1">
+                <Progress value={packingProgress} size="sm" className="flex-1 max-w-24" />
+                <span className="text-xs text-neutral-500">{packingProgress}%</span>
+              </div>
+              <ChevronRight className="w-5 h-5 text-neutral-400" />
+            </div>
+          )}
+        </div>
+      </div>
+    </Card>
   );
 }

@@ -1,38 +1,55 @@
 'use client';
 
 import { usePathname, useRouter } from 'next/navigation';
-import { Home, ClipboardList, FileText, User } from 'lucide-react';
+import { Home, Compass, Briefcase, User } from 'lucide-react';
+import { cn } from '@/lib/design-system/cn';
 
-interface BottomNavProps {
-  showBookings?: boolean;
-}
+const NAV_ITEMS = [
+  { id: 'home', label: 'Home', icon: Home, href: '/' },
+  { id: 'explore', label: 'Explore', icon: Compass, href: '/explore' },
+  { id: 'trips', label: 'Trips', icon: Briefcase, href: '/trips' },
+  { id: 'profile', label: 'Profile', icon: User, href: '/profile' },
+];
 
-export function BottomNav({ showBookings = false }: BottomNavProps) {
+export function BottomNav() {
   const pathname = usePathname();
   const router = useRouter();
 
-  const navItems = [
-    { icon: Home, label: 'Home', href: '/' },
-    { icon: ClipboardList, label: 'My Trips', href: '/trips' },
-    ...(showBookings ? [{ icon: FileText, label: 'Bookings', href: '/bookings' }] : []),
-    { icon: User, label: 'Profile', href: '/profile' },
-  ];
+  const isActive = (href: string) => {
+    if (href === '/') return pathname === '/';
+    return pathname.startsWith(href);
+  };
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-[#F0F0F0] px-6 py-2 pb-[max(8px,env(safe-area-inset-bottom))] z-50">
-      <div className="max-w-[430px] mx-auto flex justify-around items-center">
-        {navItems.map((item) => {
-          const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
+    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-xl border-t border-neutral-100">
+      <div className="flex items-center justify-around h-16 max-w-lg mx-auto pb-safe">
+        {NAV_ITEMS.map((item) => {
+          const active = isActive(item.href);
+          const Icon = item.icon;
+
           return (
             <button
-              key={item.href}
+              key={item.id}
               onClick={() => router.push(item.href)}
-              className={`flex flex-col items-center gap-1 py-2 px-4 ${
-                isActive ? 'text-[#0A7A6E]' : 'text-[#9CA3AF]'
-              }`}
+              className="flex flex-col items-center justify-center w-16 h-full active:scale-95 transition-transform"
             >
-              <item.icon className="w-6 h-6" strokeWidth={isActive ? 2.5 : 2} />
-              <span className="text-xs font-medium">{item.label}</span>
+              <div className={cn(
+                'w-10 h-10 rounded-2xl flex items-center justify-center transition-all duration-300',
+                active
+                  ? 'bg-primary-500 shadow-lg shadow-primary-500/30'
+                  : 'bg-transparent hover:bg-neutral-100'
+              )}>
+                <Icon className={cn(
+                  'w-5 h-5 transition-colors duration-300',
+                  active ? 'text-white' : 'text-neutral-400'
+                )} />
+              </div>
+              <span className={cn(
+                'text-[10px] font-semibold mt-1 transition-colors duration-300',
+                active ? 'text-primary-600' : 'text-neutral-400'
+              )}>
+                {item.label}
+              </span>
             </button>
           );
         })}

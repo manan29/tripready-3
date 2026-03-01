@@ -2,9 +2,20 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { ArrowLeft, Share2, Plane, Hotel, Check, Plus, ExternalLink, TrendingDown, Sparkles, ChevronRight, X } from 'lucide-react';
+import { ArrowLeft, Share2, Plane, Hotel, Check, Plus, ChevronRight, TrendingDown, ExternalLink, X } from 'lucide-react';
+import { Screen } from '@/components/layout/Screen';
+import { Card } from '@/components/ui/Card';
+import { Button } from '@/components/ui/Button';
+import { Badge } from '@/components/ui/Badge';
+import { Progress } from '@/components/ui/Progress';
+import { Tabs } from '@/components/ui/Tabs';
+import { Checkbox } from '@/components/ui/Checkbox';
+import { BottomSheet } from '@/components/ui/BottomSheet';
+import { HeroCard } from '@/components/patterns/HeroCard';
+import { FlightCard } from '@/components/patterns/FlightCard';
 import { createClient } from '@/lib/supabase/client';
 import { getDestinationImage } from '@/lib/destination-images';
+import { cn } from '@/lib/design-system/cn';
 
 type TabType = 'insights' | 'packing';
 
@@ -57,9 +68,9 @@ export default function TripDetailPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-[#F0FDFA] to-white flex items-center justify-center">
-        <div className="w-12 h-12 border-4 border-[#0A7A6E] border-t-transparent rounded-full animate-spin" />
-      </div>
+      <Screen className="flex items-center justify-center">
+        <div className="w-10 h-10 border-4 border-primary-500 border-t-transparent rounded-full animate-spin" />
+      </Screen>
     );
   }
 
@@ -77,73 +88,57 @@ export default function TripDetailPage() {
   const progress = totalItems > 0 ? Math.round((packedItems / totalItems) * 100) : 0;
   const daysToGo = Math.max(0, Math.ceil((new Date(trip.start_date).getTime() - Date.now()) / (1000 * 60 * 60 * 24)));
 
+  const tabs = [
+    { id: 'insights', label: 'Insights', icon: <Plane className="w-4 h-4" /> },
+    { id: 'packing', label: 'Packing', icon: <span>🎒</span>, badge: `${progress}%` },
+  ];
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#F0FDFA] via-white to-[#F8F7F5]">
+    <Screen gradient={false} className="bg-neutral-50">
       {/* Floating Header */}
-      <div className="fixed top-0 left-0 right-0 z-20 px-4 pt-12 pb-3">
+      <div className="fixed top-0 left-0 right-0 z-40 px-4 pt-safe-top pb-3">
         <div className="flex items-center justify-between">
-          <button onClick={() => router.push('/trips')} className="w-11 h-11 bg-white/80 backdrop-blur-xl rounded-2xl flex items-center justify-center shadow-lg shadow-black/5">
-            <ArrowLeft className="w-5 h-5 text-[#1A1A1A]" />
+          <button
+            onClick={() => router.push('/trips')}
+            className="w-11 h-11 rounded-2xl bg-white/90 backdrop-blur-xl flex items-center justify-center shadow-lg shadow-neutral-900/10"
+          >
+            <ArrowLeft className="w-5 h-5 text-neutral-900" />
           </button>
-          <button className="w-11 h-11 bg-white/80 backdrop-blur-xl rounded-2xl flex items-center justify-center shadow-lg shadow-black/5">
-            <Share2 className="w-5 h-5 text-[#1A1A1A]" />
+          <button className="w-11 h-11 rounded-2xl bg-white/90 backdrop-blur-xl flex items-center justify-center shadow-lg shadow-neutral-900/10">
+            <Share2 className="w-5 h-5 text-neutral-900" />
           </button>
         </div>
       </div>
 
-      {/* Hero Card */}
-      <div className="px-4 pt-28 pb-4">
-        <div className="relative rounded-[2rem] overflow-hidden shadow-2xl shadow-[#0A7A6E]/20">
-          <img src={destinationImage} alt={trip.destination} className="w-full h-48 object-cover" />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
-          <div className="absolute bottom-0 left-0 right-0 p-5">
-            <div className="flex items-end justify-between">
-              <div>
-                <h1 className="text-white font-bold text-2xl mb-1">{trip.destination}</h1>
-                <p className="text-white/70 text-sm">
-                  {new Date(trip.start_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - {new Date(trip.end_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                </p>
+      {/* Hero */}
+      <div className="px-4 pt-20 pb-4">
+        <HeroCard
+          image={destinationImage}
+          title={trip.destination}
+          subtitle={`${new Date(trip.start_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${new Date(trip.end_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} • From ${fromCity}`}
+          height="md"
+          badge={
+            daysToGo > 0 ? (
+              <div className="bg-white/95 backdrop-blur px-3 py-1.5 rounded-xl text-center shadow-lg">
+                <p className="text-lg font-bold text-neutral-900">{daysToGo}</p>
+                <p className="text-[10px] text-neutral-500 uppercase tracking-wide">days</p>
               </div>
-              {daysToGo > 0 && (
-                <div className="bg-white/20 backdrop-blur-xl rounded-2xl px-4 py-2 text-center">
-                  <p className="text-white font-bold text-xl">{daysToGo}</p>
-                  <p className="text-white/70 text-xs">days to go</p>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
+            ) : undefined
+          }
+        />
       </div>
 
-      {/* Liquid Tab Switcher */}
+      {/* Tabs */}
       <div className="px-4 mb-4">
-        <div className="bg-white/60 backdrop-blur-xl rounded-2xl p-1.5 flex gap-1 shadow-lg shadow-black/5">
-          <button
-            onClick={() => setActiveTab('insights')}
-            className={`flex-1 py-3 rounded-xl font-medium text-sm flex items-center justify-center gap-2 transition-all duration-300 ${
-              activeTab === 'insights'
-                ? 'bg-[#0A7A6E] text-white shadow-lg shadow-[#0A7A6E]/30'
-                : 'text-[#6B6B6B] hover:bg-white/50'
-            }`}
-          >
-            <Sparkles className="w-4 h-4" />
-            Flight & Hotel Insights
-          </button>
-          <button
-            onClick={() => setActiveTab('packing')}
-            className={`flex-1 py-3 rounded-xl font-medium text-sm flex items-center justify-center gap-2 transition-all duration-300 ${
-              activeTab === 'packing'
-                ? 'bg-[#0A7A6E] text-white shadow-lg shadow-[#0A7A6E]/30'
-                : 'text-[#6B6B6B] hover:bg-white/50'
-            }`}
-          >
-            🎒 Packing List
-            {totalItems > 0 && (
-              <span className={`text-xs px-1.5 py-0.5 rounded-full ${activeTab === 'packing' ? 'bg-white/20' : 'bg-[#0A7A6E]/10 text-[#0A7A6E]'}`}>
-                {progress}%
-              </span>
-            )}
-          </button>
+        <div className="bg-white rounded-2xl p-1.5 shadow-sm">
+          <Tabs
+            tabs={tabs}
+            activeTab={activeTab}
+            onChange={(id) => setActiveTab(id as TabType)}
+            variant="pills"
+            size="md"
+            className="w-full"
+          />
         </div>
       </div>
 
@@ -151,276 +146,286 @@ export default function TripDetailPage() {
       <div className="px-4 pb-8">
         {/* INSIGHTS TAB */}
         {activeTab === 'insights' && (
-          <div className="space-y-4">
-            {/* Flight Card */}
-            <div className="bg-white/70 backdrop-blur-xl rounded-3xl p-5 shadow-lg shadow-black/5">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 bg-gradient-to-br from-[#0A7A6E] to-[#0D9488] rounded-xl flex items-center justify-center">
+          <div className="space-y-4 animate-fade-in">
+            {/* Flight Insights */}
+            <Card variant="elevated" padding="lg">
+              <div className="flex items-center gap-3 mb-5">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center shadow-lg shadow-primary-500/25">
                   <Plane className="w-5 h-5 text-white" />
                 </div>
                 <div>
-                  <h2 className="font-bold text-[#1A1A1A]">Flight Insights</h2>
-                  <p className="text-xs text-[#6B6B6B]">From {fromCity}</p>
+                  <h2 className="font-bold text-neutral-900">Flight Insights</h2>
+                  <p className="text-sm text-neutral-500">From {fromCity}</p>
                 </div>
               </div>
 
-              {/* Budget vs Comfort comparison */}
+              {/* Flight Comparison */}
               <div className="space-y-3">
-                {/* Budget Option */}
-                <div className="bg-[#F8F7F5] rounded-2xl p-4">
-                  <div className="flex items-start justify-between mb-2">
-                    <div>
-                      <span className="text-xs bg-[#FEF3C7] text-[#92400E] px-2 py-0.5 rounded-full font-medium">💰 Budget</span>
-                      <p className="font-semibold text-[#1A1A1A] mt-2">IndiGo</p>
-                      <p className="text-xs text-[#6B6B6B]">Direct • 3h 15m • Morning</p>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-xl font-bold text-[#1A1A1A]">₹{(flightTrends.lowestPrice || 14200).toLocaleString()}</p>
-                      <p className="text-xs text-[#6B6B6B]">per person</p>
-                    </div>
-                  </div>
-                  <div className="flex flex-wrap gap-1 mt-3">
-                    <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-lg">✓ Cheapest</span>
-                    <span className="text-xs bg-orange-100 text-orange-700 px-2 py-1 rounded-lg">15kg bag</span>
-                    <span className="text-xs bg-orange-100 text-orange-700 px-2 py-1 rounded-lg">No meal</span>
-                  </div>
-                </div>
+                <FlightCard
+                  airline="IndiGo"
+                  departure="07:15"
+                  arrival="09:30"
+                  duration="3h 15m"
+                  price={flightTrends.lowestPrice || 14200}
+                  badge="budget"
+                  pros={['Cheapest', 'Direct']}
+                  cons={['15kg bag', 'No meal']}
+                />
 
-                {/* Comfort Option */}
-                <div className="bg-gradient-to-r from-[#F0FDFA] to-[#ECFDF5] rounded-2xl p-4 border-2 border-[#0A7A6E]/20 relative overflow-hidden">
-                  <div className="absolute top-0 right-0 bg-[#0A7A6E] text-white text-xs px-3 py-1 rounded-bl-xl font-medium">
-                    ⭐ Recommended
-                  </div>
-                  <div className="flex items-start justify-between mb-2">
-                    <div>
-                      <p className="font-semibold text-[#1A1A1A] mt-4">Emirates</p>
-                      <p className="text-xs text-[#6B6B6B]">Direct • 3h 15m • A380 Aircraft</p>
-                    </div>
-                    <div className="text-right mt-4">
-                      <p className="text-xl font-bold text-[#0A7A6E]">₹{((flightTrends.lowestPrice || 14200) + 4000).toLocaleString()}</p>
-                      <p className="text-xs text-[#6B6B6B]">+₹4,000/person</p>
-                    </div>
-                  </div>
-                  <div className="flex flex-wrap gap-1 mt-3">
-                    <span className="text-xs bg-[#0A7A6E]/10 text-[#0A7A6E] px-2 py-1 rounded-lg">✓ 30kg bag</span>
-                    <span className="text-xs bg-[#0A7A6E]/10 text-[#0A7A6E] px-2 py-1 rounded-lg">✓ Free meal</span>
-                    <span className="text-xs bg-[#0A7A6E]/10 text-[#0A7A6E] px-2 py-1 rounded-lg">✓ Extra legroom</span>
-                  </div>
-                  <div className="mt-3 p-2 bg-white/50 rounded-xl">
-                    <p className="text-xs text-[#0A7A6E]">💡 Worth the extra ₹4K with a {trip.kid_ages?.[0] || 5} year old - more legroom, entertainment, and 2x baggage</p>
-                  </div>
-                </div>
+                <FlightCard
+                  airline="Emirates"
+                  departure="07:30"
+                  arrival="09:45"
+                  duration="3h 15m"
+                  price={(flightTrends.lowestPrice || 14200) + 4000}
+                  badge="comfort"
+                  pros={['30kg bag', 'Free meal', 'Extra legroom']}
+                  insight={`💡 Worth ₹4K extra with a ${trip.kid_ages?.[0] || 5} year old - more space, entertainment, 2x baggage`}
+                />
               </div>
 
-              {/* Price Trend Mini */}
-              {flightTrends.trends?.length > 0 && flightTrends.savings > 500 && (
-                <div className="mt-4 bg-green-50 rounded-2xl p-3 flex items-center gap-3">
-                  <TrendingDown className="w-5 h-5 text-green-600" />
-                  <div>
-                    <p className="text-sm font-medium text-green-800">Price drops ₹{flightTrends.savings.toLocaleString()}</p>
-                    <p className="text-xs text-green-600">If you fly on {new Date(flightTrends.lowestDate).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}</p>
+              {/* Price Trend */}
+              {flightTrends.trends?.length > 0 && (
+                <div className="mt-5 pt-5 border-t border-neutral-100">
+                  <p className="text-sm font-medium text-neutral-700 mb-3">📊 Price Trend (20 days)</p>
+                  <div className="h-16 flex items-end gap-0.5 bg-neutral-50 rounded-xl p-3">
+                    {flightTrends.trends.slice(0, 20).map((t: any, i: number) => {
+                      const prices = flightTrends.trends.map((x: any) => x.price);
+                      const max = Math.max(...prices);
+                      const min = Math.min(...prices);
+                      const h = max > min ? ((t.price - min) / (max - min)) * 100 : 50;
+                      const isLowest = t.price === flightTrends.lowestPrice;
+                      return (
+                        <div
+                          key={i}
+                          className={cn(
+                            'flex-1 rounded-t transition-all',
+                            isLowest ? 'bg-emerald-500' : i === 0 ? 'bg-primary-500' : 'bg-neutral-200'
+                          )}
+                          style={{ height: `${Math.max(h, 10)}%` }}
+                        />
+                      );
+                    })}
                   </div>
+                  {flightTrends.savings > 500 && (
+                    <div className="mt-3 flex items-center gap-2 text-emerald-600">
+                      <TrendingDown className="w-4 h-4" />
+                      <span className="text-sm font-medium">
+                        Save ₹{flightTrends.savings.toLocaleString()} on {new Date(flightTrends.lowestDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                      </span>
+                    </div>
+                  )}
                 </div>
               )}
-            </div>
+            </Card>
 
-            {/* Hotel Card */}
-            <div className="bg-white/70 backdrop-blur-xl rounded-3xl p-5 shadow-lg shadow-black/5">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 bg-gradient-to-br from-[#7C3AED] to-[#A78BFA] rounded-xl flex items-center justify-center">
+            {/* Hotel Insights */}
+            <Card variant="elevated" padding="lg">
+              <div className="flex items-center gap-3 mb-5">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-500 to-violet-600 flex items-center justify-center shadow-lg shadow-violet-500/25">
                   <Hotel className="w-5 h-5 text-white" />
                 </div>
                 <div>
-                  <h2 className="font-bold text-[#1A1A1A]">Hotel Insights</h2>
-                  <p className="text-xs text-[#6B6B6B]">{preferences.hotel_rating || 4}⭐ • {(preferences.amenities || ['Central']).slice(0, 2).join(', ')}</p>
+                  <h2 className="font-bold text-neutral-900">Hotel Insights</h2>
+                  <p className="text-sm text-neutral-500">{preferences.hotel_rating || 4}⭐ • {(preferences.amenities || ['Central']).slice(0, 2).join(', ')}</p>
                 </div>
               </div>
 
               {/* Hotel Recommendation */}
-              <div className="bg-gradient-to-r from-[#F5F3FF] to-[#EDE9FE] rounded-2xl overflow-hidden">
+              <div className="rounded-2xl overflow-hidden border border-violet-100 bg-gradient-to-br from-violet-50/50 to-white">
                 <div className="relative h-32">
                   <img src={destinationImage} alt="Hotel" className="w-full h-full object-cover" />
-                  <div className="absolute top-3 right-3 bg-white/90 backdrop-blur px-2 py-1 rounded-lg text-xs font-medium text-[#7C3AED]">Best Match</div>
+                  <Badge variant="primary" className="absolute top-3 right-3 bg-violet-500 text-white border-0">
+                    Best Match
+                  </Badge>
                 </div>
                 <div className="p-4">
                   <div className="flex items-start justify-between">
                     <div>
-                      <p className="font-semibold text-[#1A1A1A]">Rove Downtown</p>
-                      <p className="text-xs text-[#6B6B6B]">⭐⭐⭐⭐ • Downtown</p>
+                      <p className="font-bold text-neutral-900">Rove Downtown</p>
+                      <p className="text-sm text-neutral-500">⭐⭐⭐⭐ • Downtown</p>
                     </div>
                     <div className="text-right">
-                      <p className="text-lg font-bold text-[#7C3AED]">₹8,500</p>
-                      <p className="text-xs text-[#6B6B6B]">per night</p>
+                      <p className="text-xl font-bold text-violet-600">₹8,500</p>
+                      <p className="text-xs text-neutral-500">per night</p>
                     </div>
                   </div>
-                  <div className="flex flex-wrap gap-1 mt-3">
-                    <span className="text-xs bg-[#7C3AED]/10 text-[#7C3AED] px-2 py-1 rounded-lg">🚇 Near Metro</span>
-                    <span className="text-xs bg-[#7C3AED]/10 text-[#7C3AED] px-2 py-1 rounded-lg">🏊 Kids Pool</span>
-                    <span className="text-xs bg-[#7C3AED]/10 text-[#7C3AED] px-2 py-1 rounded-lg">🍛 Indian Food</span>
+                  <div className="flex flex-wrap gap-1.5 mt-3">
+                    <span className="text-xs px-2 py-1 bg-violet-50 text-violet-700 rounded-lg">🚇 Near Metro</span>
+                    <span className="text-xs px-2 py-1 bg-violet-50 text-violet-700 rounded-lg">🏊 Kids Pool</span>
+                    <span className="text-xs px-2 py-1 bg-violet-50 text-violet-700 rounded-lg">🍛 Indian Food</span>
                   </div>
                 </div>
               </div>
-
-              <button className="w-full mt-4 py-3 bg-[#F8F7F5] rounded-2xl text-sm font-medium text-[#6B6B6B] flex items-center justify-center gap-2">
-                View more hotels <ChevronRight className="w-4 h-4" />
-              </button>
-            </div>
+            </Card>
 
             {/* Quick Tips */}
             {preferences.things_to_know?.length > 0 && (
-              <div className="bg-white/70 backdrop-blur-xl rounded-3xl p-5 shadow-lg shadow-black/5">
-                <h2 className="font-bold text-[#1A1A1A] mb-3">💡 Quick Tips</h2>
-                <div className="space-y-2">
-                  {preferences.things_to_know.slice(0, 3).map((tip: string, i: number) => (
-                    <p key={i} className="text-sm text-[#6B6B6B]">{tip}</p>
+              <Card variant="elevated" padding="lg">
+                <h3 className="font-bold text-neutral-900 mb-3">💡 Quick Tips</h3>
+                <div className="space-y-2.5">
+                  {preferences.things_to_know.slice(0, 4).map((tip: string, i: number) => (
+                    <p key={i} className="text-sm text-neutral-600 leading-relaxed">{tip}</p>
                   ))}
                 </div>
-              </div>
+              </Card>
             )}
           </div>
         )}
 
         {/* PACKING TAB */}
         {activeTab === 'packing' && (
-          <div className="space-y-4">
+          <div className="space-y-4 animate-fade-in">
             {/* Progress Card */}
-            <div className="bg-white/70 backdrop-blur-xl rounded-3xl p-5 shadow-lg shadow-black/5">
-              <div className="flex items-center justify-between mb-3">
+            <Card variant="elevated" padding="lg">
+              <div className="flex items-center justify-between">
                 <div>
-                  <h2 className="font-bold text-[#1A1A1A]">Your Progress</h2>
-                  <p className="text-sm text-[#6B6B6B]">{packedItems} of {totalItems} items</p>
+                  <h2 className="font-bold text-neutral-900">Your Progress</h2>
+                  <p className="text-sm text-neutral-500 mt-0.5">{packedItems} of {totalItems} items packed</p>
                 </div>
-                <div className="w-16 h-16 relative">
-                  <svg className="w-16 h-16 -rotate-90">
-                    <circle cx="32" cy="32" r="28" stroke="#E5E5E5" strokeWidth="6" fill="none" />
-                    <circle cx="32" cy="32" r="28" stroke="#0A7A6E" strokeWidth="6" fill="none" strokeDasharray={`${progress * 1.76} 176`} strokeLinecap="round" />
-                  </svg>
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <span className="text-lg font-bold text-[#0A7A6E]">{progress}%</span>
-                  </div>
-                </div>
+                <Progress value={progress} variant="circular" size="lg" showLabel />
               </div>
-            </div>
+            </Card>
 
             {/* Kids Section */}
             {kidsItems.length > 0 && (
-              <div className="bg-white/70 backdrop-blur-xl rounded-3xl overflow-hidden shadow-lg shadow-black/5">
-                <div className="p-4 bg-gradient-to-r from-[#FEF3C7] to-[#FDE68A]/50">
+              <Card variant="default" padding="none" className="overflow-hidden">
+                <div className="px-4 py-3 bg-gradient-to-r from-amber-50 to-amber-100/50 border-b border-amber-100">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <span className="text-xl">👶</span>
-                      <span className="font-semibold text-[#92400E]">For Kids</span>
+                      <span className="text-lg">👶</span>
+                      <span className="font-semibold text-amber-900">For Kids</span>
                     </div>
-                    <span className="text-sm text-[#92400E]">{kidsItems.filter(i => i.checked).length}/{kidsItems.length}</span>
+                    <Badge variant="warning" size="sm">{kidsItems.filter(i => i.checked).length}/{kidsItems.length}</Badge>
                   </div>
                 </div>
-                <div className="p-2">
+                <div className="px-4 divide-y divide-neutral-50">
                   {kidsItems.map((item) => (
-                    <button key={item.id} onClick={() => toggleItem(item.id)} className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-[#F8F7F5] transition-colors">
-                      <div className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-all ${item.checked ? 'bg-[#0A7A6E] border-[#0A7A6E]' : 'border-[#D1D5DB]'}`}>
-                        {item.checked && <Check className="w-4 h-4 text-white" />}
-                      </div>
-                      <span className={`flex-1 text-left text-sm ${item.checked ? 'line-through text-[#9CA3AF]' : 'text-[#1A1A1A]'}`}>{item.text}</span>
-                    </button>
+                    <div key={item.id} className="py-3">
+                      <Checkbox
+                        checked={item.checked}
+                        onChange={() => toggleItem(item.id)}
+                        label={item.text}
+                      />
+                    </div>
                   ))}
                 </div>
-              </div>
+              </Card>
             )}
 
             {/* Adults Section */}
             {adultsItems.length > 0 && (
-              <div className="bg-white/70 backdrop-blur-xl rounded-3xl overflow-hidden shadow-lg shadow-black/5">
-                <div className="p-4 bg-gradient-to-r from-[#DBEAFE] to-[#BFDBFE]/50">
+              <Card variant="default" padding="none" className="overflow-hidden">
+                <div className="px-4 py-3 bg-gradient-to-r from-sky-50 to-sky-100/50 border-b border-sky-100">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <span className="text-xl">👨‍👩</span>
-                      <span className="font-semibold text-[#1E40AF]">For Adults</span>
+                      <span className="text-lg">👨‍👩</span>
+                      <span className="font-semibold text-sky-900">For Adults</span>
                     </div>
-                    <span className="text-sm text-[#1E40AF]">{adultsItems.filter(i => i.checked).length}/{adultsItems.length}</span>
+                    <Badge variant="info" size="sm">{adultsItems.filter(i => i.checked).length}/{adultsItems.length}</Badge>
                   </div>
                 </div>
-                <div className="p-2">
+                <div className="px-4 divide-y divide-neutral-50">
                   {adultsItems.map((item) => (
-                    <button key={item.id} onClick={() => toggleItem(item.id)} className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-[#F8F7F5] transition-colors">
-                      <div className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-all ${item.checked ? 'bg-[#0A7A6E] border-[#0A7A6E]' : 'border-[#D1D5DB]'}`}>
-                        {item.checked && <Check className="w-4 h-4 text-white" />}
-                      </div>
-                      <span className={`flex-1 text-left text-sm ${item.checked ? 'line-through text-[#9CA3AF]' : 'text-[#1A1A1A]'}`}>{item.text}</span>
-                    </button>
+                    <div key={item.id} className="py-3">
+                      <Checkbox
+                        checked={item.checked}
+                        onChange={() => toggleItem(item.id)}
+                        label={item.text}
+                      />
+                    </div>
                   ))}
                 </div>
-              </div>
+              </Card>
             )}
 
             {/* Indian Essentials */}
             {indianItems.length > 0 && (
-              <div className="bg-white/70 backdrop-blur-xl rounded-3xl overflow-hidden shadow-lg shadow-black/5">
-                <div className="p-4 bg-gradient-to-r from-[#FED7AA] to-[#FDBA74]/50">
+              <Card variant="default" padding="none" className="overflow-hidden">
+                <div className="px-4 py-3 bg-gradient-to-r from-orange-50 to-orange-100/50 border-b border-orange-100">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <span className="text-xl">🇮🇳</span>
-                      <span className="font-semibold text-[#9A3412]">Indian Essentials</span>
+                      <span className="text-lg">🇮🇳</span>
+                      <span className="font-semibold text-orange-900">Indian Essentials</span>
                     </div>
-                    <span className="text-sm text-[#9A3412]">{indianItems.filter(i => i.checked).length}/{indianItems.length}</span>
+                    <Badge variant="warning" size="sm">{indianItems.filter(i => i.checked).length}/{indianItems.length}</Badge>
                   </div>
                 </div>
-                <div className="p-2">
+                <div className="px-4 divide-y divide-neutral-50">
                   {indianItems.map((item) => (
-                    <button key={item.id} onClick={() => toggleItem(item.id)} className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-[#F8F7F5] transition-colors">
-                      <div className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-all ${item.checked ? 'bg-[#0A7A6E] border-[#0A7A6E]' : 'border-[#D1D5DB]'}`}>
-                        {item.checked && <Check className="w-4 h-4 text-white" />}
-                      </div>
-                      <span className={`flex-1 text-left text-sm ${item.checked ? 'line-through text-[#9CA3AF]' : 'text-[#1A1A1A]'}`}>{item.text}</span>
-                    </button>
+                    <div key={item.id} className="py-3">
+                      <Checkbox
+                        checked={item.checked}
+                        onChange={() => toggleItem(item.id)}
+                        label={item.text}
+                      />
+                    </div>
                   ))}
                 </div>
-              </div>
+              </Card>
             )}
 
             {/* Add Item Button */}
-            <button onClick={() => setShowAddItem(true)} className="w-full py-4 bg-white/50 backdrop-blur-xl rounded-2xl border-2 border-dashed border-[#0A7A6E]/30 text-[#0A7A6E] font-medium flex items-center justify-center gap-2">
-              <Plus className="w-5 h-5" />
+            <Button
+              variant="outline"
+              size="lg"
+              fullWidth
+              icon={<Plus className="w-5 h-5" />}
+              onClick={() => setShowAddItem(true)}
+              className="border-dashed border-primary-300 text-primary-600 hover:bg-primary-50"
+            >
               Add custom item
-            </button>
+            </Button>
           </div>
         )}
       </div>
 
-      {/* Add Item Modal */}
-      {showAddItem && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-end">
-          <div className="w-full bg-white rounded-t-3xl p-5 animate-slide-up">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="font-bold text-lg text-[#1A1A1A]">Add Item</h3>
-              <button onClick={() => setShowAddItem(false)} className="w-8 h-8 bg-[#F8F7F5] rounded-full flex items-center justify-center">
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-            <input
-              type="text"
-              value={newItem}
-              onChange={(e) => setNewItem(e.target.value)}
-              placeholder="What do you need to pack?"
-              className="w-full px-4 py-3 bg-[#F8F7F5] rounded-xl border border-[#E5E5E5] outline-none focus:border-[#0A7A6E] mb-4"
-              autoFocus
-            />
-            <div className="flex gap-2 mb-4">
+      {/* Add Item Bottom Sheet */}
+      <BottomSheet
+        isOpen={showAddItem}
+        onClose={() => setShowAddItem(false)}
+        title="Add Item"
+      >
+        <div className="space-y-4">
+          <input
+            type="text"
+            value={newItem}
+            onChange={(e) => setNewItem(e.target.value)}
+            placeholder="What do you need to pack?"
+            className="w-full px-4 py-3.5 bg-neutral-50 rounded-xl border-2 border-transparent focus:border-primary-500 focus:bg-white outline-none transition-all"
+            autoFocus
+          />
+
+          <div>
+            <p className="text-sm font-medium text-neutral-700 mb-2">Category</p>
+            <div className="flex gap-2">
               {(['kids', 'adults', 'indian'] as const).map((cat) => (
                 <button
                   key={cat}
                   onClick={() => setNewItemCategory(cat)}
-                  className={`flex-1 py-2 rounded-xl text-sm font-medium ${newItemCategory === cat ? 'bg-[#0A7A6E] text-white' : 'bg-[#F8F7F5] text-[#6B6B6B]'}`}
+                  className={cn(
+                    'flex-1 py-2.5 rounded-xl text-sm font-medium transition-all',
+                    newItemCategory === cat
+                      ? 'bg-primary-500 text-white'
+                      : 'bg-neutral-100 text-neutral-600 hover:bg-neutral-200'
+                  )}
                 >
                   {cat === 'kids' ? '👶 Kids' : cat === 'adults' ? '👨‍👩 Adults' : '🇮🇳 Indian'}
                 </button>
               ))}
             </div>
-            <button onClick={addItem} disabled={!newItem.trim()} className={`w-full py-4 rounded-xl font-semibold ${newItem.trim() ? 'bg-[#0A7A6E] text-white' : 'bg-[#E5E5E5] text-[#9CA3AF]'}`}>
-              Add to List
-            </button>
           </div>
+
+          <Button
+            size="xl"
+            fullWidth
+            onClick={addItem}
+            disabled={!newItem.trim()}
+          >
+            Add to List
+          </Button>
         </div>
-      )}
-    </div>
+      </BottomSheet>
+    </Screen>
   );
 }

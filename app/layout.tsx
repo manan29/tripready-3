@@ -1,16 +1,14 @@
 import type { Metadata, Viewport } from 'next';
-import { Inter } from 'next/font/google';
+import { plusJakarta, jetbrainsMono } from '@/lib/design-system/fonts';
 import './globals.css';
 
-const inter = Inter({ subsets: ['latin'] });
-
 export const metadata: Metadata = {
-  title: 'JourneyAI - Family Travel Planning',
-  description: 'AI-powered travel planning for Indian families',
+  title: 'JourneyAI - Smart Family Travel Planning',
+  description: 'AI-powered travel planning for Indian families. Get personalized packing lists, flight recommendations, and trip insights.',
   manifest: '/manifest.json',
   appleWebApp: {
     capable: true,
-    statusBarStyle: 'black-translucent',
+    statusBarStyle: 'default',
     title: 'JourneyAI',
   },
 };
@@ -20,6 +18,7 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 1,
   userScalable: false,
+  viewportFit: 'cover',
   themeColor: '#0A7A6E',
 };
 
@@ -29,13 +28,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
+    <html lang="en" className={`${plusJakarta.variable} ${jetbrainsMono.variable}`}>
       <head>
-        <link rel="apple-touch-icon" href="/icon-192.png" />
-        <meta name="apple-mobile-web-app-capable" content="yes" />
-        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
       </head>
-      <body className={inter.className}>{children}</body>
+      <body className="font-sans antialiased">
+        {children}
+      </body>
     </html>
   );
 }
