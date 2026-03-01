@@ -5,7 +5,7 @@ import { cn } from '@/lib/design-system/cn';
 import { Loader2 } from 'lucide-react';
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'primary' | 'secondary' | 'ghost' | 'outline' | 'danger';
+  variant?: 'primary' | 'secondary' | 'ghost' | 'outline' | 'gold';
   size?: 'sm' | 'md' | 'lg' | 'xl';
   loading?: boolean;
   icon?: React.ReactNode;
@@ -27,11 +27,11 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     ...props
   }, ref) => {
     const variants = {
-      primary: 'bg-primary-500 text-white hover:bg-primary-600 active:bg-primary-700 shadow-md hover:shadow-lg active:shadow-sm',
-      secondary: 'bg-neutral-100 text-neutral-900 hover:bg-neutral-200 active:bg-neutral-300',
-      ghost: 'bg-transparent text-neutral-600 hover:bg-neutral-100 active:bg-neutral-200',
-      outline: 'bg-transparent border-2 border-neutral-200 text-neutral-900 hover:border-neutral-300 hover:bg-neutral-50',
-      danger: 'bg-red-500 text-white hover:bg-red-600 active:bg-red-700',
+      primary: 'bg-primary-400 text-dark-primary hover:bg-primary-500 active:bg-primary-600 shadow-glow hover:shadow-glow-lg font-bold',
+      secondary: 'bg-dark-elevated text-text-primary hover:bg-dark-tertiary active:bg-dark-secondary border border-border-default',
+      ghost: 'bg-transparent text-text-secondary hover:bg-dark-tertiary active:bg-dark-elevated',
+      outline: 'bg-transparent border-2 border-border-default text-text-primary hover:border-primary-400 hover:bg-primary-400/10',
+      gold: 'bg-gold-400 text-dark-primary hover:bg-gold-500 active:bg-gold-600 shadow-glow-gold font-bold',
     };
 
     const sizes = {
@@ -47,7 +47,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         disabled={disabled || loading}
         className={cn(
           'inline-flex items-center justify-center font-semibold transition-all duration-200',
-          'focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2',
+          'focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-dark-primary',
           'disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none',
           'active:scale-[0.98]',
           variants[variant],

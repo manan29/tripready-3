@@ -12,7 +12,7 @@ interface FlightCardProps {
   duration: string;
   price: number;
   perPerson?: boolean;
-  badge?: 'budget' | 'comfort' | 'recommended';
+  badge?: 'budget' | 'comfort' | 'recommended' | 'gold';
   pros?: string[];
   cons?: string[];
   insight?: string;
@@ -39,17 +39,18 @@ export function FlightCard({
     budget: { label: '💰 Budget Pick', variant: 'warning' as const },
     comfort: { label: '⭐ Comfort Pick', variant: 'primary' as const },
     recommended: { label: '✨ Recommended', variant: 'success' as const },
+    gold: { label: '👑 Premium', variant: 'gold' as const },
   };
 
-  const isHighlighted = badge === 'comfort' || badge === 'recommended';
+  const isHighlighted = badge === 'comfort' || badge === 'recommended' || badge === 'gold';
 
   return (
     <div
       className={cn(
         'rounded-2xl border-2 p-4 transition-all duration-200',
         isHighlighted
-          ? 'border-primary-200 bg-gradient-to-br from-primary-50/50 to-white'
-          : 'border-neutral-100 bg-white hover:border-neutral-200',
+          ? 'border-primary-400/50 bg-primary-400/5 shadow-glow-sm'
+          : 'border-border-default bg-dark-tertiary hover:border-border-strong',
         className
       )}
     >
@@ -65,36 +66,36 @@ export function FlightCard({
       {/* Flight Info */}
       <div className="flex items-start justify-between mb-3">
         <div>
-          <p className="font-bold text-neutral-900 text-lg">{airline}</p>
+          <p className="font-bold text-text-primary text-lg">{airline}</p>
           {flightNumber && (
-            <p className="text-sm text-neutral-500">{flightNumber}</p>
+            <p className="text-sm text-text-tertiary">{flightNumber}</p>
           )}
         </div>
         <div className="text-right">
-          <p className="font-bold text-xl text-primary-600">
+          <p className="font-bold text-xl text-primary-400">
             ₹{price.toLocaleString()}
           </p>
           {perPerson && (
-            <p className="text-xs text-neutral-500">per person</p>
+            <p className="text-xs text-text-tertiary">per person</p>
           )}
         </div>
       </div>
 
       {/* Route */}
-      <div className="flex items-center gap-3 py-3 border-y border-neutral-100">
+      <div className="flex items-center gap-3 py-3 border-y border-border-subtle">
         <div className="text-center">
-          <p className="font-semibold text-neutral-900">{departure}</p>
+          <p className="font-semibold text-text-primary">{departure}</p>
         </div>
         <div className="flex-1 flex items-center gap-2">
-          <div className="flex-1 h-px bg-neutral-200" />
-          <div className="flex items-center gap-1 text-xs text-neutral-500">
+          <div className="flex-1 h-px bg-border-default" />
+          <div className="flex items-center gap-1 text-xs text-text-tertiary">
             <Plane className="w-3 h-3" />
             <span>{duration}</span>
           </div>
-          <div className="flex-1 h-px bg-neutral-200" />
+          <div className="flex-1 h-px bg-border-default" />
         </div>
         <div className="text-center">
-          <p className="font-semibold text-neutral-900">{arrival}</p>
+          <p className="font-semibold text-text-primary">{arrival}</p>
         </div>
       </div>
 
@@ -102,12 +103,12 @@ export function FlightCard({
       {(pros.length > 0 || cons.length > 0) && (
         <div className="flex flex-wrap gap-1.5 mt-3">
           {pros.map((pro, i) => (
-            <span key={`pro-${i}`} className="text-xs px-2 py-1 bg-emerald-50 text-emerald-700 rounded-lg">
+            <span key={`pro-${i}`} className="text-xs px-2 py-1 bg-emerald-500/20 text-emerald-400 rounded-lg border border-emerald-500/30">
               ✓ {pro}
             </span>
           ))}
           {cons.map((con, i) => (
-            <span key={`con-${i}`} className="text-xs px-2 py-1 bg-amber-50 text-amber-700 rounded-lg">
+            <span key={`con-${i}`} className="text-xs px-2 py-1 bg-amber-500/20 text-amber-400 rounded-lg border border-amber-500/30">
               {con}
             </span>
           ))}
@@ -116,8 +117,8 @@ export function FlightCard({
 
       {/* Insight */}
       {insight && (
-        <div className="mt-3 p-3 bg-primary-50 rounded-xl">
-          <p className="text-sm text-primary-700">{insight}</p>
+        <div className="mt-3 p-3 bg-primary-400/10 rounded-xl border border-primary-400/20">
+          <p className="text-sm text-primary-400">{insight}</p>
         </div>
       )}
 
@@ -130,8 +131,8 @@ export function FlightCard({
           className={cn(
             'mt-4 w-full py-3 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 transition-all',
             isHighlighted
-              ? 'bg-primary-500 text-white hover:bg-primary-600'
-              : 'bg-neutral-100 text-neutral-700 hover:bg-neutral-200'
+              ? 'bg-primary-400 text-dark-primary hover:bg-primary-500 shadow-glow'
+              : 'bg-dark-elevated text-text-secondary hover:bg-dark-secondary'
           )}
         >
           Book on {airline}

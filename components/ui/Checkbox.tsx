@@ -35,14 +35,14 @@ export function Checkbox({ checked, onChange, label, sublabel, disabled, size = 
           'flex-shrink-0 rounded-lg border-2 flex items-center justify-center transition-all duration-200',
           sizes[size].box,
           checked
-            ? 'bg-primary-500 border-primary-500 scale-100'
-            : 'border-neutral-300 bg-white group-hover:border-primary-300 group-hover:bg-primary-50'
+            ? 'bg-primary-400 border-primary-400 scale-100 shadow-glow-sm'
+            : 'border-border-strong bg-dark-secondary group-hover:border-primary-400 group-hover:bg-primary-400/10'
         )}
       >
         <Check
           className={cn(
             sizes[size].icon,
-            'text-white transition-all duration-200',
+            'text-dark-primary transition-all duration-200',
             checked ? 'scale-100 opacity-100' : 'scale-50 opacity-0'
           )}
           strokeWidth={3}
@@ -54,13 +54,13 @@ export function Checkbox({ checked, onChange, label, sublabel, disabled, size = 
             <span className={cn(
               'font-medium transition-all duration-200',
               sizes[size].text,
-              checked ? 'text-neutral-400 line-through' : 'text-neutral-900'
+              checked ? 'text-text-tertiary line-through' : 'text-text-primary'
             )}>
               {label}
             </span>
           )}
           {sublabel && (
-            <p className="text-sm text-neutral-500 mt-0.5">{sublabel}</p>
+            <p className="text-sm text-text-tertiary mt-0.5">{sublabel}</p>
           )}
         </div>
       )}

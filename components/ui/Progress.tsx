@@ -32,7 +32,7 @@ export function Progress({ value, size = 'md', variant = 'linear', showLabel, cl
             stroke="currentColor"
             strokeWidth={strokeWidth}
             fill="none"
-            className="text-neutral-100"
+            className="text-dark-elevated"
           />
           <circle
             cx={diameter / 2}
@@ -44,11 +44,11 @@ export function Progress({ value, size = 'md', variant = 'linear', showLabel, cl
             strokeDasharray={circumference}
             strokeDashoffset={offset}
             strokeLinecap="round"
-            className="text-primary-500 transition-all duration-500 ease-out"
+            className="text-primary-400 transition-all duration-500 ease-out drop-shadow-glow"
           />
         </svg>
         {showLabel && (
-          <span className="absolute text-sm font-bold text-neutral-900">
+          <span className="absolute text-sm font-bold text-text-primary">
             {Math.round(clampedValue)}%
           </span>
         )}
@@ -60,14 +60,14 @@ export function Progress({ value, size = 'md', variant = 'linear', showLabel, cl
 
   return (
     <div className={cn('w-full', className)}>
-      <div className={cn('w-full bg-neutral-100 rounded-full overflow-hidden', heights[size])}>
+      <div className={cn('w-full bg-dark-elevated rounded-full overflow-hidden', heights[size])}>
         <div
-          className="h-full bg-primary-500 rounded-full transition-all duration-500 ease-out"
+          className="h-full bg-gradient-to-r from-primary-500 to-primary-400 rounded-full transition-all duration-500 ease-out shadow-glow"
           style={{ width: `${clampedValue}%` }}
         />
       </div>
       {showLabel && (
-        <p className="mt-1 text-sm font-medium text-neutral-600 text-right">
+        <p className="mt-1 text-sm font-medium text-text-secondary text-right">
           {Math.round(clampedValue)}%
         </p>
       )}

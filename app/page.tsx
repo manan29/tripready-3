@@ -136,18 +136,18 @@ export default function HomePage() {
       <header className="px-5 pt-safe-top">
         <div className="flex items-center justify-between py-4">
           <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl bg-primary-500 flex items-center justify-center shadow-lg shadow-primary-500/25">
-              <Sparkles className="w-5 h-5 text-white" />
+            <div className="w-9 h-9 rounded-xl bg-primary-400 flex items-center justify-center shadow-glow">
+              <Sparkles className="w-5 h-5 text-dark-primary" />
             </div>
-            <span className="font-bold text-lg text-neutral-900">JourneyAI</span>
+            <span className="font-bold text-lg text-text-primary">JourneyAI</span>
           </div>
 
           {user ? (
             <button
               onClick={() => router.push('/profile')}
-              className="w-9 h-9 rounded-full bg-primary-500 flex items-center justify-center"
+              className="w-9 h-9 rounded-full bg-primary-400 flex items-center justify-center shadow-glow-sm"
             >
-              <span className="text-white font-semibold text-sm">
+              <span className="text-dark-primary font-semibold text-sm">
                 {user.user_metadata?.full_name?.[0] || user.email?.[0]?.toUpperCase()}
               </span>
             </button>
@@ -161,23 +161,23 @@ export default function HomePage() {
 
       {/* Hero Section */}
       <section className="px-5 py-6">
-        <h1 className="text-3xl font-extrabold text-neutral-900 tracking-tight">
+        <h1 className="text-3xl font-extrabold text-text-primary tracking-tight">
           {greeting} 👋
         </h1>
-        <p className="text-neutral-500 mt-1">Where's your next adventure?</p>
+        <p className="text-text-secondary mt-1">Where's your next adventure?</p>
 
         {/* Search Bar */}
         <div className="mt-6">
           <div
             className={cn(
               'flex items-center gap-3 rounded-2xl border-2 transition-all duration-300',
-              'bg-white px-4 py-3',
+              'bg-dark-secondary px-4 py-3',
               searchFocused
-                ? 'border-primary-500 shadow-lg shadow-primary-500/10'
-                : 'border-neutral-100 shadow-md shadow-neutral-900/5'
+                ? 'border-primary-400 shadow-glow'
+                : 'border-border-default shadow-dark-md'
             )}
           >
-            <Search className={cn('w-5 h-5 transition-colors', searchFocused ? 'text-primary-500' : 'text-neutral-400')} />
+            <Search className={cn('w-5 h-5 transition-colors', searchFocused ? 'text-primary-400' : 'text-text-tertiary')} />
             <input
               ref={inputRef}
               type="text"
@@ -187,7 +187,7 @@ export default function HomePage() {
               onBlur={() => setSearchFocused(false)}
               onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
               placeholder={isListening ? 'Listening...' : 'Try "Dubai with 5 year old"'}
-              className="flex-1 bg-transparent outline-none text-neutral-900 placeholder-neutral-400"
+              className="flex-1 bg-transparent outline-none text-text-primary placeholder-text-tertiary"
             />
             {isVoiceSupported && (
               <button
@@ -195,14 +195,14 @@ export default function HomePage() {
                 className={cn(
                   'w-10 h-10 rounded-xl flex items-center justify-center transition-all',
                   isListening
-                    ? 'bg-red-500 animate-pulse'
-                    : 'bg-neutral-100 hover:bg-neutral-200'
+                    ? 'bg-red-500 animate-pulse shadow-glow'
+                    : 'bg-dark-elevated hover:bg-dark-tertiary'
                 )}
               >
                 {isListening ? (
                   <MicOff className="w-5 h-5 text-white" />
                 ) : (
-                  <Mic className="w-5 h-5 text-neutral-600" />
+                  <Mic className="w-5 h-5 text-text-secondary" />
                 )}
               </button>
             )}
@@ -214,7 +214,7 @@ export default function HomePage() {
               <button
                 key={s.label}
                 onClick={() => handleSuggestionClick(s.label)}
-                className="flex items-center gap-1.5 px-4 py-2 bg-white border border-neutral-100 rounded-full text-sm font-medium text-neutral-700 whitespace-nowrap hover:border-primary-200 hover:bg-primary-50 transition-colors"
+                className="flex items-center gap-1.5 px-4 py-2 bg-dark-elevated border border-border-default rounded-full text-sm font-medium text-text-secondary whitespace-nowrap hover:border-primary-400 hover:bg-primary-400/10 transition-colors"
               >
                 <span>{s.icon}</span>
                 <span>{s.label}</span>
@@ -229,10 +229,10 @@ export default function HomePage() {
         <div className="px-5 flex items-center justify-between mb-4">
           <div>
             <div className="flex items-center gap-2">
-              <Sun className="w-5 h-5 text-amber-500" />
-              <h2 className="font-bold text-lg text-neutral-900">Perfect Now</h2>
+              <Sun className="w-5 h-5 text-amber-400" />
+              <h2 className="font-bold text-lg text-text-primary">Perfect Now</h2>
             </div>
-            <p className="text-sm text-neutral-500 mt-0.5">Peak season • Great weather</p>
+            <p className="text-sm text-text-tertiary mt-0.5">Peak season • Great weather</p>
           </div>
           <Badge variant="warning">Popular</Badge>
         </div>
@@ -240,7 +240,7 @@ export default function HomePage() {
         <div className="flex gap-3 overflow-x-auto scrollbar-hide px-5">
           {loadingDestinations ? (
             Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} className="flex-shrink-0 w-36 h-44 bg-neutral-100 rounded-2xl animate-pulse" />
+              <div key={i} className="flex-shrink-0 w-36 h-44 bg-dark-elevated rounded-2xl animate-pulse" />
             ))
           ) : (
             peakDestinations.map((dest) => (
@@ -249,18 +249,18 @@ export default function HomePage() {
                 onClick={() => handleDestinationClick(dest.name)}
                 className="flex-shrink-0 w-36 group"
               >
-                <div className="relative h-44 rounded-2xl overflow-hidden shadow-md group-hover:shadow-lg transition-shadow">
+                <div className="relative h-44 rounded-2xl overflow-hidden shadow-dark-md group-hover:shadow-glow transition-shadow border border-border-subtle">
                   <img
                     src={dest.image || DESTINATION_IMAGES[dest.name] || DESTINATION_IMAGES['Dubai']}
                     alt={dest.name}
                     className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-neutral-900/80 via-neutral-900/20 to-transparent" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-dark-primary via-dark-primary/60 to-transparent" />
                   <div className="absolute bottom-0 left-0 right-0 p-3">
                     <p className="text-white font-bold">{dest.name}</p>
                     <div className="flex items-center gap-1 mt-1">
                       <span className="text-white/90 text-sm">{dest.temp}°</span>
-                      <span className="text-white/60 text-xs">• Peak</span>
+                      <span className="text-text-tertiary text-xs">• Peak</span>
                     </div>
                   </div>
                 </div>
@@ -275,10 +275,10 @@ export default function HomePage() {
         <div className="px-5 flex items-center justify-between mb-4">
           <div>
             <div className="flex items-center gap-2">
-              <TrendingUp className="w-5 h-5 text-emerald-500" />
-              <h2 className="font-bold text-lg text-neutral-900">Best Value</h2>
+              <TrendingUp className="w-5 h-5 text-emerald-400" />
+              <h2 className="font-bold text-lg text-text-primary">Best Value</h2>
             </div>
-            <p className="text-sm text-neutral-500 mt-0.5">Shoulder season • Fewer crowds</p>
+            <p className="text-sm text-text-tertiary mt-0.5">Shoulder season • Fewer crowds</p>
           </div>
           <Badge variant="success">Save 20-40%</Badge>
         </div>
@@ -286,7 +286,7 @@ export default function HomePage() {
         <div className="flex gap-3 overflow-x-auto scrollbar-hide px-5">
           {loadingDestinations ? (
             Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} className="flex-shrink-0 w-36 h-44 bg-neutral-100 rounded-2xl animate-pulse" />
+              <div key={i} className="flex-shrink-0 w-36 h-44 bg-dark-elevated rounded-2xl animate-pulse" />
             ))
           ) : (
             shoulderDestinations.map((dest) => (
@@ -295,15 +295,15 @@ export default function HomePage() {
                 onClick={() => handleDestinationClick(dest.name)}
                 className="flex-shrink-0 w-36 group"
               >
-                <div className="relative h-44 rounded-2xl overflow-hidden shadow-md group-hover:shadow-lg transition-shadow">
+                <div className="relative h-44 rounded-2xl overflow-hidden shadow-dark-md group-hover:shadow-glow transition-shadow border border-border-subtle">
                   <img
                     src={dest.image || DESTINATION_IMAGES[dest.name] || DESTINATION_IMAGES['Dubai']}
                     alt={dest.name}
                     className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-neutral-900/80 via-neutral-900/20 to-transparent" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-dark-primary via-dark-primary/60 to-transparent" />
                   {dest.discount && (
-                    <div className="absolute top-3 right-3 bg-emerald-500 text-white text-xs font-bold px-2 py-1 rounded-lg">
+                    <div className="absolute top-3 right-3 bg-emerald-500 text-white text-xs font-bold px-2 py-1 rounded-lg shadow-glow-sm">
                       -{dest.discount}%
                     </div>
                   )}
@@ -324,7 +324,7 @@ export default function HomePage() {
       {/* How It Works */}
       <section className="px-5 py-6">
         <Card variant="elevated" padding="lg">
-          <h3 className="font-bold text-neutral-900 mb-4">How JourneyAI works</h3>
+          <h3 className="font-bold text-text-primary mb-4">How JourneyAI works</h3>
           <div className="flex gap-4">
             {[
               { step: '1', title: 'Tell us', desc: 'Where & when' },
@@ -332,11 +332,11 @@ export default function HomePage() {
               { step: '3', title: 'Pack & go', desc: 'Custom list' },
             ].map((item, i) => (
               <div key={i} className="flex-1 text-center">
-                <div className="w-10 h-10 rounded-full bg-primary-500 text-white font-bold flex items-center justify-center mx-auto mb-2 shadow-lg shadow-primary-500/25">
+                <div className="w-10 h-10 rounded-full bg-primary-400 text-dark-primary font-bold flex items-center justify-center mx-auto mb-2 shadow-glow">
                   {item.step}
                 </div>
-                <p className="font-semibold text-neutral-900 text-sm">{item.title}</p>
-                <p className="text-xs text-neutral-500 mt-0.5">{item.desc}</p>
+                <p className="font-semibold text-text-primary text-sm">{item.title}</p>
+                <p className="text-xs text-text-tertiary mt-0.5">{item.desc}</p>
               </div>
             ))}
           </div>

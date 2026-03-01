@@ -30,7 +30,7 @@ interface Trip {
 export default function TripsPage() {
   const router = useRouter();
   const supabase = createClient();
-  
+
   const [trips, setTrips] = useState<Trip[]>([]);
   const [loading, setLoading] = useState(true);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -41,21 +41,21 @@ export default function TripsPage() {
 
   const checkAuthAndLoadTrips = async () => {
     const { data: { user } } = await supabase.auth.getUser();
-    
+
     if (!user) {
       setIsLoggedIn(false);
       setLoading(false);
       return;
     }
-    
+
     setIsLoggedIn(true);
-    
+
     const { data, error } = await supabase
       .from('trips')
       .select('*')
       .eq('user_id', user.id)
       .order('start_date', { ascending: true });
-    
+
     if (data) setTrips(data);
     setLoading(false);
   };
@@ -75,7 +75,7 @@ export default function TripsPage() {
     const now = new Date();
     const start = new Date(startDate);
     const end = new Date(endDate);
-    
+
     if (now < start) return 'upcoming';
     if (now >= start && now <= end) return 'ongoing';
     return 'completed';
@@ -87,23 +87,23 @@ export default function TripsPage() {
       <Screen className="pb-24">
         <header className="px-5 pt-safe-top">
           <div className="py-4">
-            <h1 className="text-2xl font-bold text-neutral-900">Your Trips</h1>
+            <h1 className="text-2xl font-bold text-text-primary">Your Trips</h1>
           </div>
         </header>
-        
+
         <div className="flex-1 flex flex-col items-center justify-center px-5 py-20">
-          <div className="w-20 h-20 rounded-3xl bg-neutral-100 flex items-center justify-center mb-6">
-            <MapPin className="w-10 h-10 text-neutral-400" />
+          <div className="w-20 h-20 rounded-3xl bg-dark-elevated flex items-center justify-center mb-6">
+            <MapPin className="w-10 h-10 text-text-tertiary" />
           </div>
-          <h2 className="text-xl font-bold text-neutral-900 mb-2">Sign in to see your trips</h2>
-          <p className="text-neutral-500 text-center mb-8">
+          <h2 className="text-xl font-bold text-text-primary mb-2">Sign in to see your trips</h2>
+          <p className="text-text-tertiary text-center mb-8">
             Save trips and access them from anywhere
           </p>
           <Button size="lg" onClick={() => router.push('/login')}>
             Sign In
           </Button>
         </div>
-        
+
         <BottomNav />
       </Screen>
     );
@@ -113,7 +113,7 @@ export default function TripsPage() {
   if (loading) {
     return (
       <Screen className="flex items-center justify-center pb-24">
-        <div className="w-10 h-10 border-4 border-primary-500 border-t-transparent rounded-full animate-spin" />
+        <div className="w-10 h-10 border-4 border-primary-400 border-t-transparent rounded-full animate-spin" />
         <BottomNav />
       </Screen>
     );
@@ -125,27 +125,27 @@ export default function TripsPage() {
       <Screen className="pb-24">
         <header className="px-5 pt-safe-top">
           <div className="py-4">
-            <h1 className="text-2xl font-bold text-neutral-900">Your Trips</h1>
+            <h1 className="text-2xl font-bold text-text-primary">Your Trips</h1>
           </div>
         </header>
-        
+
         <div className="flex-1 flex flex-col items-center justify-center px-5 py-20">
-          <div className="w-20 h-20 rounded-3xl bg-primary-100 flex items-center justify-center mb-6">
-            <Sparkles className="w-10 h-10 text-primary-500" />
+          <div className="w-20 h-20 rounded-3xl bg-primary-400/20 flex items-center justify-center mb-6 border border-primary-400/30">
+            <Sparkles className="w-10 h-10 text-primary-400" />
           </div>
-          <h2 className="text-xl font-bold text-neutral-900 mb-2">No trips yet</h2>
-          <p className="text-neutral-500 text-center mb-8">
+          <h2 className="text-xl font-bold text-text-primary mb-2">No trips yet</h2>
+          <p className="text-text-tertiary text-center mb-8">
             Plan your first adventure with AI-powered insights
           </p>
-          <Button 
-            size="lg" 
+          <Button
+            size="lg"
             onClick={() => router.push('/')}
             icon={<Plus className="w-5 h-5" />}
           >
             Plan a Trip
           </Button>
         </div>
-        
+
         <BottomNav />
       </Screen>
     );
@@ -161,9 +161,9 @@ export default function TripsPage() {
       {/* Header */}
       <header className="px-5 pt-safe-top">
         <div className="flex items-center justify-between py-4">
-          <h1 className="text-2xl font-bold text-neutral-900">Your Trips</h1>
-          <Button 
-            size="sm" 
+          <h1 className="text-2xl font-bold text-text-primary">Your Trips</h1>
+          <Button
+            size="sm"
             onClick={() => router.push('/')}
             icon={<Plus className="w-4 h-4" />}
           >
@@ -190,7 +190,7 @@ export default function TripsPage() {
         {/* Upcoming Trips */}
         {upcomingTrips.length > 0 && (
           <section>
-            <h2 className="font-semibold text-neutral-700 mb-3">Upcoming</h2>
+            <h2 className="font-semibold text-text-secondary mb-3">Upcoming</h2>
             <div className="space-y-3">
               {upcomingTrips.map((trip) => (
                 <TripCard key={trip.id} trip={trip} onClick={() => router.push(`/trips/${trip.id}`)} />
@@ -202,7 +202,7 @@ export default function TripsPage() {
         {/* Completed Trips */}
         {completedTrips.length > 0 && (
           <section>
-            <h2 className="font-semibold text-neutral-700 mb-3">Past Trips</h2>
+            <h2 className="font-semibold text-text-secondary mb-3">Past Trips</h2>
             <div className="space-y-3">
               {completedTrips.map((trip) => (
                 <TripCard key={trip.id} trip={trip} onClick={() => router.push(`/trips/${trip.id}`)} isPast />
@@ -220,35 +220,35 @@ export default function TripsPage() {
 // Trip Card Component
 function TripCard({ trip, onClick, isPast }: { trip: Trip; onClick: () => void; isPast?: boolean }) {
   const daysToGo = Math.ceil((new Date(trip.start_date).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
-  const packingProgress = trip.packing_list?.length 
+  const packingProgress = trip.packing_list?.length
     ? Math.round((trip.packing_list.filter((i: any) => i.checked).length / trip.packing_list.length) * 100)
     : 0;
   const image = trip.trip_preferences?.destination_image || getDestinationImage(trip.destination);
 
   return (
-    <Card 
-      variant="elevated" 
-      padding="none" 
-      interactive 
+    <Card
+      variant="elevated"
+      padding="none"
+      interactive
       onClick={onClick}
-      className={cn('overflow-hidden', isPast && 'opacity-70')}
+      className={cn('overflow-hidden', isPast && 'opacity-60')}
     >
       <div className="flex">
         {/* Image */}
         <div className="w-28 h-28 flex-shrink-0 relative">
           <img src={image} alt={trip.destination} className="w-full h-full object-cover" />
           {!isPast && daysToGo >= 0 && daysToGo <= 30 && (
-            <div className="absolute top-2 left-2 bg-white/95 backdrop-blur px-2 py-1 rounded-lg">
-              <p className="text-xs font-bold text-neutral-900">{daysToGo}d</p>
+            <div className="absolute top-2 left-2 bg-dark-secondary/95 backdrop-blur px-2 py-1 rounded-lg border border-border-subtle">
+              <p className="text-xs font-bold text-text-primary">{daysToGo}d</p>
             </div>
           )}
         </div>
-        
+
         {/* Content */}
         <div className="flex-1 p-4 flex flex-col justify-between">
           <div>
-            <h3 className="font-bold text-neutral-900">{trip.destination}</h3>
-            <div className="flex items-center gap-1 text-sm text-neutral-500 mt-0.5">
+            <h3 className="font-bold text-text-primary">{trip.destination}</h3>
+            <div className="flex items-center gap-1 text-sm text-text-tertiary mt-0.5">
               <Calendar className="w-3.5 h-3.5" />
               <span>
                 {new Date(trip.start_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
@@ -257,14 +257,14 @@ function TripCard({ trip, onClick, isPast }: { trip: Trip; onClick: () => void; 
               </span>
             </div>
           </div>
-          
+
           {!isPast && (
             <div className="flex items-center justify-between mt-2">
               <div className="flex items-center gap-2 flex-1">
                 <Progress value={packingProgress} size="sm" className="flex-1 max-w-24" />
-                <span className="text-xs text-neutral-500">{packingProgress}%</span>
+                <span className="text-xs text-text-tertiary">{packingProgress}%</span>
               </div>
-              <ChevronRight className="w-5 h-5 text-neutral-400" />
+              <ChevronRight className="w-5 h-5 text-text-tertiary" />
             </div>
           )}
         </div>

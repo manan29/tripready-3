@@ -21,7 +21,7 @@ export function BottomNav() {
   };
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-xl border-t border-neutral-100">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-dark-secondary/95 backdrop-blur-xl border-t border-border-default">
       <div className="flex items-center justify-around h-16 max-w-lg mx-auto pb-safe">
         {NAV_ITEMS.map((item) => {
           const active = isActive(item.href);
@@ -36,17 +36,17 @@ export function BottomNav() {
               <div className={cn(
                 'w-10 h-10 rounded-2xl flex items-center justify-center transition-all duration-300',
                 active
-                  ? 'bg-primary-500 shadow-lg shadow-primary-500/30'
-                  : 'bg-transparent hover:bg-neutral-100'
+                  ? 'bg-primary-400 shadow-glow'
+                  : 'bg-transparent hover:bg-dark-elevated'
               )}>
                 <Icon className={cn(
                   'w-5 h-5 transition-colors duration-300',
-                  active ? 'text-white' : 'text-neutral-400'
+                  active ? 'text-dark-primary' : 'text-text-tertiary'
                 )} />
               </div>
               <span className={cn(
                 'text-[10px] font-semibold mt-1 transition-colors duration-300',
-                active ? 'text-primary-600' : 'text-neutral-400'
+                active ? 'text-primary-400' : 'text-text-tertiary'
               )}>
                 {item.label}
               </span>

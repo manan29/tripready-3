@@ -7,15 +7,16 @@ interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
   variant?: 'default' | 'elevated' | 'outlined' | 'glass';
   padding?: 'none' | 'sm' | 'md' | 'lg';
   interactive?: boolean;
+  glow?: boolean;
 }
 
 const Card = forwardRef<HTMLDivElement, CardProps>(
-  ({ className, variant = 'default', padding = 'md', interactive, children, ...props }, ref) => {
+  ({ className, variant = 'default', padding = 'md', interactive, glow, children, ...props }, ref) => {
     const variants = {
-      default: 'bg-white border border-neutral-100',
-      elevated: 'bg-white shadow-lg',
-      outlined: 'bg-transparent border-2 border-neutral-200',
-      glass: 'bg-white/70 backdrop-blur-xl border border-white/20 shadow-lg',
+      default: 'bg-dark-secondary border border-border-subtle',
+      elevated: 'bg-dark-tertiary shadow-dark-md border border-border-subtle',
+      outlined: 'bg-transparent border-2 border-border-default',
+      glass: 'glass border border-border-subtle shadow-dark-lg',
     };
 
     const paddings = {
@@ -32,7 +33,8 @@ const Card = forwardRef<HTMLDivElement, CardProps>(
           'rounded-2xl transition-all duration-200',
           variants[variant],
           paddings[padding],
-          interactive && 'cursor-pointer hover:shadow-md active:scale-[0.99]',
+          interactive && 'cursor-pointer hover:shadow-glow active:scale-[0.99]',
+          glow && 'hover:shadow-glow',
           className
         )}
         {...props}

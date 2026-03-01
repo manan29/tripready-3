@@ -28,7 +28,7 @@ export function Tabs({ tabs, activeTab, onChange, variant = 'pills', size = 'md'
 
   if (variant === 'underline') {
     return (
-      <div className={cn('flex border-b border-neutral-200', className)}>
+      <div className={cn('flex border-b border-border-default', className)}>
         {tabs.map((tab) => (
           <button
             key={tab.id}
@@ -37,8 +37,8 @@ export function Tabs({ tabs, activeTab, onChange, variant = 'pills', size = 'md'
               'flex items-center gap-2 font-medium transition-all duration-200 border-b-2 -mb-px',
               sizes[size],
               activeTab === tab.id
-                ? 'border-primary-500 text-primary-600'
-                : 'border-transparent text-neutral-500 hover:text-neutral-700 hover:border-neutral-300'
+                ? 'border-primary-400 text-primary-400'
+                : 'border-transparent text-text-tertiary hover:text-text-secondary hover:border-border-strong'
             )}
           >
             {tab.icon}
@@ -46,7 +46,7 @@ export function Tabs({ tabs, activeTab, onChange, variant = 'pills', size = 'md'
             {tab.badge && (
               <span className={cn(
                 'px-1.5 py-0.5 text-xs font-medium rounded-full',
-                activeTab === tab.id ? 'bg-primary-100 text-primary-700' : 'bg-neutral-100 text-neutral-600'
+                activeTab === tab.id ? 'bg-primary-400/20 text-primary-400' : 'bg-dark-elevated text-text-tertiary'
               )}>
                 {tab.badge}
               </span>
@@ -58,7 +58,7 @@ export function Tabs({ tabs, activeTab, onChange, variant = 'pills', size = 'md'
   }
 
   return (
-    <div className={cn('inline-flex p-1 bg-neutral-100 rounded-xl', className)}>
+    <div className={cn('inline-flex p-1 bg-dark-secondary rounded-xl', className)}>
       {tabs.map((tab) => (
         <button
           key={tab.id}
@@ -67,8 +67,8 @@ export function Tabs({ tabs, activeTab, onChange, variant = 'pills', size = 'md'
             'flex items-center gap-2 font-semibold rounded-lg transition-all duration-200',
             sizes[size],
             activeTab === tab.id
-              ? 'bg-white text-neutral-900 shadow-sm'
-              : 'text-neutral-500 hover:text-neutral-700'
+              ? 'bg-primary-400 text-dark-primary shadow-glow-sm'
+              : 'text-text-tertiary hover:text-text-secondary'
           )}
         >
           {tab.icon}
@@ -76,7 +76,7 @@ export function Tabs({ tabs, activeTab, onChange, variant = 'pills', size = 'md'
           {tab.badge && (
             <span className={cn(
               'px-1.5 py-0.5 text-xs font-medium rounded-full',
-              activeTab === tab.id ? 'bg-primary-100 text-primary-700' : 'bg-neutral-200 text-neutral-600'
+              activeTab === tab.id ? 'bg-dark-primary/20 text-dark-primary' : 'bg-dark-elevated text-text-tertiary'
             )}>
               {tab.badge}
             </span>

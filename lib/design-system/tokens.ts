@@ -1,86 +1,117 @@
-// JourneyAI Design System - Tokens
-// Inspired by: Airbnb warmth + Apple cleanliness + CRED polish
+// JourneyAI Design System v6.0 - Dark Teal Theme
+// Premium dark theme with bright teal accents and gold highlights
 
 export const tokens = {
   // ═══════════════════════════════════════════════════════════════
-  // COLORS
+  // DARK COLORS
   // ═══════════════════════════════════════════════════════════════
   colors: {
-    // Primary - Deep Teal (Trust, Travel, Calm)
+    // Dark Backgrounds
+    dark: {
+      primary: '#080F0E',    // Deepest - main background
+      secondary: '#0D1716',  // Cards/sections
+      tertiary: '#121F1E',   // Hover states
+      elevated: '#162624',   // Elevated cards
+    },
+
+    // Bright Teal - Primary accent (glowing)
     primary: {
       50: '#EFFEFA',
       100: '#C6FBF1',
       200: '#8EF7E4',
       300: '#4DEAD3',
-      400: '#1AD4BE',
-      500: '#0A7A6E', // Main brand
-      600: '#066660',
+      400: '#14B8A6',  // Main - bright teal
+      500: '#0D9488',  // Hover
+      600: '#0A7A6E',  // Active
       700: '#08524D',
       800: '#0B413E',
       900: '#0D3634',
     },
 
-    // Neutral - Warm grays (not cold)
-    neutral: {
-      0: '#FFFFFF',
-      25: '#FDFCFB',   // Warmest white
-      50: '#FAF9F7',   // Paper white
-      100: '#F5F3F0',  // Light warm gray
-      200: '#E8E6E3',
-      300: '#D4D2CF',
-      400: '#A8A5A0',
-      500: '#7C7975',
-      600: '#5C5955',
-      700: '#434240',
-      800: '#2D2C2A',
-      900: '#1A1918',  // Rich black
-    },
-
-    // Accent colors
-    coral: {
-      50: '#FFF5F3',
-      100: '#FFE8E3',
-      500: '#FF6B5B',
-      600: '#E5453A',
-    },
+    // Gold - Premium accents
     gold: {
       50: '#FFFBEB',
       100: '#FEF3C7',
-      500: '#F59E0B',
-      600: '#D97706',
-    },
-    sky: {
-      50: '#F0F9FF',
-      100: '#E0F2FE',
-      500: '#0EA5E9',
-      600: '#0284C7',
-    },
-    violet: {
-      50: '#F5F3FF',
-      100: '#EDE9FE',
-      500: '#8B5CF6',
-      600: '#7C3AED',
+      200: '#FDE68A',
+      300: '#FCD34D',
+      400: '#F5A623',  // Main gold
+      500: '#D97706',  // Darker gold
+      600: '#B45309',
     },
 
-    // Semantic
+    // Text (light on dark)
+    text: {
+      primary: '#FFFFFF',     // Brightest text
+      secondary: '#94A3B8',   // Muted text
+      tertiary: '#64748B',    // Subtle text
+      disabled: '#475569',
+    },
+
+    // Borders (subtle dark lines)
+    border: {
+      subtle: '#1E2D2B',
+      default: '#2A3B39',
+      strong: '#3D4F4D',
+    },
+
+    // Semantic Category Colors (for kids/adults/indian sections)
+    category: {
+      kids: {
+        bg: 'rgba(251, 191, 36, 0.1)',    // Amber
+        border: '#F59E0B',
+        text: '#FCD34D',
+      },
+      adults: {
+        bg: 'rgba(99, 102, 241, 0.1)',    // Indigo
+        border: '#6366F1',
+        text: '#A5B4FC',
+      },
+      indian: {
+        bg: 'rgba(34, 197, 94, 0.1)',     // Emerald
+        border: '#22C55E',
+        text: '#86EFAC',
+      },
+    },
+
+    // Semantic States
     success: '#10B981',
     warning: '#F59E0B',
     error: '#EF4444',
     info: '#3B82F6',
+
+    // Accent colors (for variety)
+    coral: {
+      50: '#FFF5F3',
+      500: '#FF6B5B',
+      600: '#E5453A',
+    },
+    violet: {
+      50: '#F5F3FF',
+      500: '#8B5CF6',
+      600: '#7C3AED',
+    },
+    emerald: {
+      50: '#ECFDF5',
+      500: '#10B981',
+      600: '#059669',
+    },
+    amber: {
+      50: '#FFFBEB',
+      500: '#F59E0B',
+      600: '#D97706',
+    },
   },
 
   // ═══════════════════════════════════════════════════════════════
   // TYPOGRAPHY
   // ═══════════════════════════════════════════════════════════════
   typography: {
-    // Using Plus Jakarta Sans (geometric, friendly, modern)
     fontFamily: {
       display: '"Plus Jakarta Sans", system-ui, sans-serif',
       body: '"Plus Jakarta Sans", system-ui, sans-serif',
       mono: '"JetBrains Mono", monospace',
     },
 
-    // Type scale (based on 1.25 ratio)
     fontSize: {
       '2xs': ['10px', { lineHeight: '14px', letterSpacing: '0.02em' }],
       xs: ['12px', { lineHeight: '16px', letterSpacing: '0.01em' }],
@@ -145,20 +176,23 @@ export const tokens = {
   },
 
   // ═══════════════════════════════════════════════════════════════
-  // SHADOWS (Soft, layered)
+  // SHADOWS (Dark theme - deeper shadows)
   // ═══════════════════════════════════════════════════════════════
   shadows: {
-    xs: '0 1px 2px rgba(0, 0, 0, 0.04)',
-    sm: '0 2px 4px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.06)',
-    md: '0 4px 8px rgba(0, 0, 0, 0.04), 0 2px 4px rgba(0, 0, 0, 0.06)',
-    lg: '0 12px 24px rgba(0, 0, 0, 0.06), 0 4px 8px rgba(0, 0, 0, 0.04)',
-    xl: '0 20px 40px rgba(0, 0, 0, 0.08), 0 8px 16px rgba(0, 0, 0, 0.04)',
-    '2xl': '0 32px 64px rgba(0, 0, 0, 0.12), 0 16px 32px rgba(0, 0, 0, 0.06)',
-    inner: 'inset 0 2px 4px rgba(0, 0, 0, 0.04)',
+    xs: '0 1px 2px rgba(0, 0, 0, 0.3)',
+    sm: '0 2px 4px rgba(0, 0, 0, 0.4)',
+    md: '0 4px 8px rgba(0, 0, 0, 0.5)',
+    lg: '0 12px 24px rgba(0, 0, 0, 0.6)',
+    xl: '0 20px 40px rgba(0, 0, 0, 0.7)',
+    '2xl': '0 32px 64px rgba(0, 0, 0, 0.8)',
+    inner: 'inset 0 2px 4px rgba(0, 0, 0, 0.3)',
+
+    // Glowing shadows for interactive elements
     glow: {
-      primary: '0 0 24px rgba(10, 122, 110, 0.25)',
-      coral: '0 0 24px rgba(255, 107, 91, 0.25)',
-      gold: '0 0 24px rgba(245, 158, 11, 0.25)',
+      primary: '0 0 20px rgba(20, 184, 166, 0.4), 0 0 40px rgba(20, 184, 166, 0.2)',
+      gold: '0 0 20px rgba(245, 166, 35, 0.4), 0 0 40px rgba(245, 166, 35, 0.2)',
+      sm: '0 0 10px rgba(20, 184, 166, 0.3)',
+      lg: '0 0 30px rgba(20, 184, 166, 0.5), 0 0 60px rgba(20, 184, 166, 0.3)',
     },
   },
 

@@ -14,8 +14,8 @@ export function Screen({ children, className, gradient = true, safeAreaBottom = 
     <div
       className={cn(
         'min-h-screen',
-        gradient && 'bg-gradient-to-b from-neutral-25 to-neutral-50',
-        !gradient && 'bg-white',
+        gradient && 'bg-gradient-to-b from-dark-primary via-dark-secondary to-dark-primary',
+        !gradient && 'bg-dark-primary',
         safeAreaBottom && 'pb-safe',
         className
       )}
